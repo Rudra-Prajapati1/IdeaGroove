@@ -35,7 +35,7 @@ const HeroSection = () => {
           }`}
         />
         <h1 className="font-poppins text-3xl text-white font-semibold">
-          CONNECT ● COLLABORATIVE ● CONTRIBUTE
+          CONNECT ● COLLABORATE ● CONTRIBUTE
         </h1>
         <span className="absolute block w-full h-[200px] animate-bounce">
           <Lightbulb className="h-12 w-12 absolute top-[50px] left-20 rotate-[-25deg] text-[#fff2cc] animate-wiggle" />
