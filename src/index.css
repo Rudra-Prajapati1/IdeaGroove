@@ -5,6 +5,19 @@
   --font-poppins: "Poppins", sans-serif;
   --font-JetBrains: "JetBrains Mono", monospace;
   --font-dm-sans: "DM Sans", sans-serif;
+  --animate-bounce: bounce 5s infinite ease-in-out;
+
+  --animate-wiggle: wiggle 1s ease-in-out infinite;
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
 }
 
 @keyframes dropdown {
