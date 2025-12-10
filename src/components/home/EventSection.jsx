@@ -10,7 +10,7 @@ const EventSection = () => {
   const fetchEvents = async () => {
     try {
       const { data } = await api.get(
-        "/collections/cc3b4020f10977b993816a0d93dbe91c96272e9707bcff75b4448d7ed10391d2/6939538eb6dbbbd14cf90439/documents"
+        `/collections/${VITE_MOCKMAN_API_KEY}/6939538eb6dbbbd14cf90439/documents`
       );
 
       const eventsArray = data.map((doc) => doc.data);
