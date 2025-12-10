@@ -8,7 +8,7 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 100) setScrolled(true);
+      if (window.scrollY > 120) setScrolled(true);
       else setScrolled(false);
     };
 
@@ -24,7 +24,7 @@ const Navbar = () => {
     <header className="fixed top-5 left-1/2 -translate-x-1/2 w-[40%] z-50">
       <nav className="bg-[#fff2cc] rounded-2xl shadow flex justify-around items-center">
         <button
-          className="text-lg font-poppins font-semibold cursor-pointer border p-2 rounded-2xl hover:shadow-md"
+          className="text-lg font-poppins font-semibold cursor-pointer border p-2 rounded-2xl hover:shadow-md/50"
           onClick={handleMenuOpen}
         >
           Menu
@@ -36,7 +36,7 @@ const Navbar = () => {
             scrolled ? "opacity-100 scale-100" : "opacity-0 scale-50"
           }`}
         />
-        <button className="text-lg font-poppins font-semibold cursor-pointer border p-2 rounded-2xl hover:shadow-md">
+        <button className="text-lg font-poppins font-semibold cursor-pointer border p-2 rounded-2xl hover:shadow-md/50">
           Join
         </button>
       </nav>
