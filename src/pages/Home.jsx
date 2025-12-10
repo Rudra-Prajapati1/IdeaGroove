@@ -7,13 +7,13 @@ import NotesSection from "../components/home/NotesSection";
 
 const Home = () => {
   return (
-    <div>
+    <>
       <HeroSection />
       <EventSection />
       <GroupSection />
       <QnASection />
       <NotesSection />
-    </div>
+    </>
   );
 };
 
