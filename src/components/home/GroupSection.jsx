@@ -8,7 +8,7 @@ const GroupSection = () => {
       <Title text="Groups" />
       <div className="flex gap-5">
         {[1, 2, 3].map((n) => (
-          <GroupCard />
+          <GroupCard key={n} />
         ))}
       </div>
     </section>

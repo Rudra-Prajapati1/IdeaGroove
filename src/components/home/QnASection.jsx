@@ -8,7 +8,7 @@ const QnASection = () => {
       <Title text="QnA" />
       <div className="flex gap-5">
         {[1, 2, 3].map((n) => (
-          <QnACard />
+          <QnACard key={n} />
         ))}
       </div>
     </section>
