@@ -1,41 +1,37 @@
 import React, { useEffect, useState } from "react";
 import Title from "../Title";
+import { useDispatch, useSelector } from "react-redux";
 import EventCard from "../events/EventCard";
-import api from "../api/axios";
+import {
+  fetchEvents,
+  selectAllEvents,
+  selectEventsError,
+  selectEventsStatus,
+} from "../../redux/slice/eventsSlice";
 
 const EventSection = () => {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
 
-  const fetchEvents = async () => {
-    try {
-      const { data } = await api.get(
-        `/collections/${VITE_MOCKMAN_API_KEY}/6939538eb6dbbbd14cf90439/documents`
-      );
-
-      const eventsArray = data.map((doc) => doc.data);
-
-      setEvents(eventsArray);
-      console.log(eventsArray);
-    } catch (error) {
-      console.error(error);
-      alert(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const events = useSelector(selectAllEvents);
+  const status = useSelector(selectEventsStatus);
+  const error = useSelector(selectEventsError);
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    if (status === "idle") {
+      dispatch(fetchEvents());
+    }
+  }, [status, dispatch]);
 
   return (
     <section className="flex flex-col px-10 py-8 justify-center items-center mt-20">
       <Title text="Events" />
+
+      {status === "loading" && <p>Loading events...</p>}
+      {status === "failed" && <p>Error: {error}</p>}
       <div className="flex gap-5">
-        {!loading &&
+        {status === "succeeded" &&
           events
-            .splice(1, 3)
+            .slice(0, 3)
             .map((event) => <EventCard key={event.E_ID} event={event} />)}
       </div>
     </section>
