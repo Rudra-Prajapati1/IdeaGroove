@@ -21,7 +21,6 @@ const Navbar = () => {
     setScrolled(false);
   };
 
-  //function to make the logo transition on scroll
   useEffect(() => {
     if (!isHome) {
       setScrolled(true);
@@ -38,10 +37,10 @@ const Navbar = () => {
   }, [isHome]);
 
   return (
-    <header className="fixed top-5 left-1/2 -translate-x-1/2 w-[40%] z-50">
-      <nav className="bg-[#fff2cc] rounded-2xl shadow flex justify-around items-center">
+    <header className="fixed top-5 left-1/2 -translate-x-1/2 w-[80%] lg:w-[40%] z-50">
+      <nav className="bg-secondary rounded-2xl shadow flex justify-around items-center">
         <button
-          className="text-lg font-poppins font-semibold cursor-pointer border p-2 rounded-2xl hover:shadow-md/50"
+          className="text-sm lg:text-lg font-poppins font-semibold cursor-pointer border p-2 rounded-2xl hover:shadow-md/30"
           onClick={handleMenuOpen}
         >
           Menu
@@ -50,7 +49,7 @@ const Navbar = () => {
           onClick={goHome}
           alt="IdeaGroove Logo with a title text and arrows with a light bub and a stack of books"
           src="./DarkLogo.png"
-          className={`h-20 w-20 p-1 border-2 rounded-full transition-all duration-500 cursor-pointer ${
+          className={`h-12 w-12 lg:h-20 lg:w-20 p-1 border lg:border-2 rounded-full transition-all duration-500 cursor-pointer ${
             scrolled
               ? "opacity-100 scale-100"
               : isHome
@@ -58,13 +57,13 @@ const Navbar = () => {
               : "opacity-100 pointer-events-auto"
           }`}
         />
-        <button className="text-lg font-poppins font-semibold cursor-pointer border p-2 rounded-2xl hover:shadow-md/50">
+        <button className="text-sm lg:text-lg font-poppins font-semibold cursor-pointer border p-2 rounded-2xl hover:shadow-md/30">
           Join
         </button>
       </nav>
 
       {menuOpen && (
-        <div className="w-full mt-1 flex justify-evenly origin-top bg-[#fff2cc] animate-dropdown rounded-b-2xl py-3 shadow">
+        <div className="w-full mt-1 flex max-md:flex-col items-center justify-evenly origin-top bg-secondary animate-dropdown rounded-b-2xl py-3 shadow">
           {navLinks.map((link) => (
             <NavLink
               key={link.id}

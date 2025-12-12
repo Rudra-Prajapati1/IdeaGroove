@@ -8,6 +8,7 @@ import {
   selectEventsError,
   selectEventsStatus,
 } from "../../redux/slice/eventsSlice";
+import ShowMoreButton from "../ShowMoreButton";
 
 const EventSection = () => {
   const dispatch = useDispatch();
@@ -23,17 +24,20 @@ const EventSection = () => {
   }, [status, dispatch]);
 
   return (
-    <section className="flex flex-col px-10 py-8 justify-center items-center mt-20">
+    <section className="flex flex-col px-10 py-8 items-center mt-10">
       <Title text="Events" />
 
       {status === "loading" && <p>Loading events...</p>}
       {status === "failed" && <p>Error: {error}</p>}
-      <div className="flex gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
         {status === "succeeded" &&
           events
+            .filter((e) => e.Is_Active)
             .slice(0, 3)
             .map((event) => <EventCard key={event.E_ID} event={event} />)}
       </div>
+
+      <ShowMoreButton text="View More Events" />
     </section>
   );
 };

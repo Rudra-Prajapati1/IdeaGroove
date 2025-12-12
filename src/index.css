@@ -5,8 +5,9 @@
   --font-poppins: "Poppins", sans-serif;
   --font-JetBrains: "JetBrains Mono", monospace;
   --font-dm-sans: "DM Sans", sans-serif;
+  --color-primary: #1d4e1a;
+  --color-secondary: #fff2cc;
   --animate-bounce: bounce 5s infinite ease-in-out;
-
   --animate-wiggle: wiggle 1s ease-in-out infinite;
 }
 
@@ -34,6 +35,10 @@
 .animate-dropdown {
   animation: dropdown 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   transform-origin: top;
+}
+
+* {
+  scrollbar-width: thin;
 }
 
 body {
