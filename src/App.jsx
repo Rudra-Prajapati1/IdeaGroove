@@ -4,6 +4,7 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Footer from "./components/Footer";
+import Events from "./pages/Events";
 
 const App = () => {
   const location = useLocation();
@@ -13,14 +14,16 @@ const App = () => {
   }, [location.pathname]);
 
   return (
-    <main className="min-h-screen ">
+    <main className="min-h-screen flex flex-col">
       <Navbar />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-      </Routes>
-
+      <div className="flex-1">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/events" element={<Events />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
+      </div>
       <Footer />
     </main>
   );

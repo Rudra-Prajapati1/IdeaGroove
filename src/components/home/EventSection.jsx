@@ -37,7 +37,7 @@ const EventSection = () => {
             .map((event) => <EventCard key={event.E_ID} event={event} />)}
       </div>
 
-      <ShowMoreButton text="View More Events" />
+      <ShowMoreButton text="View More Events" path="/events" />
     </section>
   );
 };
