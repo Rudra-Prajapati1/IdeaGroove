@@ -1,7 +1,7 @@
 import React from "react";
 import group_temp_image from "/images/group_temp_image.jpg";
 
-const GroupCard = () => {
+const GroupCard = ({ group }) => {
   return (
     <div
       className="border-3 border-primary text-primary font-inter py-6 px-4 rounded-2xl
@@ -12,6 +12,7 @@ const GroupCard = () => {
         alt=""
         className="rounded-full h-40 w-40 object-cover"
       />
+      <h1>{group.Room_Name}</h1>
     </div>
   );
 };

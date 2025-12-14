@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import Title from "../components/Title";
 import { Search } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -9,6 +8,7 @@ import {
   selectEventsStatus,
 } from "../redux/slice/eventsSlice";
 import EventCard from "../components/events/EventCard";
+import FilledTitle from "../components/FilledTitle";
 
 const Events = () => {
   const dispatch = useDispatch();
@@ -42,7 +42,7 @@ const Events = () => {
 
   return (
     <section className="flex flex-col px-10 py-8 items-center mt-30">
-      <Title text="Events" />
+      <FilledTitle text="Events" />
 
       <div className="flex justify-around w-full">
         <div className="relative">
