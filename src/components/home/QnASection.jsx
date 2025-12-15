@@ -1,11 +1,11 @@
 import React from "react";
-import Title from "../Title";
 import QnACard from "../qna/QnACard";
+import FilledTitle from "../FilledTitle";
 
 const QnASection = () => {
   return (
     <section className="flex flex-col px-10 py-8 items-center">
-      <Title text="QnA" />
+      <FilledTitle text="QnA" />
       <div className="flex gap-5">
         {[1, 2, 3].map((n) => (
           <QnACard key={n} />

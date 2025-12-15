@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import Title from "../Title";
 import { useDispatch, useSelector } from "react-redux";
 import EventCard from "../events/EventCard";
 import {
@@ -9,6 +8,7 @@ import {
   selectEventsStatus,
 } from "../../redux/slice/eventsSlice";
 import ShowMoreButton from "../ShowMoreButton";
+import FilledTitle from "../FilledTitle";
 
 const EventSection = () => {
   const dispatch = useDispatch();
@@ -25,7 +25,7 @@ const EventSection = () => {
 
   return (
     <section className="flex flex-col px-10 py-8 items-center mt-10">
-      <Title text="Events" />
+      <FilledTitle text="Events" />
 
       {status === "loading" && <p>Loading events...</p>}
       {status === "failed" && <p>Error: {error}</p>}
