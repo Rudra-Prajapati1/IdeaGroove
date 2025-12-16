@@ -6,7 +6,7 @@ const QnACard = ({ question }) => {
   const answerCount = useSelector(selectAnswerCountByQuestionId(question.Q_ID));
 
   return (
-    <div className="border-3 px-6 py-6 font-inter rounded-xl text-primary flex flex-col gap-3">
+    <div className="border-3 px-6 py-6 font-inter rounded-xl shadow-md hover:shadow-md/40 text-primary flex flex-col gap-3 hover:scale-103 duration-300">
       <p className="font-bold tracking-wider text-lg">Q. {question.Question}</p>
       <div className="flex px-10 justify-between items-end">
         <span className="font-semibold font-poppins text-sm">

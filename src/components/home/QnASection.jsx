@@ -12,6 +12,7 @@ import {
   fetchAnswers,
   selectAnswersStatus,
 } from "../../redux/slice/answerSlice";
+import ShowMoreButton from "../ShowMoreButton";
 
 const QnASection = () => {
   const dispatch = useDispatch();
@@ -48,6 +49,8 @@ const QnASection = () => {
               <QnACard key={question.Q_ID} question={question} />
             ))}
       </div>
+
+      <ShowMoreButton text="View More Questions" path="/questions" />
     </section>
   );
 };
