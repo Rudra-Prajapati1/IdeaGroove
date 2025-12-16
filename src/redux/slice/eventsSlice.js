@@ -1,6 +1,7 @@
 import {
   createAsyncThunk,
   createEntityAdapter,
+  createSelector,
   createSlice,
 } from "@reduxjs/toolkit";
 import api from "../../api/axios";
@@ -59,6 +60,22 @@ export const {
   selectIds: selectEventIds,
   selectEntities: selectEventEntities,
 } = eventsAdapter.getSelectors((state) => state.events);
+
+export const selectRandomEvents = createSelector(
+  [selectAllEvents],
+  (events) => {
+    const activeEvents = events.filter((e) => e.Is_Active);
+
+    const shuffled = [...activeEvents];
+
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    return shuffled.slice(0, 3);
+  }
+);
 
 export const selectEventsStatus = (state) => state.events.status;
 export const selectEventsError = (state) => state.events.error;
