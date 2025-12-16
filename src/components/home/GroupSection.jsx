@@ -9,6 +9,7 @@ import {
 } from "../../redux/slice/chatRoomsSlice";
 import FilledTitle from "../FilledTitle";
 import ShowMoreButton from "../ShowMoreButton";
+import Loading from "../Loading";
 
 const GroupSection = () => {
   const dispatch = useDispatch();
@@ -27,7 +28,7 @@ const GroupSection = () => {
     <section className="flex flex-col px-10 py-8 items-center">
       <FilledTitle text="Groups" />
 
-      {status === "loading" && <p>Loading chat rooms...</p>}
+      {status === "loading" && <Loading text="loading groups" />}
       {status === "failed" && <p>Error: {error}</p>}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
         {status === "succeeded" &&

@@ -13,6 +13,7 @@ import {
   selectAnswersStatus,
 } from "../../redux/slice/answerSlice";
 import ShowMoreButton from "../ShowMoreButton";
+import Loading from "../Loading";
 
 const QnASection = () => {
   const dispatch = useDispatch();
@@ -39,7 +40,7 @@ const QnASection = () => {
     <section className="flex flex-col px-10 py-8 items-center">
       <FilledTitle text="QnA" />
 
-      {status === "loading" && <p>Loading questions...</p>}
+      {status === "loading" && <Loading text="loading questions" />}
       {status === "failed" && <p>Error: {error}</p>}
       <div className="flex flex-col gap-5 w-[90%] md:w-[60%] mt-10">
         {status === "succeeded" &&

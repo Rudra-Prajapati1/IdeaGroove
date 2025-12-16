@@ -9,6 +9,7 @@ import {
   selectNotesStatus,
 } from "../../redux/slice/notesSlice";
 import ShowMoreButton from "../ShowMoreButton";
+import Loading from "../Loading";
 
 const NotesSection = () => {
   const dispatch = useDispatch();
@@ -27,13 +28,13 @@ const NotesSection = () => {
     <section className="flex flex-col px-10 py-8 items-center">
       <FilledTitle text="Notes" />
 
-      {status === "loading" && <p>Loading notes...</p>}
+      {status === "loading" && <Loading text="loading notes" />}
       {status === "failed" && <p>Error: {error}</p>}
       <div className="flex flex-col gap-5 w-[80%] md:w-[50%] mt-10">
         {status === "succeeded" &&
           notes
             .slice(0, 3)
-            .map((notes) => <NotesCard key={notes.N_Id} notes={notes} />)}
+            .map((notes) => <NotesCard key={notes.N_ID} notes={notes} />)}
       </div>
 
       <ShowMoreButton text="View More Notes" path="/notes" />

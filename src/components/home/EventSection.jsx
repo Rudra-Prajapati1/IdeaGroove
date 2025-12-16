@@ -9,6 +9,7 @@ import {
 } from "../../redux/slice/eventsSlice";
 import ShowMoreButton from "../ShowMoreButton";
 import FilledTitle from "../FilledTitle";
+import Loading from "../Loading";
 
 const EventSection = () => {
   const dispatch = useDispatch();
@@ -27,7 +28,7 @@ const EventSection = () => {
     <section className="flex flex-col px-10 py-8 items-center mt-10">
       <FilledTitle text="Events" />
 
-      {status === "loading" && <p>Loading events...</p>}
+      {status === "loading" && <Loading text="loading events" />}
       {status === "failed" && <p>Error: {error}</p>}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
         {status === "succeeded" &&
