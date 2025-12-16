@@ -38,7 +38,11 @@ const Navbar = () => {
 
   return (
     <header className="fixed top-5 left-1/2 -translate-x-1/2 w-[80%] lg:w-[40%] z-50">
-      <nav className="bg-secondary rounded-2xl shadow flex justify-around items-center">
+      <nav
+        className={`${
+          scrolled ? "bg-[#256B22] text-secondary" : "bg-secondary"
+        }  rounded-2xl shadow flex justify-around items-center duration-300`}
+      >
         <button
           className="text-sm lg:text-lg font-poppins font-semibold cursor-pointer border p-2 rounded-2xl hover:shadow-md/30"
           onClick={handleMenuOpen}
@@ -48,8 +52,8 @@ const Navbar = () => {
         <img
           onClick={goHome}
           alt="IdeaGroove Logo with a title text and arrows with a light bub and a stack of books"
-          src="./DarkLogo.png"
-          className={`h-12 w-12 lg:h-20 lg:w-20 p-1 border lg:border-2 rounded-full transition-all duration-500 cursor-pointer ${
+          src={`${scrolled ? "./Logo.png" : "./DarkLogo.png"}`}
+          className={`h-12 w-12 lg:h-18 lg:w-18 p-1 border lg:border-2 rounded-full object-center transition-all duration-500 cursor-pointer ${
             scrolled
               ? "opacity-100 scale-100"
               : isHome
@@ -63,7 +67,11 @@ const Navbar = () => {
       </nav>
 
       {menuOpen && (
-        <div className="w-full mt-1 flex max-md:flex-col items-center justify-evenly origin-top bg-secondary animate-dropdown rounded-b-2xl py-3 shadow">
+        <div
+          className={`w-full mt-1 flex max-md:flex-col items-center justify-evenly origin-top ${
+            scrolled ? "bg-[#256B22] text-secondary" : "bg-secondary"
+          }  animate-dropdown rounded-b-2xl py-3 shadow`}
+        >
           {navLinks.map((link) => (
             <NavLink
               key={link.id}

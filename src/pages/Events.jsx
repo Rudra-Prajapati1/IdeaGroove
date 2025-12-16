@@ -9,6 +9,7 @@ import {
 } from "../redux/slice/eventsSlice";
 import EventCard from "../components/events/EventCard";
 import FilledTitle from "../components/FilledTitle";
+import Loading from "../components/Loading";
 
 const Events = () => {
   const dispatch = useDispatch();
@@ -40,7 +41,7 @@ const Events = () => {
   }, [status, dispatch]);
 
   return (
-    <section className="flex flex-col px-10 py-8 items-center mt-30">
+    <section className="flex flex-col px-10 py-8 items-center mt-20">
       <FilledTitle text="Events" />
 
       <div className="flex justify-around w-full">
@@ -98,14 +99,24 @@ const Events = () => {
         </div>
       </div>
 
-      {status === "loading" && <p>Loading events...</p>}
+      {status === "loading" && <Loading text="loading events" />}
       {status === "failed" && <p>Error: {error}</p>}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
-        {status === "succeeded" &&
-          filteredEvents.map((event) => (
+      {status === "succeeded" && filteredEvents.length === 0 && (
+        <div className="my-20 flex flex-col items-center gap-3 text-primary">
+          <p className="text-2xl font-semibold font-poppins">No Events Found</p>
+          <p className="text-lg opacity-70 font-inter">
+            Try adjusting your search or filters
+          </p>
+        </div>
+      )}
+
+      {status === "succeeded" && filteredEvents.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
+          {filteredEvents.map((event) => (
             <EventCard key={event.E_ID} event={event} />
           ))}
-      </div>
+        </div>
+      )}
     </section>
   );
 };
