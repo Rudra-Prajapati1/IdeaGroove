@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import EventCard from "../events/EventCard";
 import {
   fetchEvents,
-  selectAllEvents,
   selectEventsError,
   selectEventsStatus,
   selectRandomEvents,

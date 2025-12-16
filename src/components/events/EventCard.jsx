@@ -20,19 +20,21 @@ const EventCard = ({ event }) => {
         "
       />
 
-      <div>
+      <div className="flex flex-col justify-between h-full">
         <h2 className="text-xl text-center underline font-semibold line-clamp-2">
           {event.Description}
         </h2>
 
-        <p className="mt-4">
-          Event Date:{" "}
-          <span>{new Date(event.Event_Date).toLocaleDateString()}</span>
-        </p>
+        <div>
+          <p className="mt-4">
+            Event Date:{" "}
+            <span>{new Date(event.Event_Date).toLocaleDateString()}</span>
+          </p>
 
-        <p>
-          Added By: <span>{event.Added_By}</span>
-        </p>
+          <p>
+            Added By: <span>{event.Added_By}</span>
+          </p>
+        </div>
       </div>
     </div>
   );

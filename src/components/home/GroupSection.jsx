@@ -5,7 +5,7 @@ import {
   fetchChatRooms,
   selectChatRoomError,
   selectChatRoomStatus,
-  selectGroupChatRooms,
+  selectRandomGroupChatRooms,
 } from "../../redux/slice/chatRoomsSlice";
 import FilledTitle from "../FilledTitle";
 import ShowMoreButton from "../ShowMoreButton";
@@ -13,7 +13,7 @@ import ShowMoreButton from "../ShowMoreButton";
 const GroupSection = () => {
   const dispatch = useDispatch();
 
-  const chatRooms = useSelector(selectGroupChatRooms);
+  const randomGroups = useSelector(selectRandomGroupChatRooms);
   const status = useSelector(selectChatRoomStatus);
   const error = useSelector(selectChatRoomError);
 
@@ -31,9 +31,9 @@ const GroupSection = () => {
       {status === "failed" && <p>Error: {error}</p>}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
         {status === "succeeded" &&
-          chatRooms
-            .slice(0, 3)
-            .map((group) => <GroupCard key={group.Room_ID} group={group} />)}
+          randomGroups.map((group) => (
+            <GroupCard key={group.Room_ID} group={group} />
+          ))}
       </div>
 
       <ShowMoreButton text="View More Groups" path="/groups" />

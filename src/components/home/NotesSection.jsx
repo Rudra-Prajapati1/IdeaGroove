@@ -1,16 +1,42 @@
-import React from "react";
+import React, { useEffect } from "react";
 import NotesCard from "../notes/NotesCard";
 import FilledTitle from "../FilledTitle";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchNotes,
+  selectAllNotes,
+  selectNotesError,
+  selectNotesStatus,
+} from "../../redux/slice/notesSlice";
+import ShowMoreButton from "../ShowMoreButton";
 
 const NotesSection = () => {
+  const dispatch = useDispatch();
+
+  const notes = useSelector(selectAllNotes);
+  const status = useSelector(selectNotesStatus);
+  const error = useSelector(selectNotesError);
+
+  useEffect(() => {
+    if (status === "idle") {
+      dispatch(fetchNotes());
+    }
+  }, [status, dispatch]);
+
   return (
     <section className="flex flex-col px-10 py-8 items-center">
       <FilledTitle text="Notes" />
-      <div className="flex gap-5">
-        {[1, 2, 3].map((n) => (
-          <NotesCard key={n} />
-        ))}
+
+      {status === "loading" && <p>Loading notes...</p>}
+      {status === "failed" && <p>Error: {error}</p>}
+      <div className="flex flex-col gap-5 w-[80%] md:w-[50%] mt-10">
+        {status === "succeeded" &&
+          notes
+            .slice(0, 3)
+            .map((notes) => <NotesCard key={notes.N_Id} notes={notes} />)}
       </div>
+
+      <ShowMoreButton text="View More Notes" path="/notes" />
     </section>
   );
 };
