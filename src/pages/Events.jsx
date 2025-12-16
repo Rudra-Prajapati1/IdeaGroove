@@ -24,9 +24,8 @@ const Events = () => {
     const eventDate = new Date(event.Event_Date);
     const today = new Date();
 
-    const matchesSearch = event.Description.toLowerCase().includes(
-      search.toLowerCase()
-    );
+    const matchesSearch =
+      event?.Description.toLowerCase().includes(search.toLowerCase()) ?? false;
 
     if (filter === "upcoming" && eventDate < today) return false;
     if (filter === "past" && eventDate >= today) return false;

@@ -6,6 +6,7 @@ import {
   selectAllEvents,
   selectEventsError,
   selectEventsStatus,
+  selectRandomEvents,
 } from "../../redux/slice/eventsSlice";
 import ShowMoreButton from "../ShowMoreButton";
 import FilledTitle from "../FilledTitle";
@@ -13,7 +14,7 @@ import FilledTitle from "../FilledTitle";
 const EventSection = () => {
   const dispatch = useDispatch();
 
-  const events = useSelector(selectAllEvents);
+  const randomEvents = useSelector(selectRandomEvents);
   const status = useSelector(selectEventsStatus);
   const error = useSelector(selectEventsError);
 
@@ -31,10 +32,9 @@ const EventSection = () => {
       {status === "failed" && <p>Error: {error}</p>}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
         {status === "succeeded" &&
-          events
-            .filter((e) => e.Is_Active)
-            .slice(0, 3)
-            .map((event) => <EventCard key={event.E_ID} event={event} />)}
+          randomEvents.map((event) => (
+            <EventCard key={event.E_ID} event={event} />
+          ))}
       </div>
 
       <ShowMoreButton text="View More Events" path="/events" />

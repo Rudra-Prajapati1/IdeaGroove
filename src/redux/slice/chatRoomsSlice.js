@@ -65,6 +65,20 @@ export const selectGroupChatRooms = createSelector(
   (chatRooms) => chatRooms.filter((room) => room.Room_Type === "group")
 );
 
+export const selectRandomGroupChatRooms = createSelector(
+  [selectGroupChatRooms],
+  (groups) => {
+    const shuffled = [...groups];
+
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    return shuffled.slice(0, 3);
+  }
+);
+
 export const selectDirectChatRooms = createSelector(
   [selectAllChatRooms],
   (chatRooms) => chatRooms.filter((room) => room.Room_Type === "direct")
