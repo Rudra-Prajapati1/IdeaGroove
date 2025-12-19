@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Footer from "./components/Footer";
 import Events from "./pages/Events";
+import Chats from "./pages/Chats";
 
 const App = () => {
   const location = useLocation();
@@ -21,6 +22,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/events" element={<Events />} />
+          <Route path="/chats" element={<Chats />} />
           <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </div>

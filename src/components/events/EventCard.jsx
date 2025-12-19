@@ -7,7 +7,7 @@ const EventCard = ({ event }) => {
       className="
         border-3 border-primary text-primary font-inter 
         py-6 px-4 rounded-2xl flex flex-col gap-5 
-        shadow-md hover:shadow-lg/30 hover:-translate-y-2 duration-300
+        shadow-md hover:shadow-lg/20 hover:-translate-y-2 duration-300
         w-full max-w-[20rem] mx-auto
       "
     >
