@@ -60,7 +60,7 @@ const ChatsSidebar = () => {
         )}
       </div>
 
-      <ChatList />
+      <ChatList search={search} filter={filter} />
     </aside>
   );
 };
