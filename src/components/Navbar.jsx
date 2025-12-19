@@ -76,6 +76,7 @@ const Navbar = () => {
             <NavLink
               key={link.id}
               to={link.href}
+              onClick={() => setMenuOpen(false)}
               className="font-poppins text-lg hover:underline"
             >
               {link.title}
