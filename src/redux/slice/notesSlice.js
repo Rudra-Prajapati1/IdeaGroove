@@ -32,7 +32,7 @@ export const fetchNotes = createAsyncThunk(
   }
 );
 
-export const notesSlice = createSlice({
+const notesSlice = createSlice({
   name: "notes",
   initialState,
   reducers: {},

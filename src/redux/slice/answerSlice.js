@@ -33,7 +33,7 @@ export const fetchAnswers = createAsyncThunk(
   }
 );
 
-export const answersSlice = createSlice({
+const answersSlice = createSlice({
   name: "answers",
   initialState,
   reducers: {},

@@ -33,7 +33,7 @@ export const fetchChatRoomMembers = createAsyncThunk(
   }
 );
 
-export const chatRoomMembersSlice = createSlice({
+const chatRoomMembersSlice = createSlice({
   name: "chatRoomMembers",
   initialState,
   reducers: {},

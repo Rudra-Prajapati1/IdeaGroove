@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import eventsReducer from "./slice/eventsSlice";
 import chatRoomsReducer from "./slice/chatRoomsSlice";
 import chatRoomMembersReducer from "./slice/chatRoomMembersSlice";
+import chatsReducer from "./slice/ChatsSlice";
 import notesReducer from "./slice/notesSlice";
 import questionsReducer from "./slice/questionsSlice";
 import answerReducer from "./slice/answerSlice";
@@ -11,6 +12,7 @@ export default configureStore({
     events: eventsReducer,
     chatRooms: chatRoomsReducer,
     chatRoomMembers: chatRoomMembersReducer,
+    chats: chatsReducer,
     notes: notesReducer,
     questions: questionsReducer,
     answers: answerReducer,
