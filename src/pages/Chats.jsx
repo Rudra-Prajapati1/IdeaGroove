@@ -1,20 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import ChatsSidebar from "../components/chats/ChatsSidebar";
 import ChatHeader from "../components/chats/ChatHeader";
 import ChatBody from "../components/chats/ChatBody";
 import ChatInput from "../components/chats/ChatInput";
 
 const Chats = () => {
-  return (
-    <section className="flex gap-6 px-6 py-8 mt-30 h-[calc(100vh-8rem)]">
-      <ChatsSidebar />
+  const [activeRoom, setActiveRoom] = useState(null);
 
-      <div className="flex flex-col flex-1 border-5 border-primary rounded-2xl">
-        <ChatHeader />
+  return (
+    <section className="flex gap-[0.1rem] px-6 py-8 mt-30 h-[calc(100vh-8rem)]">
+      <ChatsSidebar onSelectRoom={setActiveRoom} activeRoom={activeRoom} />
+
+      <div className="flex flex-col flex-1 border-5 border-primary rounded-r-2xl">
+        <ChatHeader activeRoom={activeRoom} />
         <div className="flex-1 overflow-hidden">
-          <ChatBody />
+          <ChatBody activeRoom={activeRoom} />
         </div>
-        <ChatInput />
+        <ChatInput activeRoom={activeRoom} />
       </div>
     </section>
   );
