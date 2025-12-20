@@ -9,7 +9,7 @@ const NotesCard = ({ notes }) => {
         <p className="text-sm">{notes.Description}</p>
       </div>
       <button disabled className="cursor-not-allowed">
-        <Download className="hover:w-6 hover:h-6 duration-300" />
+        <Download className="hover:w-6 hover:h-6 duration-300 hover:-translate-y-1 hover:scale-110" />
       </button>
     </div>
   );

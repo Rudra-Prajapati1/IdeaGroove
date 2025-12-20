@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 
-const ChatInput = () => {
+const ChatInput = ({ activeRoom = null }) => {
+  if (!activeRoom) {
+    return null;
+  }
+
   const [message, setMessage] = useState("");
 
   const handleSend = () => {

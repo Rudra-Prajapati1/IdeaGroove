@@ -2,14 +2,14 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import React, { useState } from "react";
 import ChatList from "./ChatList";
 
-const ChatsSidebar = () => {
+const ChatsSidebar = ({ onSelectRoom, activeRoom }) => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
 
   return (
-    <aside className="w-[25%] min-w-[280px] max-w-[360px] border-5 rounded-2xl flex flex-col text-primary relative">
-      <h1 className="font-poppins font-bold text-2xl text-center py-6 border-b-5">
+    <aside className="w-[25%] min-w-[280px] max-w-[360px] border-5 rounded-l-2xl flex flex-col text-primary relative">
+      <h1 className="font-poppins font-bold text-2xl text-center py-6 border-b-5 bg-primary text-white">
         CHATS
       </h1>
 
@@ -21,7 +21,7 @@ const ChatsSidebar = () => {
               type="text"
               placeholder="Search chats..."
               className="w-full border rounded-xl pl-9 pr-3 py-1.5 shadow-sm
-                         focus:outline-none focus:ring-2 focus:ring-primary"
+                         focus:outline-none focus:ring-1 focus:ring-primary"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -60,7 +60,12 @@ const ChatsSidebar = () => {
         )}
       </div>
 
-      <ChatList search={search} filter={filter} />
+      <ChatList
+        search={search}
+        filter={filter}
+        onSelectRoom={onSelectRoom}
+        activeRoom={activeRoom}
+      />
     </aside>
   );
 };

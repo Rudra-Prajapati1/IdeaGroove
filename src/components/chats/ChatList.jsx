@@ -15,7 +15,7 @@ import Loading from "../Loading";
 
 const LOGGED_IN_STUDENT_ID = 101;
 
-const ChatList = ({ search, filter }) => {
+const ChatList = ({ search, filter, onSelectRoom, activeRoom }) => {
   const dispatch = useDispatch();
 
   const rooms = useSelector(selectAllChatRooms);
@@ -57,13 +57,13 @@ const ChatList = ({ search, filter }) => {
   });
 
   return (
-    <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3">
+    <div className="flex-1 overflow-y-auto px-3 py-4">
       {roomStatus === "loading" && (
         <div className="flex justify-center">
           <Loading text="loading chats" />
         </div>
       )}
-      {roomStatus === "failed" && <p>Error: {error}</p>}
+      {roomStatus === "failed" && <p>Error: {roomError}</p>}
       {roomStatus === "succeeded" && filteredRooms.length === 0 && (
         <div className="my-20 flex flex-col items-center gap-3 text-primary">
           <p className="text-xl font-semibold font-poppins">No Chats Found</p>
@@ -76,8 +76,17 @@ const ChatList = ({ search, filter }) => {
         filteredRooms.length > 0 &&
         filteredRooms.map((room) => (
           <div
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && onSelectRoom(room)}
             key={room.Room_ID}
-            className="flex items-center gap-3 p-3 rounded-xl border cursor-pointer hover:bg-gray-100 transition"
+            onClick={() =>
+              activeRoom?.Room_ID !== room.Room_ID && onSelectRoom(room)
+            }
+            className={`flex items-center gap-3 p-3 rounded-md border cursor-pointer border-primary transition ${
+              activeRoom?.Room_ID === room.Room_ID
+                ? "bg-primary text-white"
+                : "hover:bg-primary/10"
+            }`}
           >
             <div className="h-10 w-10 rounded-full border flex items-center justify-center font-semibold">
               {room.Room_Type === "group" ? room.Room_Name?.[0] || "G" : "D"}
@@ -87,7 +96,7 @@ const ChatList = ({ search, filter }) => {
               <h4 className="font-semibold font-inter">
                 {room.Room_Type === "group" ? room.Room_Name : "Direct Chat"}
               </h4>
-              <p className="text-sm text-gray-500 truncate">
+              <p className="text-sm text-gray-400 truncate">
                 {room.Room_Type === "group" ? "Group chat" : "Direct message"}
               </p>
             </div>
