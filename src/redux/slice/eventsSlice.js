@@ -33,7 +33,7 @@ export const fetchEvents = createAsyncThunk(
   }
 );
 
-export const eventSlice = createSlice({
+const eventSlice = createSlice({
   name: "events",
   initialState,
   reducers: {},
