@@ -37,12 +37,12 @@ const QnASection = () => {
   }, [answerStatus, dispatch]);
 
   return (
-    <section className="flex flex-col px-10 py-8 items-center">
+    <section className="flex flex-col px-6 sm:px-10 py-8 items-center">
       <FilledTitle text="QnA" />
 
       {status === "loading" && <Loading text="loading questions" />}
       {status === "failed" && <p>Error: {error}</p>}
-      <div className="flex flex-col gap-5 w-[90%] md:w-[60%] mt-10">
+      <div className="flex flex-col gap-5 w-full md:w-[60%] mt-10">
         {status === "succeeded" &&
           questions
             .slice(0, 3)
