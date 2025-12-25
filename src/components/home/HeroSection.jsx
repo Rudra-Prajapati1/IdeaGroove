@@ -37,7 +37,6 @@ const HeroSection = () => {
         <span className="absolute block w-full h-[200px] animate-bounce">
           <Lightbulb className="h-12 w-12 absolute left-5 lg:top-[50px] lg:left-20 rotate-[-25deg] text-secondary animate-wiggle" />
           <BookOpen className="h-10 w-10 lg:h-14 lg:w-14 absolute top-10 right-5 lg:right-50 rotate-45 text-secondary animate-wiggle" />
-
           <Pencil className="h-10 w-10 absolute top-80 left-10 lg:left-30 xl:left-50 rotate-15deg text-secondary animate-wiggle" />
         </span>
       </div>

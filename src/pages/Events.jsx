@@ -82,7 +82,7 @@ const Events = () => {
               onChange={(e) => setFilter(e.target.value)}
               className="accent-primary"
             />
-            <span>upcoming</span>
+            <span>Upcoming</span>
           </label>
 
           <label className="flex items-center gap-2 cursor-pointer font-inter text-primary">
@@ -94,7 +94,7 @@ const Events = () => {
               onChange={(e) => setFilter(e.target.value)}
               className="accent-primary"
             />
-            <span>past</span>
+            <span>Past</span>
           </label>
         </div>
       </div>
