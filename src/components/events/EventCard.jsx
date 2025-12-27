@@ -5,8 +5,7 @@ const EventCard = ({ event }) => {
   return (
     <div
       className="
-        border-3 border-primary text-primary font-inter 
-        py-6 px-4 rounded-2xl flex flex-col gap-5 
+        border-1 border-primary text-primary font-inter rounded-2xl flex flex-col gap-5
         shadow-md hover:shadow-lg/20 hover:-translate-y-2 duration-300
         w-full max-w-[20rem] mx-auto
       "
@@ -15,20 +14,27 @@ const EventCard = ({ event }) => {
         src={event_temp_image}
         alt={event.Description}
         className="
-          rounded-2xl 
-          h-50 w-full object-cover
+          rounded-t-2xl
+          h-64 w-full object-cover 
         "
       />
 
-      <div className="flex flex-col justify-between h-full">
-        <h2 className="text-xl text-center underline font-semibold line-clamp-2">
+      <div className="flex flex-col justify-between h-full p-4">
+        <h2 className="text-xl text-center font-semibold line-clamp-2">
           {event.Description}
         </h2>
 
         <div>
-          <p className="mt-4">
+          <p className="mt-2">
             Event Date:{" "}
-            <span>{new Date(event.Event_Date).toLocaleDateString()}</span>
+            <span className="font-bold">
+              {new Date(event.Event_Date).toLocaleDateString("en-IN", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
           </p>
 
           <p>

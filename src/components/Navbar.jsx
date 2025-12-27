@@ -41,10 +41,12 @@ const Navbar = () => {
       <nav
         className={`${
           scrolled ? "bg-[#256B22] text-secondary" : "bg-secondary"
-        }  rounded-2xl shadow flex justify-around items-center duration-300`}
+        } ${
+          menuOpen === true ? "rounded-b-none" : ""
+        } rounded-2xl shadow flex justify-around items-center duration-300 px-2 py-1`}
       >
         <button
-          className="text-sm lg:text-lg font-poppins font-semibold cursor-pointer border p-2 rounded-2xl hover:shadow-md/30"
+          className="text-sm lg:text-lg font-poppins font-bold cursor-pointer border px-4 py-2 rounded-lg hover:shadow-md/30 hover:bg-primary hover:text-white duration-300"
           onClick={handleMenuOpen}
         >
           Menu
@@ -61,7 +63,7 @@ const Navbar = () => {
               : "opacity-100 pointer-events-auto"
           }`}
         />
-        <button className="text-sm lg:text-lg font-poppins font-semibold cursor-pointer border p-2 rounded-2xl hover:shadow-md/30">
+        <button className="text-sm lg:text-lg font-poppins font-semibold cursor-pointer border px-4 py-2 rounded-lg hover:shadow-md/30">
           Join
         </button>
       </nav>
