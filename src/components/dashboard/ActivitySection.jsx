@@ -1,4 +1,18 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import EventCard from "../events/EventCard";
+import GroupCard from "../groups/GroupCard";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchEvents,
+  selectAllEvents,
+  selectEventsStatus,
+} from "../../redux/slice/eventsSlice";
+import {
+  fetchChatRooms,
+  selectAllChatRooms,
+  selectChatRoomError,
+  selectChatRoomStatus,
+} from "../../redux/slice/chatRoomsSlice";
 
 const ActivitySection = () => {
   const optionList = [
@@ -19,22 +33,118 @@ const ActivitySection = () => {
       label: "Notes",
     },
   ];
-  // const [option, setOption] = useState(optionList[0]);
+  const [option, setOption] = useState("Events");
+
+  const dispatch = useDispatch();
+  const events = useSelector(selectAllEvents);
+  const eventsStatus = useSelector(selectEventsStatus); // optional: for loading/error states
+
+  useEffect(() => {
+    if (eventsStatus === "idle") {
+      dispatch(fetchEvents());
+    }
+  }, [eventsStatus, dispatch]);
+
+  const groups = useSelector(selectAllChatRooms);
+  const groupsStatus = useSelector(selectChatRoomStatus);
+  const groupsError = useSelector(selectChatRoomError);
+
+  useEffect(() => {
+    if (groupsStatus === "idle") {
+      dispatch(fetchChatRooms());
+    }
+  }, [groupsStatus, dispatch]);
 
   return (
     <section>
       <div className="text-primary py-4 px-16 mt-4">
-        <div className="flex flex-row items-center justify-between w-9/10 lg:h-50 md:h-30 sm:h-10 m-auto">
+        <div className="flex flex-row items-center justify-between w-9/10 lg:h-50 md:h-30 sm:h-10 m-auto mb-12">
           {optionList.map((op) => (
             <div
               key={op.key}
-              className="cursor-pointer flex items-center justify-center lg:text-4xl md:text-3xl sm:text-2xl xs:text-xl font-thin w-1/5 h-full border-2 border-primary rounded-lg hover:lg:shadow-2xl hover:md:shadow-xl"
+              value={op.label}
+              onClick={() => setOption(op.label)}
+              className={`cursor-pointer flex items-center justify-center 
+                  lg:text-4xl md:text-3xl sm:text-2xl xs:text-xl 
+                  w-1/5 h-full rounded-lg transition-all duration-300 font-thin 
+                  ${
+                    option === op.label
+                      ? "bg-primary text-white shadow-2xl border-4 border-primary"
+                      : "bg-[#a3ffa9] text-primary hover:shadow-xl hover:scale-105"
+                  }`}
             >
               {op.label}
             </div>
           ))}
         </div>
       </div>
+
+      {/* Events */}
+      {option === "Events" && (
+        <div className="w-10/12 m-auto border-2 border-[#83ff48] bg-white px-12 py-12 rounded-2xl">
+          <h1 className="text-4xl font-bold text-primary mb-8">Events</h1>
+          <div>
+            {eventsStatus === "loading" && <p>Loading Events...</p>}
+            {eventsStatus === "failed" && <p>Error loading Events</p>}
+            {eventsStatus === "succeeded" && (
+              <>
+                {events.length === 0 ? (
+                  <p className="text-center py-8 text-teal-200">
+                    No Events Found
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {events.map((event) => (
+                      <EventCard
+                        key={event.E_ID}
+                        event={event}
+                        className="bg-amber-50"
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Groups */}
+      {option === "Groups" && (
+        <div className="w-10/12 m-auto border-2 border-[#83ff48] bg-white px-12 py-12 rounded-2xl">
+          <h1 className="text-4xl font-bold text-primary mb-8">Groups</h1>
+          <div>
+            {groupsStatus === "loading" && <p>Loading Groups...</p>}
+            {groupsStatus === "failed" && <p>Error: {groupsError}</p>}
+            {groupsStatus === "succeeded" && (
+              <>
+                {groups.length === 0 ? (
+                  <p className="text-center py-8 text-teal-200">
+                    No Groups Found
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {groups.map((group) => (
+                      <GroupCard key={group.G_ID} group={group} />
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {option === "QnA" && (
+        <div>
+          <h1>QnA</h1>
+        </div>
+      )}
+      {option === "Notes" && (
+        <div>
+          <h1>Notes</h1>
+        </div>
+      )}
     </section>
   );
 };
