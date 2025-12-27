@@ -5,7 +5,7 @@ const EventCard = ({ event }) => {
   return (
     <div
       className="
-        border-1 border-primary text-primary font-inter rounded-2xl flex flex-col gap-5
+        border-1 border-primary text-primary font-inter rounded-2xl flex flex-col gap-3
         shadow-md hover:shadow-lg/20 hover:-translate-y-2 duration-300
         w-full max-w-[20rem] mx-auto
       "
@@ -15,11 +15,11 @@ const EventCard = ({ event }) => {
         alt={event.Description}
         className="
           rounded-t-2xl
-          h-64 w-full object-cover 
+          h-56 w-full object-cover 
         "
       />
 
-      <div className="flex flex-col justify-between h-full p-4">
+      <div className="flex flex-col justify-around h-full p-4">
         <h2 className="text-xl text-center font-semibold line-clamp-2">
           {event.Description}
         </h2>
