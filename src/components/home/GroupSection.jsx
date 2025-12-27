@@ -25,7 +25,7 @@ const GroupSection = () => {
   }, [status, dispatch]);
 
   return (
-    <section className="flex flex-col px-10 py-8 items-center">
+    <section className="flex flex-col px-6 sm:px-10 py-8 items-center">
       <FilledTitle text="Groups" />
 
       {status === "loading" && <Loading text="loading groups" />}

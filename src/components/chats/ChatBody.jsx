@@ -6,6 +6,12 @@ import {
   selectChatsStatus,
 } from "../../redux/slice/chatsSlice";
 import Loading from "../Loading";
+import {
+  Check,
+  CheckCheck,
+  FlagTriangleRight,
+  SquareArrowDownRight,
+} from "lucide-react";
 
 const LOGGED_IN_STUDENT_ID = 101;
 const EMPTY_ARRAY = [];
@@ -70,13 +76,33 @@ const ChatBody = ({ activeRoom = null }) => {
             className={`flex ${isMe ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[70%] px-4 py-2 rounded-xl text-sm font-inter ${
+              className={`max-w-[70%] px-4 py-2 rounded-xl flex items-center gap-3 text-sm font-inter ${
                 isMe
                   ? "bg-primary text-white rounded-br-none"
                   : "border text-primary rounded-bl-none"
               }`}
             >
-              {msg.Message_Text}
+              <img
+                src={`${!isMe ? "./Logo.png" : "./DarkLogo.png"}`}
+                className={`${
+                  isMe ? "bg-white" : "bg-primary"
+                } w-8 h-8 bg-primary rounded-full object-cover`}
+              />
+              <div className="flex flex-col font-semibold">
+                {msg.Message_Text}
+                <span
+                  className={`text-xs flex items-center gap-5 justify-between font-light ${
+                    isMe ? "text-gray-400" : "text-black"
+                  }`}
+                >
+                  {new Date(msg.Sent_On).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+
+                  <CheckCheck className="w-4 h-4" />
+                </span>
+              </div>
             </div>
           </div>
         );

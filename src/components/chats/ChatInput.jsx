@@ -1,3 +1,4 @@
+import { Send } from "lucide-react";
 import React, { useState } from "react";
 
 const ChatInput = ({ activeRoom = null }) => {
@@ -30,7 +31,7 @@ const ChatInput = ({ activeRoom = null }) => {
         onClick={handleSend}
         className="px-6 py-2 bg-primary text-white rounded-xl font-semibold hover:opacity-90"
       >
-        Send
+        <Send />
       </button>
     </div>
   );

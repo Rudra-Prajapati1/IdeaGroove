@@ -25,12 +25,12 @@ const NotesSection = () => {
   }, [status, dispatch]);
 
   return (
-    <section className="flex flex-col px-10 py-8 items-center">
+    <section className="flex flex-col px-6 sm:px-10 py-8 items-center">
       <FilledTitle text="Notes" />
 
       {status === "loading" && <Loading text="loading notes" />}
       {status === "failed" && <p>Error: {error}</p>}
-      <div className="flex flex-col gap-5 w-[80%] md:w-[50%] mt-10">
+      <div className="flex flex-col gap-5 w-full md:w-[50%] mt-10">
         {status === "succeeded" &&
           notes
             .slice(0, 3)

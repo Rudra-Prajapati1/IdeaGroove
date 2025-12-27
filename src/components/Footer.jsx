@@ -1,4 +1,7 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import { navLinks } from "../links/navLinks";
+import { socialLinks } from "../links/socialLinks";
 
 const Footer = () => {
   return (
@@ -9,11 +12,19 @@ const Footer = () => {
             <h6 className="border-2 lg:py-2 px-4 rounded-xl w-fit mx-auto">
               QUICK LINKS
             </h6>
+
+            <ul className="flex flex-col text-sm mt-3 font-light">
+              {navLinks.map((link) => (
+                <Link key={link.id} to={link.href} className="hover:underline">
+                  {link.title}
+                </Link>
+              ))}
+            </ul>
           </div>
 
           <div>
             <h6 className="border-2 lg:py-2 px-4 rounded-xl w-fit mx-auto">
-              SOCIALS
+              FEEDBACKS & COMPLAINTS
             </h6>
           </div>
         </div>
@@ -33,8 +44,23 @@ const Footer = () => {
         <div className="flex flex-col gap-6 font-dm-sans font-semibold text-center">
           <div>
             <h6 className="border-2 lg:py-2 px-4 rounded-xl w-fit mx-auto">
-              FEEDBACKS & COMPLAINTS
+              SOCIALS
             </h6>
+            <ul className="flex flex-col text-sm mt-3 font-light">
+              {socialLinks.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <Link
+                    key={link.id}
+                    to={link.href}
+                    className="flex items-center justify-center gap-2 hover:underline"
+                  >
+                    <Icon className="h-4 w-4" />
+                    {link.title}
+                  </Link>
+                );
+              })}
+            </ul>
           </div>
 
           <div>
