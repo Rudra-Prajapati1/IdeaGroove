@@ -15,7 +15,7 @@ const EventCard = ({ event }) => {
         alt={event.Description}
         className="
           rounded-t-2xl
-          h-56 w-full object-cover 
+          h-56 w-full object-cover
         "
       />
 
