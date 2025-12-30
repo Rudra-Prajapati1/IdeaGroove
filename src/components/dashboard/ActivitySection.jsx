@@ -13,6 +13,25 @@ import {
   selectChatRoomError,
   selectChatRoomStatus,
 } from "../../redux/slice/chatRoomsSlice";
+import FilledTitle from "../FilledTitle";
+import QnACard from "../qna/QnACard";
+import {
+  fetchQuestions,
+  selectAllQuestions,
+  selectQuestionsError,
+  selectQuestionsStatus,
+} from "../../redux/slice/questionsSlice";
+import {
+  fetchAnswers,
+  selectAnswersStatus,
+} from "../../redux/slice/answerSlice";
+import {
+  fetchNotes,
+  selectAllNotes,
+  selectNotesError,
+  selectNotesStatus,
+} from "../../redux/slice/notesSlice";
+import NotesCard from "../notes/NotesCard";
 
 const ActivitySection = () => {
   const optionList = [
@@ -54,6 +73,33 @@ const ActivitySection = () => {
       dispatch(fetchChatRooms());
     }
   }, [groupsStatus, dispatch]);
+
+  const questions = useSelector(selectAllQuestions);
+  const questionsStatus = useSelector(selectQuestionsStatus);
+  const answerStatus = useSelector(selectAnswersStatus);
+  const questionsError = useSelector(selectQuestionsError);
+
+  useEffect(() => {
+    if (questionsStatus === "idle") {
+      dispatch(fetchQuestions());
+    }
+  }, [questionsStatus, dispatch]);
+
+  useEffect(() => {
+    if (answerStatus === "idle") {
+      dispatch(fetchAnswers());
+    }
+  }, [answerStatus, dispatch]);
+
+  const notes = useSelector(selectAllNotes);
+  const notesStatus = useSelector(selectNotesStatus);
+  const notesError = useSelector(selectNotesError);
+
+  useEffect(() => {
+    if (notesStatus === "idle") {
+      dispatch(fetchNotes());
+    }
+  }, [notesStatus, dispatch]);
 
   return (
     <section>
@@ -135,14 +181,40 @@ const ActivitySection = () => {
         </div>
       )}
 
+      {/* QnA Section */}
       {option === "QnA" && (
-        <div>
-          <h1>QnA</h1>
+        <div className="w-10/12 m-auto border-2 border-[#83ff48] bg-white px-12 py-12 rounded-2xl">
+          <h1 className="text-4xl font-bold text-primary mb-8">QnA</h1>
+          <div>
+            {questionsStatus === "loading" && (
+              <Loading text="loading questions" />
+            )}
+            {questionsStatus === "failed" && <p>Error: {questionsError}</p>}
+            <div className="flex flex-col gap-5 w-full md:w-[60%] mt-10">
+              {questionsStatus === "succeeded" &&
+                questions.map((question) => (
+                  <QnACard
+                    key={question.Q_ID}
+                    question={question}
+                    className="w-fit"
+                  />
+                ))}
+            </div>
+          </div>
         </div>
       )}
+
       {option === "Notes" && (
-        <div>
-          <h1>Notes</h1>
+        <div className="w-10/12 m-auto border-2 border-[#83ff48] bg-white px-12 py-12 rounded-2xl">
+          <h1 className="text-4xl font-bold text-primary mb-8">Notes</h1>
+          {notesStatus === "loading" && <Loading text="loading notes" />}
+          {notesStatus === "failed" && <p>Error: {notesError}</p>}
+          <div className="grid grid-cols-2 gap-5 w-full mt-10">
+            {notesStatus === "succeeded" &&
+              notes.map((notes) => (
+                <NotesCard key={notes.N_ID} notes={notes} />
+              ))}
+          </div>
         </div>
       )}
     </section>
