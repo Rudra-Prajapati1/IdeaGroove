@@ -6,7 +6,7 @@ function Login() {
     <div className="min-h-screen bg-primary flex flex-col items-center pt-45 font-sans">
       
       {/* .idea-box replacement */}
-      <div className="bg-white rounded-[40px] h-[25rem] w-[45rem] flex justify-between items-center overflow-hidden shadow-xl">
+      <div className="bg-white rounded-[40px] h-[25rem] w-[45rem] flex justify-between items-center overflow-hidden shadow-2xl">
         
         {/* .idea-form replacement */}
         <div className="h-full ml-10 flex justify-center items-center w-1/2">
