@@ -63,14 +63,13 @@ const Navbar = () => {
         ref={navRef}
         className={`
           ${scrolled ? "bg-[#256B22] text-secondary" : "bg-secondary"}
-          ${menuOpen ? "rounded-b-none" : "rounded-2xl"}
+          ${menuOpen ? "rounded-t-2xl" : "rounded-2xl"}
           shadow flex justify-around items-center px-2 py-1 transition-all duration-300
         `}
       >
         <button
           onClick={() => setMenuOpen((prev) => !prev)}
-          className="text-sm lg:text-lg font-poppins font-bold border px-4 py-2 rounded-lg
-                     hover:bg-primary hover:text-white transition-all duration-300"
+          className="text-sm lg:text-lg font-poppins font-semibold cursor-pointer border p-2 rounded-2xl transition-all duration-200 active:scale-95 hover:shadow-md/30"
         >
           Menu
         </button>
@@ -104,7 +103,11 @@ const Navbar = () => {
         className={`
           ${scrolled ? "bg-[#256B22] text-secondary" : "bg-secondary"}
           overflow-hidden transition-all duration-300 origin-top
-          ${menuOpen ? "max-h-96 scale-y-100 opacity-100" : "max-h-0 scale-y-95 opacity-0"}
+          ${
+            menuOpen
+              ? "max-h-96 scale-y-100 opacity-100"
+              : "max-h-0 scale-y-95 opacity-0"
+          }
           rounded-b-2xl shadow mt-1
         `}
       >
