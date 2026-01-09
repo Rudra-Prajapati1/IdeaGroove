@@ -7,6 +7,7 @@ import Footer from "./components/Footer";
 import Events from "./pages/Events";
 import Chats from "./pages/Chats";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
 const App = () => {
   const location = useLocation();
@@ -27,6 +28,8 @@ const App = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           
           <Route path="/login" element={<Login />} />
+          
+          <Route path="/signup" element={<Signup />} />
         </Routes>
       </div>
       <Footer />
