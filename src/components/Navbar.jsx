@@ -11,6 +11,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
 
   const isHome = location.pathname === "/";
+  const isLogin = location.pathname === "/auth";
 
   const goHome = () => {
     navigate("/");
@@ -19,22 +20,24 @@ const Navbar = () => {
     setMenuOpen(false);
   };
 
-  // Scroll logic
   useEffect(() => {
-    if (!isHome) {
-      setScrolled(true);
+    if (isHome) {
+      const handleScroll = () => {
+        setScrolled(window.scrollY > 120);
+      };
+
+      window.addEventListener("scroll", handleScroll);
+      return () => window.removeEventListener("scroll", handleScroll);
+    }
+
+    if (isLogin) {
+      setScrolled(false);
       return;
     }
 
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 120);
-    };
+    setScrolled(true);
+  }, [isHome, isLogin]);
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [isHome]);
-
-  // Outside click + ESC close
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (navRef.current && !navRef.current.contains(e.target)) {
@@ -69,7 +72,7 @@ const Navbar = () => {
       >
         <button
           onClick={() => setMenuOpen((prev) => !prev)}
-          className="text-sm lg:text-lg font-poppins font-semibold cursor-pointer border p-2 rounded-2xl transition-all duration-200 active:scale-95 hover:shadow-md/30"
+          className="text-sm lg:text-lg font-poppins font-semibold cursor-pointer border p-2 rounded-lg transition-all duration-200 active:scale-95 hover:shadow-md"
         >
           Menu
         </button>
@@ -92,13 +95,13 @@ const Navbar = () => {
 
         <button
           className="text-sm lg:text-lg font-poppins font-semibold border px-4 py-2 rounded-lg
-                     hover:shadow-md transition-all"
+                     hover:shadow-md transition-all cursor-pointer"
+          onClick={() => navigate("/auth")}
         >
           Join
         </button>
       </nav>
 
-      {/* Dropdown */}
       <div
         className={`
           ${scrolled ? "bg-[#256B22] text-secondary" : "bg-secondary"}
