@@ -32,24 +32,29 @@ import {
   selectNotesStatus,
 } from "../../redux/slice/notesSlice";
 import NotesCard from "../notes/NotesCard";
+import { CalendarDays, MessageSquare, NotebookPen, Users } from "lucide-react";
 
 const ActivitySection = () => {
   const optionList = [
     {
       key: 1,
       label: "Events",
+      icon: CalendarDays,
     },
     {
       key: 2,
       label: "Groups",
+      icon: Users,
     },
     {
       key: 3,
       label: "QnA",
+      icon: MessageSquare,
     },
     {
       key: 4,
       label: "Notes",
+      icon: NotebookPen,
     },
   ];
   const [option, setOption] = useState("Events");
@@ -104,24 +109,28 @@ const ActivitySection = () => {
   return (
     <section>
       <div className="text-primary py-4 px-16 mt-4">
-        <div className="flex flex-row items-center justify-between w-9/10 lg:h-50 md:h-30 sm:h-10 m-auto mb-12">
-          {optionList.map((op) => (
-            <div
-              key={op.key}
-              value={op.label}
-              onClick={() => setOption(op.label)}
-              className={`cursor-pointer flex items-center justify-center 
+        <div className="font-poppins font-light flex flex-row items-center justify-between w-9/10 lg:h-40 md:h-20 sm:h-10 m-auto mb-12">
+          {optionList.map((op) => {
+            const Icon = op.icon;
+            return (
+              <div
+                key={op.key}
+                value={op.label}
+                onClick={() => setOption(op.label)}
+                className={`cursor-pointer flex flex-col gap-5 items-center justify-center 
                   lg:text-4xl md:text-3xl sm:text-2xl xs:text-xl 
-                  w-1/5 h-full rounded-lg transition-all duration-300 font-thin 
+                  w-1/5 h-full rounded-lg transition-all duration-300
                   ${
                     option === op.label
                       ? "bg-primary text-white shadow-2xl border-4 border-primary"
                       : "bg-[#a3ffa9] text-primary hover:shadow-xl hover:scale-105"
                   }`}
-            >
-              {op.label}
-            </div>
-          ))}
+              >
+                <Icon className="w-10 h-10" />
+                <div>{op.label}</div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
