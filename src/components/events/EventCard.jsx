@@ -18,7 +18,6 @@ const EventCard = ({ event }) => {
           h-56 w-full object-cover
         "
       />
-
       <div className="flex flex-col justify-around h-full p-4">
         <h2 className="text-xl text-center font-semibold line-clamp-2">
           {event.Description}

@@ -33,6 +33,8 @@ import {
 } from "../../redux/slice/notesSlice";
 import NotesCard from "../notes/NotesCard";
 import { CalendarDays, MessageSquare, NotebookPen, Users } from "lucide-react";
+import DiscussionForum from "./DiscussionForum";
+import NotesSection from "./NotesSection";
 
 const ActivitySection = () => {
   const optionList = [
@@ -190,7 +192,7 @@ const ActivitySection = () => {
         </div>
       )}
 
-      {/* QnA Section */}
+      {/* QnA Section
       {option === "QnA" && (
         <div className="w-10/12 m-auto border-2 border-[#83ff48] bg-white px-12 py-12 rounded-2xl">
           <h1 className="text-4xl font-bold text-primary mb-8">QnA</h1>
@@ -211,9 +213,20 @@ const ActivitySection = () => {
             </div>
           </div>
         </div>
+      )} */}
+
+      {/* QnA Section */}
+      {option === "QnA" && (
+        // We remove the old wrapper style to let the new layout handle full width/spacing
+        <div className="w-full bg-slate-50 min-h-screen">
+          {/* Ideally, pass your Redux data into this component 
+       e.g., <DiscussionLayout questions={questions} status={questionsStatus} />
+    */}
+          <DiscussionForum questions={questions} status={questionsStatus} />
+        </div>
       )}
 
-      {option === "Notes" && (
+      {/* {option === "Notes" && (
         <div className="w-10/12 m-auto border-2 border-[#83ff48] bg-white px-12 py-12 rounded-2xl">
           <h1 className="text-4xl font-bold text-primary mb-8">Notes</h1>
           {notesStatus === "loading" && <Loading text="loading notes" />}
@@ -225,6 +238,9 @@ const ActivitySection = () => {
               ))}
           </div>
         </div>
+      )} */}
+      {option === "Notes" && (
+        <NotesSection notes={notes} status={notesStatus} error={notesError} />
       )}
     </section>
   );
