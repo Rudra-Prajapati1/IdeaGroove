@@ -51,7 +51,7 @@ const QnASection = () => {
             ))}
       </div>
 
-      <ShowMoreButton text="View More Questions" path="/questions" />
+      <ShowMoreButton text="View More Questions" path="/qna" />
     </section>
   );
 };

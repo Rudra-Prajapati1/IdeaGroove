@@ -53,14 +53,14 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">My Notes</h2>
+          <h2 className="text-4xl font-bold text-slate-900">My Notes</h2>
           <p className="text-slate-500 text-sm mt-1">
             Access your uploaded study materials
           </p>
         </div>
         <button className="flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm">
           <Upload className="w-4 h-4" />
-          Upload Note
+          Upload Notes
         </button>
       </div>
 
@@ -98,7 +98,6 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
                 {/* Subject Badge (Top Right) - Replaces Star */}
                 <div className="absolute top-4 right-4 bg-black/20 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10">
                   <span className="text-[10px] font-bold text-white tracking-wide uppercase">
-                    {/* 👇 MAP YOUR SUBJECT HERE */}
                     {note.Subject || "General"}
                   </span>
                 </div>
@@ -123,9 +122,6 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
 
                 {/* Footer Buttons */}
                 <div className="flex gap-3 mt-auto pt-4 border-t border-slate-50">
-                  <button className="flex-1 flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 py-2 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors">
-                    Preview
-                  </button>
                   <button
                     disabled={true} // Kept disabled as per your snippet
                     className="flex-1 flex items-center justify-center gap-2 bg-slate-900 text-white py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
