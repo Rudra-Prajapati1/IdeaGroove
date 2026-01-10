@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import LoginForm from "../components/auth/LoginForm";
+import SignupForm from "../components/auth/SignupForm";
+import SignupFeatures from "../components/auth/SignupFeatures";
 
 const Auth = () => {
   const [mode, setMode] = useState("login");
@@ -33,7 +35,32 @@ const Auth = () => {
             </div>
           </motion.div>
         ) : (
-          <motion.div></motion.div>
+          <motion.div
+            key="signup"
+            initial={{ opacity: 0, x: 80 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -80 }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
+            className="min-h-screen flex"
+          >
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="w-[40%] bg-white"
+            >
+              <SignupForm onLogin={() => setMode("login")} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="w-[60%] bg-primary"
+            >
+              <SignupFeatures />
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </section>
