@@ -11,12 +11,18 @@ import QnA from "./pages/QnA";
 import Notes from "./pages/Notes";
 import Groups from "./pages/Groups";
 
+import Signup from "./pages/Signup";
+import Auth from "./pages/Auth";
+import NotFound from "./pages/NotFound";
+
 const App = () => {
   const location = useLocation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+
+  const hideFooter = location.pathname === "/auth";
 
   return (
     <main className="min-h-screen flex flex-col">
@@ -32,10 +38,11 @@ const App = () => {
           <Route path="/qna" element={<QnA />} />
           <Route path="/dashboard" element={<Dashboard />} />
 
-          <Route path="/login" element={<Login />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
-      <Footer />
+      {!hideFooter && <Footer />}
     </main>
   );
 };
