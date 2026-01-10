@@ -18,7 +18,7 @@ import QnACard from "../qna/QnACard";
 import {
   fetchQuestions,
   selectAllQuestions,
-  selectQuestionsError,
+  // selectQuestionsError,
   selectQuestionsStatus,
 } from "../../redux/slice/questionsSlice";
 import {
@@ -33,6 +33,8 @@ import {
 } from "../../redux/slice/notesSlice";
 import NotesCard from "../notes/NotesCard";
 import { CalendarDays, MessageSquare, NotebookPen, Users } from "lucide-react";
+import DiscussionForum from "./DiscussionForum";
+import NotesSection from "./NotesSection";
 
 const ActivitySection = () => {
   const optionList = [
@@ -82,7 +84,7 @@ const ActivitySection = () => {
   const questions = useSelector(selectAllQuestions);
   const questionsStatus = useSelector(selectQuestionsStatus);
   const answerStatus = useSelector(selectAnswersStatus);
-  const questionsError = useSelector(selectQuestionsError);
+  //const questionsError = useSelector(selectQuestionsError);
 
   useEffect(() => {
     if (questionsStatus === "idle") {
@@ -136,7 +138,7 @@ const ActivitySection = () => {
 
       {/* Events */}
       {option === "Events" && (
-        <div className="w-10/12 m-auto border-2 border-[#83ff48] bg-white px-12 py-12 rounded-2xl">
+        <div className="w-10/12 m-auto bg-white px-12 py-12 rounded-2xl">
           <h1 className="text-4xl font-bold text-primary mb-8">Events</h1>
           <div>
             {eventsStatus === "loading" && <p>Loading Events...</p>}
@@ -166,7 +168,7 @@ const ActivitySection = () => {
 
       {/* Groups */}
       {option === "Groups" && (
-        <div className="w-10/12 m-auto border-2 border-[#83ff48] bg-white px-12 py-12 rounded-2xl">
+        <div className="w-10/12 m-auto bg-white px-12 py-12 rounded-2xl">
           <h1 className="text-4xl font-bold text-primary mb-8">Groups</h1>
           <div>
             {groupsStatus === "loading" && <p>Loading Groups...</p>}
@@ -192,39 +194,18 @@ const ActivitySection = () => {
 
       {/* QnA Section */}
       {option === "QnA" && (
-        <div className="w-10/12 m-auto border-2 border-[#83ff48] bg-white px-12 py-12 rounded-2xl">
-          <h1 className="text-4xl font-bold text-primary mb-8">QnA</h1>
-          <div>
-            {questionsStatus === "loading" && (
-              <Loading text="loading questions" />
-            )}
-            {questionsStatus === "failed" && <p>Error: {questionsError}</p>}
-            <div className="flex flex-col gap-5 w-full md:w-[60%] mt-10">
-              {questionsStatus === "succeeded" &&
-                questions.map((question) => (
-                  <QnACard
-                    key={question.Q_ID}
-                    question={question}
-                    className="w-fit"
-                  />
-                ))}
-            </div>
-          </div>
+        // We remove the old wrapper style to let the new layout handle full width/spacing
+        <div className="w-full min-h-screen">
+          {/* Ideally, pass your Redux data into this component 
+       e.g., <DiscussionLayout questions={questions} status={questionsStatus} />
+    */}
+          <DiscussionForum questions={questions} status={questionsStatus} />
         </div>
       )}
 
+      {/* Notes Section */}
       {option === "Notes" && (
-        <div className="w-10/12 m-auto border-2 border-[#83ff48] bg-white px-12 py-12 rounded-2xl">
-          <h1 className="text-4xl font-bold text-primary mb-8">Notes</h1>
-          {notesStatus === "loading" && <Loading text="loading notes" />}
-          {notesStatus === "failed" && <p>Error: {notesError}</p>}
-          <div className="grid grid-cols-2 gap-5 w-full mt-10">
-            {notesStatus === "succeeded" &&
-              notes.map((notes) => (
-                <NotesCard key={notes.N_ID} notes={notes} />
-              ))}
-          </div>
-        </div>
+        <NotesSection notes={notes} status={notesStatus} error={notesError} />
       )}
     </section>
   );

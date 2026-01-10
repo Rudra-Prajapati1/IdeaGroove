@@ -6,6 +6,11 @@ import Dashboard from "./pages/Dashboard";
 import Footer from "./components/Footer";
 import Events from "./pages/Events";
 import Chats from "./pages/Chats";
+import Login from "./pages/Login";
+import QnA from "./pages/QnA";
+import Notes from "./pages/Notes";
+import Groups from "./pages/Groups";
+
 import Signup from "./pages/Signup";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -28,7 +33,11 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/events" element={<Events />} />
           <Route path="/chats" element={<Chats />} />
+          <Route path="/groups" element={<Groups />} />
+          <Route path="/notes" element={<Notes />} />
+          <Route path="/qna" element={<QnA />} />
           <Route path="/dashboard" element={<Dashboard />} />
+
           <Route path="/auth" element={<Auth />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
