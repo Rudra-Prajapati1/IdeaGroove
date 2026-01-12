@@ -4,11 +4,14 @@ import EventSection from "../components/home/EventSection";
 import GroupSection from "../components/home/GroupSection";
 import QnASection from "../components/home/QnASection";
 import NotesSection from "../components/home/NotesSection";
+import { Search } from "lucide-react";
+import SearchSection from "../components/home/SearchSection";
 
 const Home = () => {
   return (
     <>
       <HeroSection />
+      <SearchSection/>
       <EventSection />
       <GroupSection />
       <QnASection />
