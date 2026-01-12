@@ -42,7 +42,7 @@ const LoginForm = ({ onSignup }) => {
           Username:
         </label>
         <input
-          className="w-full padding-[12px] text-sm border-2 border-gray-300 rounded-xl outline-none transition-colors duration-300 focus:border-primary/60 p-3"
+          className="w-full text-sm border-2 border-gray-300 rounded-xl outline-none transition-colors duration-300 focus:border-primary/60 p-3"
           type="text"
           placeholder="Enter username"
           required
@@ -56,7 +56,7 @@ const LoginForm = ({ onSignup }) => {
         <label className="text-lg font-semibold mb-1 text-primary">
           Password:
         </label>
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end relative">
           <input
             className="w-full text-sm border-2 border-gray-300 rounded-xl outline-none transition-colors duration-300 focus:border-primary/60 p-3"
             type={!showPassword ? "password" : "text"}
@@ -66,7 +66,7 @@ const LoginForm = ({ onSignup }) => {
           />
           <span
             className="absolute mr-2 cursor-pointer hover:bg-primary/10 p-1 rounded-2xl"
-            onClick={() => setShowPassword(!showPassword)}
+            onClick={() => setShowPassword((prev) => !prev)}
           >
             {showPassword ? (
               <Eye className="w-5 h-5 text-primary" />

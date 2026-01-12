@@ -11,6 +11,9 @@ import Notes from "./pages/Notes";
 import Groups from "./pages/Groups";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import ComplaintDashboard from "./pages/ComplaintDashboard";
+import Searchpage from "./pages/Searchpage";
+
 
 const App = () => {
   const location = useLocation();
@@ -36,6 +39,8 @@ const App = () => {
           <Route path="/dashboard" element={<Dashboard />} />
 
           <Route path="/auth" element={<Auth />} />
+          <Route path="/complaintDashboard" element={<ComplaintDashboard />} />
+          <Route path="/search" element={<Searchpage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
