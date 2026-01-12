@@ -6,12 +6,9 @@ import Dashboard from "./pages/Dashboard";
 import Footer from "./components/Footer";
 import Events from "./pages/Events";
 import Chats from "./pages/Chats";
-import Login from "./pages/Login";
 import QnA from "./pages/QnA";
 import Notes from "./pages/Notes";
 import Groups from "./pages/Groups";
-
-import Signup from "./pages/Signup";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
