@@ -1,77 +1,181 @@
-import React from "react";
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function Signup() {
+  const navigate = useNavigate();
+
+  // 1. State to hold form data
+  const [formData, setFormData] = useState({
+    Name: "",
+    Username: "",
+    Email: "", // ✅ Added input field below
+    Roll_No: "", // ✅ Added input field below
+    College_ID: "",
+    Degree_ID: "",
+    Password: "",
+  });
+
+  const [error, setError] = useState("");
+
+  // 2. Handle input changes
+  const handleChange = (e) => {
+    // This requires 'name' attribute on inputs to work!
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // 3. Handle Form Submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      // ✅ FIX 1: URL changed to /register to match your backend route
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/signup",
+        {
+          ...formData,
+          // Convert to numbers or null if empty
+          College_ID: formData.College_ID
+            ? parseInt(formData.College_ID)
+            : null,
+          Degree_ID: formData.Degree_ID ? parseInt(formData.Degree_ID) : null,
+        }
+      );
+
+      if (response.status === 201) {
+        alert("Signup Successful! Redirecting to login...");
+        navigate("/login");
+      }
+    } catch (err) {
+      if (err.response && err.response.data && err.response.data.error) {
+        setError(err.response.data.error);
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+      console.error("Signup Error:", err);
+    }
+  };
+
   return (
-    // Body replacement: Green background, centered content
     <div className="min-h-screen bg-green-700 flex justify-center items-center font-sans">
-      
-      {/* .signup-box replacement */}
-      <div className="bg-white rounded-[40px] h-[25rem] w-[45rem] flex justify-between items-center overflow-hidden">
-        
-        {/* .logo and img replacement */}
+      <div className="bg-white rounded-[40px] h-auto py-8 w-[45rem] flex justify-between items-center overflow-hidden">
+        {/* Logo Section */}
         <div className="flex justify-center items-center">
-          <img 
+          <img
             src="./DarkLogo.png"
-            alt="logo" 
+            alt="logo"
             className="h-[20rem] w-[20rem] border-r-2 border-green-700 object-contain"
           />
         </div>
 
-        {/* .idea-form replacement */}
-        <div className="h-[25rem] mr-10 flex justify-center items-center flex-1 ml-10">
-          
-          {/* .idea-input-group replacement */}
-          <form className="flex flex-col gap-[15px] w-full">
-            
-            {/* Form Groups */}
+        {/* Form Section */}
+        <div className="h-full mr-10 flex justify-center items-center flex-1 ml-10">
+          {/* ✅ FIX 2: Added onSubmit here. Removed onClick from button */}
+          <form
+            className="flex flex-col gap-[15px] w-full"
+            onSubmit={handleSubmit}
+          >
+            {/* Error Message */}
+            {error && (
+              <p className="text-red-600 text-sm font-bold text-center">
+                {error}
+              </p>
+            )}
+
             <div className="flex flex-col">
               <label className="text-[18px] font-semibold">Your name :</label>
-              <input 
-                className="w-full p-3 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none transition-colors duration-300 focus:border-green-700 box-border" 
-                type="text" placeholder="Enter name" required autoFocus 
+              <input
+                name="Name" // ✅ FIX 3: Added name attribute
+                className="w-full p-2 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none focus:border-green-700"
+                type="text"
+                placeholder="Enter name"
+                onChange={handleChange}
+                required
               />
             </div>
 
             <div className="flex flex-col">
               <label className="text-[18px] font-semibold">Username :</label>
-              <input 
-                className="w-full p-3 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none transition-colors duration-300 focus:border-green-700 box-border" 
-                type="text" placeholder="Enter Username" required 
+              <input
+                name="Username" // ✅ Added name attribute
+                className="w-full p-2 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none focus:border-green-700"
+                type="text"
+                onChange={handleChange}
+                placeholder="Enter Username"
+                required
+              />
+            </div>
+
+            {/* ✅ ADDED MISSING FIELD: Email */}
+            <div className="flex flex-col">
+              <label className="text-[18px] font-semibold">Email :</label>
+              <input
+                name="Email"
+                className="w-full p-2 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none focus:border-green-700"
+                type="email"
+                onChange={handleChange}
+                placeholder="Enter Email"
+                required
+              />
+            </div>
+
+            {/* ✅ ADDED MISSING FIELD: Roll No */}
+            <div className="flex flex-col">
+              <label className="text-[18px] font-semibold">Roll No :</label>
+              <input
+                name="Roll_No"
+                className="w-full p-2 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none focus:border-green-700"
+                type="text"
+                onChange={handleChange}
+                placeholder="Enter Roll No"
+                required
+              />
+            </div>
+
+            {/* Note: In a real app, College & Degree should be dropdowns (Select) */}
+            <div className="flex flex-col">
+              <label className="text-[18px] font-semibold">College ID :</label>
+              <input
+                name="College_ID" // ✅ Added name attribute
+                className="w-full p-2 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none focus:border-green-700"
+                type="number"
+                onChange={handleChange}
+                placeholder="Enter college ID"
               />
             </div>
 
             <div className="flex flex-col">
-              <label className="text-[18px] font-semibold">College Name :</label>
-              <input 
-                className="w-full p-3 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none transition-colors duration-300 focus:border-green-700 box-border" 
-                type="text" placeholder="Enter college name" required 
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <label className="text-[18px] font-semibold">Degree :</label>
-              <input 
-                className="w-full p-3 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none transition-colors duration-300 focus:border-green-700 box-border" 
-                type="text" placeholder="Enter degree" required 
+              <label className="text-[18px] font-semibold">Degree ID :</label>
+              <input
+                name="Degree_ID" // ✅ Added name attribute
+                className="w-full p-2 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none focus:border-green-700"
+                type="number"
+                onChange={handleChange}
+                placeholder="Enter degree ID"
               />
             </div>
 
             <div className="flex flex-col">
               <label className="text-[18px] font-semibold">Password</label>
-              <input 
-                className="w-full p-3 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none transition-colors duration-300 focus:border-green-700 box-border" 
-                type="password" placeholder="Enter password" 
+              <input
+                name="Password" // ✅ Added name attribute
+                className="w-full p-2 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none focus:border-green-700"
+                type="password"
+                onChange={handleChange}
+                placeholder="Enter password"
+                required
               />
             </div>
 
-            {/* .other-option replacement */}
             <div className="text-[13px] flex flex-col items-end text-blue-600">
-              <a href="abc" className="hover:underline">Already have an account? Login</a>
+              <a href="/login" className="hover:underline">
+                Already have an account? Login
+              </a>
             </div>
 
-            {/* .idea-submit replacement */}
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="border-none rounded-[10px] bg-blue-600 text-white w-[7rem] cursor-pointer text-[1.1rem] p-2 shadow-[2px_2px_2px_rgba(0,0,0,0.3)] self-center mt-[15px] hover:bg-[#063280] transition-colors"
             >
               Signup
