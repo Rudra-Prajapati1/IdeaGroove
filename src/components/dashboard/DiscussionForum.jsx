@@ -129,7 +129,7 @@ const DiscussionForum = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h2 className="text-4xl font-bold text-slate-800">
-            Discussion Forum
+            QnA
           </h2>
           <p className="text-slate-500 text-sm mt-1">
             Select your degree and subject to find relevant questions
