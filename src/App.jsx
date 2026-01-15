@@ -13,6 +13,8 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ComplaintDashboard from "./pages/ComplaintDashboard";
 import Searchpage from "./pages/Searchpage";
+import SubmitComplaint from "./pages/SubmitComplaint";
+import ProfileInformation from "./pages/Profile";
 
 
 const App = () => {
@@ -37,9 +39,10 @@ const App = () => {
           <Route path="/notes" element={<Notes />} />
           <Route path="/qna" element={<QnA />} />
           <Route path="/dashboard" element={<Dashboard />} />
-
           <Route path="/auth" element={<Auth />} />
+          <Route path="/profile" element={<ProfileInformation />} />
           <Route path="/complaintDashboard" element={<ComplaintDashboard />} />
+          <Route path="/SubmitComplaint" element={<SubmitComplaint />} />
           <Route path="/search" element={<Searchpage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
