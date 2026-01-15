@@ -6,56 +6,49 @@ import {
   Edit3, 
   ChevronDown, 
   ChevronLeft, 
-  ChevronRight, 
-  ArrowRight, 
-  Moon 
+  ChevronRight,
+  MessageCircle,
+  Clock,
+  User,
+  Calendar
 } from 'lucide-react';
 
 const ComplaintDashboard = () => {
-  // --- STATE MANAGEMENT ---
-  const [scrolled, setScrolled] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [tempStatus, setTempStatus] = useState("");
   const [currentTab, setCurrentTab] = useState("Admin");
+  
+  // --- STATE FOR EXPANSION ---
+  const [expandedId, setExpandedId] = useState(null);
 
-  // 1. PAGINATION STATE
+  // --- PAGINATION STATE ---
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4; // Show 4 rows at a time
+  const itemsPerPage = 4;
 
   const [complaints, setComplaints] = useState([
-    { id: '#CMP-4582', name: 'Alex Thompson', category: 'Resource Access', date: 'Oct 24, 2023', status: 'PENDING' },
-    { id: '#CMP-4579', name: 'Sarah Jenkins', category: 'Group Conflict', date: 'Oct 22, 2023', status: 'IN PROGRESS' },
-    { id: '#CMP-4575', name: 'Michael Chen', category: 'Technical Issue', date: 'Oct 20, 2023', status: 'RESOLVED' },
-    { id: '#CMP-4570', name: 'Emma Rodriguez', category: 'Other', date: 'Oct 18, 2023', status: 'HIGH PRIORITY' },
-    { id: '#CMP-4565', name: 'John Doe', category: 'Technical', date: 'Oct 15, 2023', status: 'RESOLVED' },
-    { id: '#CMP-4560', name: 'Jane Smith', category: 'Academic', date: 'Oct 12, 2023', status: 'PENDING' },
+    { id: '#CMP-4582', name: 'Alex Thompson', category: 'Resource Access', date: 'Oct 24, 2023', status: 'PENDING', description: "The student is unable to access the data science modules from the hostel Wi-Fi. It keeps showing a 403 Forbidden error." },
+    { id: '#CMP-4579', name: 'Sarah Jenkins', category: 'Group Conflict', date: 'Oct 22, 2023', status: 'IN PROGRESS', description: "Conflict in BCA group project regarding task distribution. Sarah reports that other members are not contributing to the coding phase." },
+    { id: '#CMP-4575', name: 'Michael Chen', category: 'Technical Issue', date: 'Oct 20, 2023', status: 'RESOLVED', description: "Login credentials for the PagePause admin portal were not working. Password has been reset manually." },
+    { id: '#CMP-4570', name: 'Emma Rodriguez', category: 'Other', date: 'Oct 18, 2023', status: 'HIGH PRIORITY', description: "Request for an urgent meeting regarding scholarship documentation deadlines." },
+    { id: '#CMP-4565', name: 'John Doe', category: 'Technical', date: 'Oct 15, 2023', status: 'RESOLVED', description: "Lab 3 computer #14 monitor flickering issue resolved." },
+    { id: '#CMP-4560', name: 'Jane Smith', category: 'Academic', date: 'Oct 12, 2023', status: 'PENDING', description: "Query regarding credit transfer from previous semester." },
   ]);
 
-  // --- 2. PAGINATION LOGIC ---
+  // --- PAGINATION LOGIC ---
   const totalPages = Math.ceil(complaints.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentComplaints = complaints.slice(indexOfFirstItem, indexOfLastItem);
 
-  const goToNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    setExpandedId(null); // Close any expanded row when moving to a new page
   };
 
-  const goToPrevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  const toggleRow = (id) => {
+    setExpandedId(expandedId === id ? null : id);
   };
 
-  // --- SCROLL EFFECT ---
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 80) setScrolled(true);
-      else setScrolled(false);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // --- HELPERS ---
   const getStatusStyles = (status) => {
     switch (status) {
       case 'PENDING': return 'bg-[#FEF9C3] text-[#854D0E] border-[#FEF08A]';
@@ -66,16 +59,9 @@ const ComplaintDashboard = () => {
     }
   };
 
-  const handleSave = (id) => {
-    setComplaints(prev => prev.map(c => c.id === id ? { ...c, status: tempStatus } : c));
-    setEditingId(null);
-  };
-
   return (
-    <div className="min-h-screen bg-[#FFFBEB] font-poppins max-h-max">
-      {/* 1. HERO SECTION */}
-      <section className="relative bg-[#1A3C20] overflow-hidden pt-60">
-
+    <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
+      <section className="relative bg-[#1A3C20] pt-40 pb-20">
         <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
           <svg viewBox="0 0 1440 120" preserveAspectRatio="none" className="block w-full h-[100px]">
             <path fill="#FFFBEB" d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z"></path>
@@ -83,114 +69,123 @@ const ComplaintDashboard = () => {
         </div>
       </section>
 
-      {/* 2. TABLE SECTION */}
-      <div className="max-w-6xl mx-auto -mt-20 relative z-30 mb-20 px-4 md:px-0">
-        {currentTab === "Admin" ? (
-          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-            <div className="bg-[#1A3C20] p-4 flex flex-col md:flex-row justify-between items-center gap-4">
-              <h2 className="text-white font-bold tracking-widest uppercase text-[30px]">Complaint Management</h2>
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={14} />
-                  <input placeholder="Search complaints..." className="bg-white/10 border border-white/20 rounded-lg py-1.5 pl-9 pr-4 text-[11px] text-white placeholder:text-white/40 focus:outline-none" />
-                </div>
-                <button className="flex items-center gap-2 bg-white text-[#1A3C20] px-4 py-1.5 rounded-lg text-[10px] font-black uppercase shadow-sm"><ListFilter size={14} /> Category</button>
-                <button className="flex items-center gap-2 bg-white text-[#1A3C20] px-4 py-1.5 rounded-lg text-[10px] font-black uppercase shadow-sm"><Filter size={14} /> Filter</button>
+      <div className="max-w-6xl mx-auto -mt-20 relative z-30 px-4">
+        <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+          {/* Header */}
+          <div className="bg-[#1A3C20] p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <h2 className="text-white font-bold tracking-widest uppercase text-xl">Complaint Management</h2>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={14} />
+                <input placeholder="Search complaints..." className="bg-white/10 border border-white/20 rounded-lg py-1.5 pl-9 pr-4 text-[11px] text-white placeholder:text-white/40 focus:outline-none" />
               </div>
+              <button className="flex items-center gap-2 bg-white text-[#1A3C20] px-4 py-1.5 rounded-lg text-[10px] font-black uppercase shadow-sm"><ListFilter size={14} /> Category</button>
             </div>
+          </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                    <th className="px-6 py-4">Complaint ID</th>
-                    <th className="px-6 py-4">Student Name</th>
-                    <th className="px-6 py-4">Category</th>
-                    <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {currentComplaints.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  <th className="px-6 py-4 w-10"></th>
+                  <th className="px-6 py-4">Complaint ID</th>
+                  <th className="px-6 py-4">Student Name</th>
+                  <th className="px-6 py-4">Category</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {currentComplaints.map((item) => (
+                  <React.Fragment key={item.id}>
+                    {/* Main Row */}
+                    <tr 
+                      onClick={() => toggleRow(item.id)}
+                      className={`cursor-pointer transition-all duration-200 ${expandedId === item.id ? 'bg-green-50/30' : 'hover:bg-gray-50/50'}`}
+                    >
+                      <td className="px-6 py-5">
+                        <div className={`p-1 rounded-full transition-all duration-300 ${expandedId === item.id ? 'rotate-90 bg-[#1A3C20] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                          <ChevronRight size={14} />
+                        </div>
+                      </td>
                       <td className="px-6 py-5 text-sm font-bold text-[#1A3C20]">{item.id}</td>
                       <td className="px-6 py-5 text-sm text-gray-700 font-medium">{item.name}</td>
                       <td className="px-6 py-5 text-sm text-gray-500">{item.category}</td>
-                      
-                      <td className="px-6 py-5">
-                        {editingId === item.id ? (
-                          <div className="relative inline-block w-40 animate-in fade-in duration-200">
-                            <select 
-                              value={tempStatus} 
-                              onChange={(e) => setTempStatus(e.target.value)}
-                              className={`w-full appearance-none px-4 py-1.5 rounded-full text-[10px] font-black border-2 outline-none cursor-pointer pr-10 ${getStatusStyles(tempStatus)}`}
-                            >
-                              <option value="PENDING">PENDING</option>
-                              <option value="IN PROGRESS">IN PROGRESS</option>
-                              <option value="RESOLVED">RESOLVED</option>
-                            </select>
-                            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
-                          </div>
-                        ) : (
-                          <span className={`px-4 py-1.5 rounded-full text-[10px] font-black border tracking-wider inline-block min-w-[110px] text-center ${getStatusStyles(item.status)}`}>
-                            {item.status}
-                          </span>
-                        )}
+                      <td className="px-6 py-5" onClick={(e) => e.stopPropagation()}>
+                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black border tracking-wider inline-block min-w-[110px] text-center ${getStatusStyles(item.status)}`}>
+                          {item.status}
+                        </span>
                       </td>
-
-                      <td className="px-6 py-5 text-right">
-                        {editingId === item.id ? (
-                          <div className="flex justify-end gap-3 items-center">
-                            <button onClick={() => handleSave(item.id)} className="bg-blue-600 text-white px-3 py-1 rounded text-[10px] font-bold shadow-md hover:bg-blue-700 transition-all">Save</button>
-                            <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-600 text-[10px] font-bold">Cancel</button>
-                          </div>
-                        ) : (
-                          <button onClick={() => { setEditingId(item.id); setTempStatus(item.status); }} className="text-gray-300 hover:text-[#1A3C20] transition-colors"><Edit3 size={18} /></button>
-                        )}
+                      <td className="px-6 py-5 text-right" onClick={(e) => e.stopPropagation()}>
+                        <button className="text-gray-300 hover:text-[#1A3C20] transition-colors"><Edit3 size={18} /></button>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
 
-            {/* --- WORKING PAGINATION FOOTER --- */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center text-[10px] font-bold text-gray-500 uppercase">
-              <span>Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, complaints.length)} of {complaints.length}</span>
+                    {/* Expandable Details Area */}
+                    {expandedId === item.id && (
+                      <tr className="bg-gray-50/50">
+                        <td colSpan="6" className="px-12 py-8 border-l-4 border-l-[#1A3C20] animate-in fade-in slide-in-from-top-2 duration-300">
+                          <div className="flex flex-col gap-6">
+                            <div>
+                              <h4 className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">
+                                <MessageCircle size={14} /> Issue Details
+                              </h4>
+                              <p className="text-gray-700 text-sm leading-relaxed bg-white p-5 rounded-2xl border border-gray-100 shadow-sm max-w-4xl">
+                                {item.description}
+                              </p>
+                            </div>
+                            <div className="flex gap-10">
+                              <div>
+                                <h4 className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                                  <Calendar size={12} /> Filed On
+                                </h4>
+                                <p className="text-xs font-bold text-[#1A3C20]">{item.date}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* --- RESTORED PAGINATION FOOTER --- */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+            <span>Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, complaints.length)} of {complaints.length} Entries</span>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`p-2 rounded-lg border transition-all ${currentPage === 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white text-[#1A3C20]'}`}
+              >
+                <ChevronLeft size={16}/>
+              </button>
+
               <div className="flex items-center gap-1">
-                <button 
-                  onClick={goToPrevPage}
-                  disabled={currentPage === 1}
-                  className={`p-1 rounded border border-transparent transition-all ${currentPage === 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white hover:border-gray-200 text-[#1A3C20]'}`}
-                >
-                  <ChevronLeft size={14}/>
-                </button>
-
                 {[...Array(totalPages)].map((_, index) => (
                   <button
                     key={index + 1}
-                    onClick={() => setCurrentPage(index + 1)}
-                    className={`px-2.5 py-1 rounded transition-all ${currentPage === index + 1 ? 'bg-[#1A3C20] text-white' : 'hover:bg-white text-gray-600'}`}
+                    onClick={() => handlePageChange(index + 1)}
+                    className={`w-8 h-8 rounded-lg transition-all ${currentPage === index + 1 ? 'bg-[#1A3C20] text-white shadow-lg' : 'hover:bg-white text-gray-400'}`}
                   >
                     {index + 1}
                   </button>
                 ))}
-
-                <button 
-                  onClick={goToNextPage}
-                  disabled={currentPage === totalPages}
-                  className={`p-1 rounded border border-transparent transition-all ${currentPage === totalPages ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white hover:border-gray-200 text-[#1A3C20]'}`}
-                >
-                  <ChevronRight size={14}/>
-                </button>
               </div>
+
+              <button 
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`p-2 rounded-lg border transition-all ${currentPage === totalPages ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white text-[#1A3C20]'}`}
+              >
+                <ChevronRight size={16}/>
+              </button>
             </div>
           </div>
-        ) : (
-          <div className="bg-white rounded-2xl p-20 text-center shadow-2xl">
-             <h2 className="text-[#1A3C20] font-black text-2xl uppercase tracking-widest">Navigation Menu</h2>
-          </div>
-        )}
+        </div>
       </div>
 
       <footer className="py-12 text-center text-[10px] font-black text-gray-400 tracking-[0.3em] uppercase">
