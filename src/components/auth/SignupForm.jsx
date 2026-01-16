@@ -328,6 +328,7 @@ const SignupForm = ({ onLogin }) => {
     setSignupData((prev) => ({ ...prev, Profile_Pic: file }));
   };
 
+
   // const handleSubmit = async (e) => {
   //   e.preventDefault();
   //   console.log("Submitting Signup Data:", signupData);
@@ -368,6 +369,8 @@ const SignupForm = ({ onLogin }) => {
   //     setLoading(false);
   //   }
   // };
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
