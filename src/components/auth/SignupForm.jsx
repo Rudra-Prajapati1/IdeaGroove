@@ -328,7 +328,6 @@ const SignupForm = ({ onLogin }) => {
     setSignupData((prev) => ({ ...prev, Profile_Pic: file }));
   };
 
-
   // const handleSubmit = async (e) => {
   //   e.preventDefault();
   //   console.log("Submitting Signup Data:", signupData);
@@ -372,6 +371,7 @@ const SignupForm = ({ onLogin }) => {
 
 
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -405,6 +405,34 @@ const SignupForm = ({ onLogin }) => {
       if (signupData.Profile_Pic) {
         formData.append("image", signupData.Profile_Pic);
       }
+
+
+    const formData = new FormData();
+
+  // 2. Append all text fields
+  Object.keys(signupData).forEach((key) => {
+    if (key !== "Profile_Pic" && key !== "confirmPassword") {
+      formData.append(key, signupData[key]);
+    }
+  });
+
+  // 3. Append the image file specifically
+  if (signupData.profile_pic) {
+    formData.append("image", signupData.profile_pic);
+  }
+
+  try {
+    const response = await fetch("http://localhost:5000/api/auth/signup", {
+      method: "POST",
+      body: formData, // No headers needed, browser sets 'multipart/form-data' automatically
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      toast.success("Signup Successful!");
+    } else {
+      throw new Error(result.error || "Signup Failed");
 
       // Append Hobbies (Handle Array for FormData)
       // We append them one by one, or joined by comma.
@@ -445,7 +473,13 @@ const SignupForm = ({ onLogin }) => {
       toast.error(msg);
     } finally {
       setLoading(false);
+
     }
+  } catch (error) {
+    toast.error(error.message);
+  } finally {
+    setLoading(false);
+  }
   };
 
   return (
