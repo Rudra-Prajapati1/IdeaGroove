@@ -6,6 +6,7 @@ import chatsReducer from "./slice/chatsSlice";
 import notesReducer from "./slice/notesSlice";
 import questionsReducer from "./slice/questionsSlice";
 import answerReducer from "./slice/answerSlice";
+import authReducer from "./slice/authSlice";
 
 export default configureStore({
   reducer: {
@@ -16,5 +17,6 @@ export default configureStore({
     notes: notesReducer,
     questions: questionsReducer,
     answers: answerReducer,
+    auth: authReducer,
   },
 });

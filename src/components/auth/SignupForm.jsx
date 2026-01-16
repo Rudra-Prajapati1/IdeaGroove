@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { Eye, EyeClosed, ChevronDown, X, Search } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -8,6 +9,8 @@ import SectionWrapper from "./SectionWrapper";
 import Input from "./Input";
 import ProfileUpload from "./ProfileUpload";
 import Select from "./Select";
+
+import { loginSuccess } from "../../redux/slice/authSlice";
 
 // --- CUSTOM COMPONENT: SEARCHABLE DROPDOWN ---
 const SearchableDropdown = ({
@@ -249,7 +252,17 @@ const MultiSearchableDropdown = ({
 
 // --- MAIN SIGNUP COMPONENT ---
 const SignupForm = ({ onLogin }) => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
+  // ✅ 2. Redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
 
   // --- STATE MANAGEMENT ---
   const [step, setStep] = useState("personal"); // 'personal' or 'educational'
@@ -407,6 +420,19 @@ const SignupForm = ({ onLogin }) => {
       );
 
       if (response.status === 201 || response.status === 200) {
+        // Construct User Object manually since backend only returns ID
+        const userToStore = {
+          id: response.data.userId,
+          Username: signupData.Username,
+          Name: signupData.Name,
+          Email: signupData.Email,
+          Roll_No: signupData.Roll_No,
+          // You can add more fields if needed for display
+        };
+
+        // ✅ REDUX: Dispatch user to state + LocalStorage
+        dispatch(loginSuccess(userToStore));
+
         toast.success("Signup Successful!");
         setTimeout(() => navigate("/dashboard"), 1500);
       }
