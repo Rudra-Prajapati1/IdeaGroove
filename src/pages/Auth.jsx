@@ -9,7 +9,7 @@ const Auth = () => {
   const [mode, setMode] = useState("login");
 
   return (
-    <section className="min-h-screen bg-primary font-sans">
+    <section className="min-h-screen bg-primary font-inter">
       <AnimatePresence mode="wait">
         {mode === "login" ? (
           <motion.div

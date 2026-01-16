@@ -1,20 +1,11 @@
 import React, { useEffect } from "react";
-import Navbar from "./components/Navbar";
 import { Route, Routes, useLocation } from "react-router-dom";
-import Home from "./pages/Home";
-import Dashboard from "./pages/Dashboard";
-import Footer from "./components/Footer";
-import Events from "./pages/Events";
-import Chats from "./pages/Chats";
-import QnA from "./pages/QnA";
-import Notes from "./pages/Notes";
-import Groups from "./pages/Groups";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import ComplaintDashboard from "./pages/ComplaintDashboard";
-import Searchpage from "./pages/Searchpage";
-import SubmitComplaint from "./pages/SubmitComplaint";
-import ProfileInformation from "./pages/Profile";
+import UserLayout from "./layouts/UserLayout";
+import UserRoutes from "./routes/UserRoutes";
+import ProtectAdmin from "./routes/ProtectAdmin";
+import AdminLayout from "./layouts/AdminLayout";
+import AdminRoutes from "./routes/AdminRoutes";
+import Login from "./pages/admin/Login";
 
 const App = () => {
   const location = useLocation();
@@ -23,31 +14,24 @@ const App = () => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  const hideFooter = location.pathname === "/auth";
-
   return (
-    <main className="min-h-screen flex flex-col">
-      <Navbar />
+    <Routes>
+      <Route path="/" element={<UserLayout />}>
+        {UserRoutes}
+      </Route>
 
-      <div className="flex-1">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="/chats" element={<Chats />} />
-          <Route path="/groups" element={<Groups />} />
-          <Route path="/notes" element={<Notes />} />
-          <Route path="/qna" element={<QnA />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/profile" element={<ProfileInformation />} />
-          <Route path="/complaintDashboard" element={<ComplaintDashboard />} />
-          <Route path="/submitComplaint" element={<SubmitComplaint />} />
-          <Route path="/search" element={<Searchpage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
-      {!hideFooter && <Footer />}
-    </main>
+      <Route path="/admin/login" element={<Login />} />
+      <Route
+        path="/admin"
+        element={
+          <ProtectAdmin>
+            <AdminLayout />
+          </ProtectAdmin>
+        }
+      >
+        {AdminRoutes}
+      </Route>
+    </Routes>
   );
 };
 
