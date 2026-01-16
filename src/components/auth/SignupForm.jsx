@@ -205,24 +205,6 @@ const SignupForm = ({ onLogin }) => {
     setSignupData((prev) => ({ ...prev, Profile_Pic: file }));
   };
 
-  // const handleNextStep = () => {
-  //   // Validation for Personal Details
-  //   if (
-  //     !signupData.Username ||
-  //     !signupData.Name ||
-  //     !signupData.Roll_No ||
-  //     !signupData.Password
-  //   ) {
-  //     return toast.error("Please fill all personal details.");
-  //   }
-  //   if (signupData.Password.length < 6) {
-  //     return toast.error("Password must be at least 6 characters.");
-  //   }
-  //   if (signupData.Password !== signupData.confirmPassword) {
-  //     return toast.error("Passwords do not match.");
-  //   }
-  //   setStep("educational");
-  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
