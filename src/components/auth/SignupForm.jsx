@@ -55,7 +55,7 @@ const SignupForm = ({ onLogin }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (
@@ -83,13 +83,38 @@ const SignupForm = ({ onLogin }) => {
 
     setLoading(true);
 
-    try {
-      toast.success("Signup Successful!");
-    } catch (error) {
-      toast.error(error.message || "Signup Failed. Please Try Again.");
-    } finally {
-      setLoading(false);
+    const formData = new FormData();
+
+  // 2. Append all text fields
+  Object.keys(signupData).forEach((key) => {
+    if (key !== "Profile_Pic" && key !== "confirmPassword") {
+      formData.append(key, signupData[key]);
     }
+  });
+
+  // 3. Append the image file specifically
+  if (signupData.profile_pic) {
+    formData.append("image", signupData.profile_pic);
+  }
+
+  try {
+    const response = await fetch("http://localhost:5000/api/auth/signup", {
+      method: "POST",
+      body: formData, // No headers needed, browser sets 'multipart/form-data' automatically
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      toast.success("Signup Successful!");
+    } else {
+      throw new Error(result.error || "Signup Failed");
+    }
+  } catch (error) {
+    toast.error(error.message);
+  } finally {
+    setLoading(false);
+  }
   };
 
   const [details, setDetails] = useState("personal");
