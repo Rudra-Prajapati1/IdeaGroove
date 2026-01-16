@@ -16,7 +16,6 @@ import Searchpage from "./pages/Searchpage";
 import SubmitComplaint from "./pages/SubmitComplaint";
 import ProfileInformation from "./pages/Profile";
 
-
 const App = () => {
   const location = useLocation();
 
