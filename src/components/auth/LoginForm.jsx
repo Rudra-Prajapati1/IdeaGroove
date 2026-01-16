@@ -1,8 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { Eye, EyeClosed } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { loginSuccess } from "../../redux/slice/authSlice";
 
 const LoginForm = ({ onSignup }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      toast.success("You are already logged in!");
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
+
   const [loginData, setLoginData] = useState({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -14,21 +30,96 @@ const LoginForm = ({ onSignup }) => {
     }));
   };
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+  // const handleLogin = (e) => {
+  //   e.preventDefault();
 
-    if (!loginData.password || !loginData.username)
-      return toast.error("Please enter all the required fields.");
+  //   if (!loginData.password || !loginData.username)
+  //     return toast.error("Please enter all the required fields.");
+
+  //   setLoading(true);
+
+  //   try {
+  //     toast.success("Login Successfully!");
+  //     setTimeout(() => navigate("/dashboard"), 1500);
+  //     setLoginData({ username: "", password: "" });
+  //   } catch (error) {
+  //     toast.error(error.message || "Login Error. Please Try Again.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  // const handleLogin = async (e) => {
+  //   e.preventDefault();
+
+  //   if (!loginData.password || !loginData.username) {
+  //     return toast.error("Please enter all required fields.");
+  //   }
+
+  //   setLoading(true);
+
+  //   try {
+  //     const response = await axios.post(
+  //       "http://localhost:8080/api/auth/login",
+  //       loginData,
+  //       { withCredentials: true } // CRITICAL: This allows the session cookie to be saved
+  //     );
+
+  //     if (response.status === 200) {
+  //       // 3. Save User Info Locally (For UI display like "Welcome, Rudra")
+  //       localStorage.setItem("user", JSON.stringify(response.data.user));
+
+  //       toast.success("Login Successful!");
+
+  //       // 4. Redirect
+  //       // Small delay allows the user to read the toast message
+  //       setTimeout(() => {
+  //         navigate("/dashboard");
+  //       }, 1000);
+
+  //       // Optional: Clear form (usually not needed if redirecting)
+  //       setLoginData({ username: "", password: "" });
+  //     }
+  //   } catch (error) {
+  //     console.error("Login Error:", error);
+
+  //     // 5. Smart Error Handling
+  //     // If backend sends specific error (e.g., "Invalid credentials"), show that.
+  //     // Otherwise, show a generic fallback.
+  //     const errorMessage =
+  //       error.response?.data?.message ||
+  //       error.response?.data?.error ||
+  //       "Login failed. Please try again.";
+
+  //     toast.error(errorMessage);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!loginData.password || !loginData.username) {
+      return toast.error("Please enter all required fields.");
+    }
 
     setLoading(true);
-
     try {
-      toast.success("Login Successfully!");
-      setLoginData({ username: "", password: "" });
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/login",
+        loginData,
+        { withCredentials: true } // CRITICAL: This allows the session cookie to be saved
+      );
+
+      if (response.status === 200) {
+        // ✅ REDUX WAY: Dispatch the user data
+        // This will update the State AND save to LocalStorage automatically
+        dispatch(loginSuccess(response.data.user));
+
+        toast.success("Login Successful!");
+        setTimeout(() => navigate("/dashboard"), 1000);
+      }
     } catch (error) {
-      toast.error(error.message || "Login Error. Please Try Again.");
-    } finally {
-      setLoading(false);
+      toast.error(error.response?.data?.message || "Login Failed");
     }
   };
 

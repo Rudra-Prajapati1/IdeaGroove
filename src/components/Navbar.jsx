@@ -1,13 +1,20 @@
 import React, { useEffect, useRef, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { navLinks } from "../links/navLinks";
+import { logout } from "../redux/slice/authSlice";
+import { User, LogOut, LayoutDashboard, ChevronDown } from "lucide-react";
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const navRef = useRef(null);
 
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+
   const [menuOpen, setMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   const isHome = location.pathname === "/";
@@ -18,6 +25,12 @@ const Navbar = () => {
     window.scrollTo(0, 0);
     setScrolled(false);
     setMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    dispatch(logout()); // Clear Redux state & LocalStorage
+    setProfileOpen(false);
+    navigate("/"); // Redirect to home
   };
 
   useEffect(() => {
@@ -71,7 +84,10 @@ const Navbar = () => {
         `}
       >
         <button
-          onClick={() => setMenuOpen((prev) => !prev)}
+          onClick={() => {
+            setMenuOpen((prev) => !prev);
+            setProfileOpen(false);
+          }}
           className="text-sm lg:text-lg font-poppins font-semibold cursor-pointer border p-2 rounded-lg transition-all duration-200 active:scale-95 hover:shadow-md"
         >
           Menu
@@ -93,13 +109,68 @@ const Navbar = () => {
           `}
         />
 
-        <button
-          className="text-sm lg:text-lg font-poppins font-semibold border px-4 py-2 rounded-lg
-                     hover:shadow-md transition-all cursor-pointer"
-          onClick={() => navigate("/auth")}
-        >
-          Join
-        </button>
+        {isAuthenticated ? (
+          <div className="relative">
+            {/* Profile Button */}
+            <button
+              onClick={() => {
+                setProfileOpen((prev) => !prev);
+                setMenuOpen(false);
+              }}
+              className="flex items-center gap-2 text-sm lg:text-lg font-poppins font-semibold border px-3 py-2 rounded-lg hover:shadow-md transition-all cursor-pointer"
+            >
+              <User className="w-5 h-5" />
+              <span className="hidden sm:inline">Profile</span>
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${
+                  profileOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {/* Profile Dropdown Menu */}
+            {profileOpen && (
+              <div className="absolute top-[120%] right-0 w-48 bg-white text-black rounded-xl shadow-xl overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2 duration-200 border border-gray-100">
+                {/* User Info Header */}
+                <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                  <p className="text-xs text-gray-500">Signed in as</p>
+                  <p className="font-semibold text-sm truncate">
+                    {user?.Username || "User"}
+                  </p>
+                </div>
+
+                {/* Option 1: My Profile */}
+                <button
+                  onClick={() => {
+                    navigate("/profile");
+                    setProfileOpen(false);
+                  }}
+                  className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-green-50 hover:text-[#256B22] transition-colors text-left"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  My Profile
+                </button>
+
+                {/* Option 2: Logout */}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-red-50 hover:text-red-600 transition-colors text-left border-t border-gray-100"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Join Button (Shown when NOT logged in) */
+          <button
+            className="text-sm lg:text-lg font-poppins font-semibold border px-4 py-2 rounded-lg hover:shadow-md transition-all cursor-pointer"
+            onClick={() => navigate("/auth")}
+          >
+            Join
+          </button>
+        )}
       </nav>
 
       <div
