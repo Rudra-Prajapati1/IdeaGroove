@@ -16,7 +16,6 @@ import Searchpage from "./pages/Searchpage";
 import SubmitComplaint from "./pages/SubmitComplaint";
 import ProfileInformation from "./pages/Profile";
 
-
 const App = () => {
   const location = useLocation();
 
@@ -42,7 +41,7 @@ const App = () => {
           <Route path="/auth" element={<Auth />} />
           <Route path="/profile" element={<ProfileInformation />} />
           <Route path="/complaintDashboard" element={<ComplaintDashboard />} />
-          <Route path="/SubmitComplaint" element={<SubmitComplaint />} />
+          <Route path="/submitComplaint" element={<SubmitComplaint />} />
           <Route path="/search" element={<Searchpage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

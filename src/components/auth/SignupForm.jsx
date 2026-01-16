@@ -1,98 +1,268 @@
-import { Eye, EyeClosed, User2 } from "lucide-react";
-import React, { useState } from "react";
-import toast from "react-hot-toast";
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import {
+  Eye,
+  EyeClosed,
+  Upload,
+  User,
+  ChevronDown,
+  Search,
+} from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
+
 import SectionWrapper from "./SectionWrapper";
 import Input from "./Input";
 import ProfileUpload from "./ProfileUpload";
 import Select from "./Select";
 
+// --- CUSTOM COMPONENT: SEARCHABLE DROPDOWN ---
+const SearchableDropdown = ({
+  label,
+  options,
+  value,
+  onChange,
+  placeholder,
+  idKey,
+  labelKey,
+  loading,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const dropdownRef = useRef(null);
+
+  // --- DEBUGGING: Check Console when opening dropdown ---
+  useEffect(() => {
+    if (isOpen) {
+      console.log(`Dropdown [${label}] Options:`, options);
+      if (options && options.length > 0) {
+        console.log(`First Item Keys:`, Object.keys(options[0]));
+        console.log(`Code is looking for key: "${labelKey}"`);
+        if (options[0][labelKey] === undefined) {
+          console.error(
+            `⚠️ MISMATCH: The key "${labelKey}" does not exist in your data! Check the "First Item Keys" above to see the correct spelling.`
+          );
+        }
+      }
+    }
+  }, [isOpen, options, label, labelKey]);
+
+  // Close dropdown if clicked outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // --- SAFE FILTERING ---
+  // 1. Check if 'options' exists
+  // 2. Check if the specific text (opt[labelKey]) exists before lowercasing
+  const filteredOptions = options
+    ? options.filter((opt) => {
+        const text = opt[labelKey];
+        return text
+          ? text.toString().toLowerCase().includes(searchTerm.toLowerCase())
+          : false;
+      })
+    : [];
+
+  // console.log(`Filtered Options for [${label}]:`, filteredOptions);
+
+  // Find the display name for the selected value
+  const selectedItem = options
+    ? options.find((opt) => opt[idKey] === value)
+    : null;
+
+  return (
+    <div className="flex flex-col gap-2 w-full relative" ref={dropdownRef}>
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+
+      <div
+        className="w-full border-2 border-gray-300 rounded-xl p-3 cursor-pointer flex justify-between items-center bg-white hover:border-green-600 transition-colors"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className={selectedItem ? "text-black" : "text-gray-400"}>
+          {selectedItem ? selectedItem[labelKey] : placeholder}
+        </span>
+        <ChevronDown className="w-4 h-4 text-gray-500" />
+      </div>
+
+      {isOpen && (
+        <div className="absolute top-[110%] left-0 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-60 overflow-hidden flex flex-col">
+          {/* Search Input */}
+          <div className="p-2 border-b border-gray-100 flex items-center gap-2 sticky top-0 bg-white z-10">
+            <Search className="w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              className="w-full outline-none text-sm p-1"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              autoFocus
+            />
+          </div>
+
+          {/* Options List */}
+          <div className="overflow-y-auto flex-1">
+            {loading ? (
+              <div className="p-3 text-sm text-gray-400 text-center">
+                Loading data...
+              </div>
+            ) : filteredOptions.length > 0 ? (
+              filteredOptions.map((opt) => (
+                <div
+                  key={opt[idKey]}
+                  className="p-3 text-sm hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
+                  onClick={() => {
+                    onChange(opt[idKey]); // Return the ID (e.g., 101)
+                    setIsOpen(false);
+                    setSearchTerm("");
+                  }}
+                >
+                  {opt[labelKey]}
+                </div>
+              ))
+            ) : (
+              <div className="p-3 text-sm text-gray-400 text-center">
+                No results found
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// --- MAIN SIGNUP COMPONENT ---
 const SignupForm = ({ onLogin }) => {
-  const [signupData, setSignupData] = useState({
-    username: "",
-    name: "",
-    roll_no: "",
-    email: "",
-    college: "",
-    degree: "",
-    year: "",
-    profile_pic: null,
-    password: "",
-    confirmPassword: "",
-  });
+  const navigate = useNavigate();
+
+  // --- STATE MANAGEMENT ---
+  const [step, setStep] = useState("personal"); // 'personal' or 'educational'
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const colleges = [
-    "IIT Bombay",
-    "IIT Delhi",
-    "NIT Trichy",
-    "BITS Pilani",
-    "Other",
-  ];
+  // Data from Backend
+  const [resources, setResources] = useState({ colleges: [], degrees: [] });
+  const [resourceLoading, setResourceLoading] = useState(true);
 
-  const degrees = ["B.Tech", "M.Tech", "MBA", "BSc", "MSc"];
+  const [signupData, setSignupData] = useState({
+    Username: "",
+    Name: "",
+    Roll_No: "",
+    Email: "",
+    College_ID: "", // ID from DB
+    Degree_ID: "", // ID from DB
+    Year: "",
+    Password: "",
+    confirmPassword: "",
+    Profile_Pic: null, // (Backend logic for image upload needs separate handling, kept simple for now)
+  });
 
+  // --- FETCH COLLEGES & DEGREES ---
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        const response = await axios.get("http://localhost:8080/api/search");
+        // Ensure your backend ResourceController returns { colleges: [], degrees: [], hobbies: [] }
+        setResources({
+          colleges: response.data.colleges || [],
+          degrees: response.data.degrees || [],
+        });
+        console.log(
+          "Fetched Resources:",
+          resources.colleges,
+          resources.degrees
+        );
+        setResourceLoading(false);
+      } catch (err) {
+        console.error("Resource Fetch Error:", err);
+        toast.error("Failed to load colleges. Please check connection.");
+        setResourceLoading(false);
+      }
+    };
+    fetchResources();
+  }, []);
+
+  // --- HANDLERS ---
   const handleData = (field, value) => {
-    setSignupData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setSignupData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload a valid image");
       return;
     }
-
-    setSignupData((prev) => ({
-      ...prev,
-      profile_pic: file,
-    }));
+    setSignupData((prev) => ({ ...prev, Profile_Pic: file }));
   };
 
-  const handleSubmit = (e) => {
+  // const handleNextStep = () => {
+  //   // Validation for Personal Details
+  //   if (
+  //     !signupData.Username ||
+  //     !signupData.Name ||
+  //     !signupData.Roll_No ||
+  //     !signupData.Password
+  //   ) {
+  //     return toast.error("Please fill all personal details.");
+  //   }
+  //   if (signupData.Password.length < 6) {
+  //     return toast.error("Password must be at least 6 characters.");
+  //   }
+  //   if (signupData.Password !== signupData.confirmPassword) {
+  //     return toast.error("Passwords do not match.");
+  //   }
+  //   setStep("educational");
+  // };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Submitting Signup Data:", signupData);
 
+    // Validation for Educational Details
     if (
-      !signupData.username ||
-      !signupData.name ||
-      !signupData.roll_no ||
-      !signupData.email ||
-      !signupData.password ||
-      !signupData.confirmPassword
+      !signupData.College_ID ||
+      !signupData.Degree_ID ||
+      !signupData.Year ||
+      !signupData.Email
     ) {
-      return toast.error("Please fill all required fields");
-    }
-
-    if (signupData.password.length < 6) {
-      return toast.error("Password must be at least 6 characters");
-    }
-
-    if (signupData.password !== signupData.confirmPassword) {
-      return toast.error("Passwords do not match");
-    }
-
-    if (!signupData.college || !signupData.degree || !signupData.year) {
-      return toast.error("Please complete educational details");
+      return toast.error("Please fill all educational details.");
     }
 
     setLoading(true);
 
     try {
-      toast.success("Signup Successful!");
-    } catch (error) {
-      toast.error(error.message || "Signup Failed. Please Try Again.");
+      const payload = {
+        ...signupData,
+        college_ID: parseInt(signupData.College_ID),
+        degree_ID: parseInt(signupData.Degree_ID),
+      };
+
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/signup",
+        payload
+      );
+
+      if (response.status === 201) {
+        toast.success("Signup Successful!");
+        setTimeout(() => navigate("/dashboard"), 1500);
+      }
+    } catch (err) {
+      const msg = err.response?.data?.error || "Registration Failed.";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
-
-  const [details, setDetails] = useState("personal");
 
   return (
     <div className="w-full h-full flex items-center pt-20 justify-center">
@@ -100,7 +270,7 @@ const SignupForm = ({ onLogin }) => {
         onSubmit={handleSubmit}
         className="flex flex-col gap-4 w-full font-inter items-center justify-between"
       >
-        {details === "personal" && (
+        {step === "personal" && (
           <SectionWrapper title="Personal Details">
             <div>
               <div className="flex gap-6 items-center">
@@ -108,27 +278,27 @@ const SignupForm = ({ onLogin }) => {
                   <Input
                     label="Username"
                     placeholder="Enter the username"
-                    value={signupData.username}
-                    onChange={(v) => handleData("username", v)}
+                    value={signupData.Username}
+                    onChange={(v) => handleData("Username", v)}
                   />
 
                   <Input
                     label="Name"
                     placeholder="Enter the name"
-                    value={signupData.name}
-                    onChange={(v) => handleData("name", v)}
+                    value={signupData.Name}
+                    onChange={(v) => handleData("Name", v)}
                   />
 
                   <Input
                     label="Roll No"
                     placeholder="Enter the roll no"
-                    value={signupData.roll_no}
-                    onChange={(v) => handleData("roll_no", v)}
+                    value={signupData.Roll_No}
+                    onChange={(v) => handleData("Roll_No", v)}
                   />
                 </div>
 
                 <ProfileUpload
-                  file={signupData.profile_pic}
+                  file={signupData.Profile_Pic}
                   onChange={handleImageChange}
                 />
               </div>
@@ -138,9 +308,9 @@ const SignupForm = ({ onLogin }) => {
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
-                      value={signupData.password}
+                      value={signupData.Password}
                       placeholder="Enter password"
-                      onChange={(e) => handleData("password", e.target.value)}
+                      onChange={(e) => handleData("Password", e.target.value)}
                       className="w-full text-sm border-2 border-gray-300 rounded-xl outline-none
                  transition-colors duration-300 focus:border-primary/60 p-3"
                       required
@@ -190,50 +360,53 @@ const SignupForm = ({ onLogin }) => {
           </SectionWrapper>
         )}
 
-        {details === "educational" && (
+        {step === "educational" && (
           <SectionWrapper title="Educational Details">
-            <Select
+            <SearchableDropdown
               label="College"
-              value={signupData.college}
-              options={colleges}
-              onChange={(v) => handleData("college", v)}
+              placeholder="Search for your college..."
+              options={resources.colleges}
+              value={signupData.College_ID}
+              onChange={(val) => handleData("College_ID", val)}
+              idKey="College_ID" // The key in DB object for ID
+              labelKey="College_Name" // The key in DB object for display text
+              loading={resourceLoading}
             />
 
-            <Select
+            {/* SEARCHABLE DEGREE SELECT */}
+            <SearchableDropdown
               label="Degree"
-              value={signupData.degree}
-              options={degrees}
-              onChange={(v) => handleData("degree", v)}
+              placeholder="Search for your degree..."
+              options={resources.degrees}
+              value={signupData.Degree_ID}
+              onChange={(val) => handleData("Degree_ID", val)}
+              idKey="Degree_ID"
+              labelKey="Degree_Name"
+              loading={resourceLoading}
             />
 
             <Select
               label="Year"
-              value={signupData.year}
-              options={[
-                "1st Year",
-                "2nd Year",
-                "3rd Year",
-                "4th Year",
-                "5th Year",
-              ]}
-              onChange={(v) => handleData("year", v)}
+              value={signupData.Year}
+              options={[1, 2, 3, 4, 5]}
+              onChange={(v) => handleData("Year", v)}
             />
 
             <Input
               label="Email"
               type="email"
               placeholder="Enter the email"
-              value={signupData.email}
-              onChange={(v) => handleData("email", v)}
+              value={signupData.Email}
+              onChange={(v) => handleData("Email", v)}
             />
           </SectionWrapper>
         )}
         <div className="flex gap-4 mt-4">
           {/* Back button */}
-          {details === "educational" && (
+          {step === "educational" && (
             <button
               type="button"
-              onClick={() => setDetails("personal")}
+              onClick={() => setStep("personal")}
               className="border border-primary text-primary px-6 py-2 rounded-lg
                  hover:bg-primary/10 transition-colors"
             >
@@ -242,29 +415,29 @@ const SignupForm = ({ onLogin }) => {
           )}
 
           {/* Next button */}
-          {details === "personal" && (
+          {step === "personal" && (
             <button
               type="button"
               onClick={() => {
                 if (
-                  !signupData.username ||
-                  !signupData.name ||
-                  !signupData.roll_no ||
-                  !signupData.password ||
+                  !signupData.Username ||
+                  !signupData.Name ||
+                  !signupData.Roll_No ||
+                  !signupData.Password ||
                   !signupData.confirmPassword
                 ) {
                   return toast.error("Please complete personal details first");
                 }
 
-                if (signupData.password.length < 6) {
+                if (signupData.Password.length < 6) {
                   return toast.error("Password must be at least 6 characters");
                 }
 
-                if (signupData.password !== signupData.confirmPassword) {
+                if (signupData.Password !== signupData.confirmPassword) {
                   return toast.error("Passwords do not match");
                 }
 
-                setDetails("educational");
+                setStep("educational");
               }}
               disabled={loading}
               className="bg-primary text-white px-6 py-2 rounded-lg
@@ -275,7 +448,7 @@ const SignupForm = ({ onLogin }) => {
           )}
 
           {/* Signup button */}
-          {details === "educational" && (
+          {step === "educational" && (
             <button
               type="submit"
               disabled={loading}
