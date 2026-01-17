@@ -36,8 +36,8 @@ const Login = () => {
       toast.success("Login Successful!");
 
       setTimeout(() => {
-        navigate("/admin/dashboard");
-      });
+        navigate("/admin");
+      }, 500);
 
       setAdminData({ username: "", password: "" });
     } catch (error) {

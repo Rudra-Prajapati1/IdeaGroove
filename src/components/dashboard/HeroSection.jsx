@@ -7,7 +7,7 @@ const HeroSection = () => {
     <section>
       <div className=" text-primary pt-20 px-16 mt-20 mx-12">
         <h1 className="capitalize text-6xl font-extrabold mb-4">
-          Hi {user?.Username || "User"}
+          Hi {user?.Name || "User"}
         </h1>
         <div>
           <p className="text-xl font-thin italic">
