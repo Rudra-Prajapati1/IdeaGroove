@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { navLinks } from "../links/navLinks";
 import { logout } from "../redux/slice/authSlice";
 import { User, LogOut, LayoutDashboard, ChevronDown } from "lucide-react";
+import toast from "react-hot-toast";
 
 const Navbar = () => {
   const location = useLocation();
@@ -30,6 +31,7 @@ const Navbar = () => {
   const handleLogout = () => {
     dispatch(logout()); // Clear Redux state & LocalStorage
     setProfileOpen(false);
+    toast.success("Logged out successfully!");
     navigate("/"); // Redirect to home
   };
 
