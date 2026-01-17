@@ -10,8 +10,10 @@ import {
   Sigma,
   BrainCircuit,
   Loader2,
+  AlertTriangle,
   AlertCircle,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // 1. Style Mapping for vibrant cards
 const STYLE_VARIANTS = [
@@ -28,6 +30,7 @@ const STYLE_VARIANTS = [
 ];
 
 const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
+  const navigate = useNavigate();
   // Loading State
   if (status === "loading") {
     return (
@@ -47,6 +50,11 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
       </div>
     );
   }
+  const handleReportClick = (e, noteId) => {
+    e.stopPropagation();
+
+    navigate(`/submitComplaint/notes/${noteId}`);
+  };
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-poppins">
@@ -87,12 +95,15 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
               <div
                 className={`${style.color} h-32 relative p-4 transition-colors duration-300`}
               >
-                {/* File Type Badge (Top Left) */}
-                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1.5 shadow-sm">
-                  <FileText className={`w-3 h-3 ${style.textColor}`} />
-                  <span className={`text-[10px] font-bold ${style.textColor}`}>
-                    PDF {/* You can map this too: note.File_Type || 'PDF' */}
-                  </span>
+                <div className="absolute top-4 left-4">
+                  <button
+                    onClick={handleReportClick}
+                    className="flex justify-center items-center bg-white/90 gap-1 text-red-500 hover:text-red-700 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors text-xs font-light"
+                    title="Report an issue with this event"
+                  >
+                    <AlertTriangle className="pt-1 w-4 h-4" />
+                    <p className="pt-1">Raise a Complaint</p>
+                  </button>
                 </div>
 
                 {/* Subject Badge (Top Right) - Replaces Star */}
