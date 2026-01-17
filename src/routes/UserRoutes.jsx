@@ -25,7 +25,7 @@ const UserRoutes = (
     <Route path="auth" element={<Auth />} />
     <Route path="profile" element={<ProfileInformation />} />
     <Route path="complaintDashboard" element={<ComplaintDashboard />} />
-    <Route path="submitComplaint" element={<SubmitComplaint />} />
+    <Route path="submitComplaint/:type?/:id?" element={<SubmitComplaint />} />
     <Route path="search" element={<Searchpage />} />
     <Route path="*" element={<NotFound />} />
   </>
