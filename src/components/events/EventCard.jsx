@@ -48,14 +48,16 @@ const EventCard = ({ event }) => {
             Added By: <span>{event.Added_By}</span>
           </p>
         </div>
-        <button
-          onClick={handleReportClick}
-          className="flex justify-center items-center gap-1 text-red-500 hover:text-red-700 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium"
-          title="Report an issue with this event"
-        >
-          <AlertTriangle className="pt-1 w-4 h-4" />
-          <p className="pt-1">Raise a Complaint</p>
-        </button>
+        <div className="flex justify-end">
+          <button
+            onClick={handleReportClick}
+            className="w-7/12 flex justify-center items-center gap-1 text-red-500 hover:text-red-700 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors text-xs font-light"
+            title="Report an issue with this event"
+          >
+            <AlertTriangle className="pt-1 w-4 h-4" />
+            <p className="pt-1">Raise a Complaint</p>
+          </button>
+        </div>
       </div>
     </div>
   );
