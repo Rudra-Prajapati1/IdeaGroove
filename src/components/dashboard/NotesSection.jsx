@@ -64,6 +64,8 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
         </button>
       </div>
 
+      
+
       {/* Empty State */}
       {status === "succeeded" && notes.length === 0 && (
         <div className="text-center py-12 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-300">
