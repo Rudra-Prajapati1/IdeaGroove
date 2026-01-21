@@ -51,16 +51,19 @@ const AdminQnAGrid = () => {
               ...qna,
               status: qna.status === "blocked" ? "active" : "blocked",
             }
-          : qna
-      )
+          : qna,
+      ),
     );
   };
 
   return (
-    <div className="grid grid-cols-1 gap-6">
-      {qnas.map((qna) => (
-        <AdminQnACard key={qna.id} qna={qna} onToggleBlock={toggleBlockQnA} />
-      ))}
+    <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col gap-4">
+      <h3 className="text-lg font-semibold text-gray-800">Questions Asked</h3>
+      <div className="p-4 flex flex-col gap-3 bg-gray-50/30">
+        {qnas.map((qna) => (
+          <AdminQnACard key={qna.id} qna={qna} onToggleBlock={toggleBlockQnA} />
+        ))}
+      </div>
     </div>
   );
 };

@@ -50,20 +50,24 @@ const AdminEventsGrid = () => {
               ...event,
               status: event.status === "active" ? "blocked" : "active",
             }
-          : event
-      )
+          : event,
+      ),
     );
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {events.map((event) => (
-        <AdminEventCard
-          key={event.id}
-          event={event}
-          onToggleBlock={toggleBlockEvent}
-        />
-      ))}
+    <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col gap-4">
+      <h3 className="text-lg font-semibold text-gray-800">Events Registered</h3>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {events.map((event) => (
+          <AdminEventCard
+            key={event.id}
+            event={event}
+            onToggleBlock={toggleBlockEvent}
+          />
+        ))}
+      </div>
     </div>
   );
 };

@@ -55,20 +55,24 @@ const AdminGroupsGrid = () => {
               ...group,
               status: group.status === "active" ? "blocked" : "active",
             }
-          : group
-      )
+          : group,
+      ),
     );
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {groups.map((group) => (
-        <AdminGroupCard
-          key={group.id}
-          group={group}
-          onToggleBlock={toggleBlockGroup}
-        />
-      ))}
+    <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col gap-4">
+      <h3 className="text-lg font-semibold text-gray-800">Groups Created</h3>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {groups.map((group) => (
+          <AdminGroupCard
+            key={group.id}
+            group={group}
+            onToggleBlock={toggleBlockGroup}
+          />
+        ))}
+      </div>
     </div>
   );
 };

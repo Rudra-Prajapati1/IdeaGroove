@@ -1,5 +1,5 @@
 import { useState } from "react";
-import UserCard from "./UserCard";
+import UserCard from "./Cards/AdminUserCard";
 
 const initialUsers = [
   {

@@ -55,20 +55,24 @@ const AdminNotesGrid = () => {
               ...note,
               status: note.status === "active" ? "blocked" : "active",
             }
-          : note
-      )
+          : note,
+      ),
     );
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {notes.map((note) => (
-        <AdminNoteCard
-          key={note.id}
-          note={note}
-          onToggleBlock={toggleBlockNote}
-        />
-      ))}
+    <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col gap-4">
+      <h3 className="text-lg font-semibold text-gray-800">Notes Uploaded</h3>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {notes.map((note) => (
+          <AdminNoteCard
+            key={note.id}
+            note={note}
+            onToggleBlock={toggleBlockNote}
+          />
+        ))}
+      </div>
     </div>
   );
 };
