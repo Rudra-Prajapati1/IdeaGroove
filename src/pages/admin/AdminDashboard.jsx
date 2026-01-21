@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import DashboardUsers from "../../components/admin/DashboardUsers";
 import StatsRow from "../../components/admin/StatsRow";
@@ -27,16 +28,27 @@ export const dashboardUserStats = [
 ];
 
 const AdminDashboard = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // These options should match the 'status' property in your user data
+  const filterOptions = ["Active", "Inactive"];
+
   return (
-    <section className="flex flex-col gap-6">
+    <section className="flex flex-col gap-8">
       <AdminPageHeader
-        title="Dashboard"
+        title="Users Dashboard"
         subtitle="Overview of platform activity"
+        searchValue={searchTerm}
+        onSearch={setSearchTerm}
+        onFilter={setStatusFilter}
+        filterOptions={filterOptions}
       />
 
       <StatsRow stats={dashboardUserStats} />
 
-      <DashboardUsers />
+      {/* Pass the search and filter state to the grid component */}
+      <DashboardUsers searchTerm={searchTerm} filterStatus={statusFilter} />
     </section>
   );
 };

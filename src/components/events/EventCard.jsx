@@ -13,7 +13,7 @@ const EventCard = ({ event }) => {
   return (
     <div
       className="
-        border-1 border-primary text-primary font-inter rounded-2xl flex flex-col gap-3
+        border border-primary text-primary font-inter rounded-2xl flex flex-col gap-3
         shadow-md hover:shadow-lg/20 hover:-translate-y-2 duration-300
         w-full max-w-[20rem] mx-auto
       "

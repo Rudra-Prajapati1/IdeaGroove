@@ -1,70 +1,86 @@
-import { MessageSquare, Ban, CheckCircle } from "lucide-react";
+import { MessageSquare, Ban, CheckCircle, Eye } from "lucide-react";
 
 const AdminQnACard = ({ qna, onToggleBlock }) => {
   const isBlocked = qna.status === "blocked";
 
+  // Dynamic styles based on status
+  const statusStyles = {
+    active: "bg-emerald-50 text-emerald-600 border-emerald-100",
+    blocked: "bg-red-50 text-red-600 border-red-100",
+  };
+
+  const borderAccent = isBlocked ? "border-l-red-500" : "border-l-emerald-500";
+
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition p-5 flex flex-col gap-4">
-      {/* HEADER */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <h3 className="text-lg font-bold text-slate-800 leading-tight">
-            {qna.title}
-          </h3>
+    <div
+      className={`group relative bg-white border border-gray-100 border-l-4 ${borderAccent} rounded-xl p-5 flex items-center justify-between transition-all hover:shadow-lg hover:border-gray-200`}
+    >
+      {/* LEFT: Content & Info */}
+      <div className="flex flex-col gap-2 flex-1 pr-6">
+        <div className="flex items-center gap-3">
+          <span
+            className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border ${statusStyles[qna.status]}`}
+          >
+            {qna.status}
+          </span>
+          <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1">
+            <Eye size={12} /> 1.2k Views • {qna.time}
+          </span>
+        </div>
 
-          <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-500">
-            <span className="font-medium text-slate-700">{qna.author}</span>
-            <span>• {qna.time}</span>
+        <h3 className="text-base font-bold text-gray-800 leading-snug group-hover:text-blue-600 transition-colors cursor-pointer">
+          {qna.title}
+        </h3>
 
-            <span className="ml-2 px-2 py-0.5 bg-blue-50 text-blue-600 font-semibold rounded border border-blue-100 uppercase tracking-wide">
-              {qna.subject}
-            </span>
+        <div className="flex items-center gap-4 mt-1">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200">
+              {qna.author.charAt(0)}
+            </div>
+            <p className="text-xs text-gray-500 font-medium">
+              Asked by{" "}
+              <span className="text-gray-900 font-bold">{qna.author}</span>
+            </p>
+          </div>
+
+          <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 uppercase tracking-tighter">
+            {qna.subject}
+          </span>
+
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+            <MessageSquare size={14} className="text-slate-300" />
+            {qna.answersCount} Replies
           </div>
         </div>
+      </div>
 
-        {/* STATUS */}
-        <span
-          className={`text-xs font-semibold px-2 py-1 rounded-full ${
+      <div className="mt-6 grid grid-cols-2 gap-3">
+        <button
+          onClick={() => onToggleBlock(qna.id)}
+          disabled={isBlocked}
+          className={`flex items-center justify-center gap-1.5 px-1 py-2.5 rounded-xl text-xs font-bold transition-all border ${
             isBlocked
-              ? "bg-red-100 text-red-700"
-              : qna.status === "reported"
-              ? "bg-yellow-100 text-yellow-700"
-              : "bg-green-100 text-green-700"
+              ? "bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed"
+              : "bg-red-50 text-red-600 border-red-100 hover:bg-red-600 hover:text-white"
           }`}
         >
-          {qna.status}
-        </span>
-      </div>
+          <Ban size={14} />
+          Block
+        </button>
 
-      {/* META */}
-      <div className="flex items-center gap-4 text-sm text-slate-500">
-        <div className="flex items-center gap-1.5">
-          <MessageSquare className="w-4 h-4" />
-          {qna.answersCount} Answers
-        </div>
+        <button
+          onClick={() => onToggleBlock(qna.id)}
+          disabled={!isBlocked}
+          className={`flex items-center justify-center gap-1.5 px-1 py-2.5 rounded-xl text-xs font-bold transition-all border ${
+            !isBlocked
+              ? "bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed"
+              : "bg-emerald-500 text-white hover:bg-emerald-600 border-emerald-500 shadow-sm shadow-emerald-200"
+          }`}
+        >
+          <CheckCircle size={14} />
+          Unblock
+        </button>
       </div>
-
-      {/* ACTION */}
-      <button
-        onClick={() => onToggleBlock(qna.id)}
-        className={`mt-2 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${
-          isBlocked
-            ? "bg-green-600 text-white hover:bg-green-700"
-            : "bg-red-600 text-white hover:bg-red-700"
-        }`}
-      >
-        {isBlocked ? (
-          <>
-            <CheckCircle className="w-4 h-4" />
-            Unblock Question
-          </>
-        ) : (
-          <>
-            <Ban className="w-4 h-4" />
-            Block Question
-          </>
-        )}
-      </button>
     </div>
   );
 };

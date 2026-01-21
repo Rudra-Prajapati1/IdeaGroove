@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
 import AdminEventsGrid from "../../components/admin/AdminEventsGrid";
@@ -28,16 +28,27 @@ export const eventsStats = [
 ];
 
 const AdminEvents = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // Options for the dropdown filter
+  const filterOptions = ["Active", "Blocked"];
+
   return (
     <section className="flex flex-col gap-6">
       <AdminPageHeader
         title="Events Management"
         subtitle="Create, monitor, and manage platform events"
+        searchValue={searchTerm}
+        onSearch={setSearchTerm}
+        onFilter={setStatusFilter}
+        filterOptions={filterOptions}
       />
 
       <StatsRow stats={eventsStats} />
 
-      <AdminEventsGrid />
+      {/* Pass search and filter values as props */}
+      <AdminEventsGrid searchTerm={searchTerm} statusFilter={statusFilter} />
     </section>
   );
 };

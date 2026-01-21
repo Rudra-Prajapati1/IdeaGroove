@@ -1,41 +1,31 @@
-import { useState } from "react";
-import UserCard from "./UserCard";
+import React, { useState, useMemo } from "react";
+import UserCard from "./Cards/AdminUserCard";
 
 const initialUsers = [
-  {
-    id: 1,
-    name: "Rohan Sharma",
-    email: "rohan@gmail.com",
-    status: "active",
-  },
-  {
-    id: 2,
-    name: "Aisha Khan",
-    email: "aisha@gmail.com",
-    status: "inactive",
-  },
-  {
-    id: 3,
-    name: "Kunal Verma",
-    email: "kunal@gmail.com",
-    status: "active",
-  },
-  {
-    id: 4,
-    name: "Neha Patel",
-    email: "neha@gmail.com",
-    status: "active",
-  },
-  {
-    id: 5,
-    name: "Arjun Mehta",
-    email: "arjun@gmail.com",
-    status: "inactive",
-  },
+  { id: 1, name: "Rohan Sharma", email: "rohan@gmail.com", status: "active" },
+  { id: 2, name: "Aisha Khan", email: "aisha@gmail.com", status: "inactive" },
+  { id: 3, name: "Kunal Verma", email: "kunal@gmail.com", status: "active" },
+  { id: 4, name: "Neha Patel", email: "neha@gmail.com", status: "active" },
+  { id: 5, name: "Arjun Mehta", email: "arjun@gmail.com", status: "inactive" },
 ];
 
-const DashboardUsers = () => {
+const DashboardUsers = ({ searchTerm, filterStatus }) => {
   const [users, setUsers] = useState(initialUsers);
+
+  // Filter logic
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      const matchesSearch =
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesFilter =
+        filterStatus === "all" ||
+        user.status.toLowerCase() === filterStatus.toLowerCase();
+
+      return matchesSearch && matchesFilter;
+    });
+  }, [users, searchTerm, filterStatus]);
 
   const toggleBlockUser = (id) => {
     setUsers((prev) =>
@@ -45,19 +35,36 @@ const DashboardUsers = () => {
               ...user,
               status: user.status === "active" ? "inactive" : "active",
             }
-          : user
-      )
+          : user,
+      ),
     );
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col gap-4">
-      <h3 className="text-lg font-semibold text-gray-800">Recent Users</h3>
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="p-6 border-b border-gray-50 flex justify-between items-center">
+        <h3 className="text-lg font-bold text-gray-800">Recent Users</h3>
+        <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded-lg uppercase tracking-widest">
+          {filteredUsers.length} Found
+        </span>
+      </div>
 
-      <div className="flex flex-col gap-3">
-        {users.map((user) => (
-          <UserCard key={user.id} user={user} onToggleBlock={toggleBlockUser} />
-        ))}
+      <div className="p-4 flex flex-col gap-3 bg-gray-50/30">
+        {filteredUsers.length > 0 ? (
+          filteredUsers.map((user) => (
+            <UserCard
+              key={user.id}
+              user={user}
+              onToggleBlock={toggleBlockUser}
+            />
+          ))
+        ) : (
+          <div className="py-20 text-center flex flex-col items-center gap-2">
+            <p className="text-gray-400 font-bold uppercase text-xs tracking-[0.2em]">
+              No Users Match Your Search
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

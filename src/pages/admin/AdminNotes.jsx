@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
 import AdminNotesGrid from "../../components/admin/AdminNotesGrid";
@@ -28,16 +28,33 @@ export const notesStats = [
 ];
 
 const AdminNotes = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [subjectFilter, setSubjectFilter] = useState("all");
+
+  const subjectOptions = [
+    "OS",
+    "DBMS",
+    "CN",
+    "Web Dev",
+    "AI",
+    "Physics",
+    "Math",
+  ];
+
   return (
-    <section className="flex flex-col gap-6">
+    <section className="flex flex-col gap-8">
       <AdminPageHeader
         title="Notes Moderation"
         subtitle="Review, approve, and manage user-uploaded notes"
+        searchValue={searchTerm}
+        onSearch={setSearchTerm}
+        onFilter={setSubjectFilter}
+        filterOptions={subjectOptions}
       />
 
       <StatsRow stats={notesStats} />
 
-      <AdminNotesGrid />
+      <AdminNotesGrid searchTerm={searchTerm} filterSubject={subjectFilter} />
     </section>
   );
 };

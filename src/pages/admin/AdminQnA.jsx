@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
 import AdminQnAGrid from "../../components/admin/AdminQnAGrid";
@@ -28,16 +28,32 @@ export const qnaStats = [
 ];
 
 const AdminQnA = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [subjectFilter, setSubjectFilter] = useState("all");
+
+  // Options extracted from your initial data subjects
+  const subjectOptions = [
+    "Web Development",
+    "Linear Algebra",
+    "Thermodynamics",
+    "Data Structures",
+  ];
+
   return (
     <section className="flex flex-col gap-6">
       <AdminPageHeader
         title="QnA Moderation"
         subtitle="Review questions, answers, and reported content"
+        searchValue={searchTerm}
+        onSearch={setSearchTerm}
+        onFilter={setSubjectFilter}
+        filterOptions={subjectOptions}
       />
 
       <StatsRow stats={qnaStats} />
 
-      <AdminQnAGrid />
+      {/* Passing search and filter values to the grid */}
+      <AdminQnAGrid searchTerm={searchTerm} filterSubject={subjectFilter} />
     </section>
   );
 };
