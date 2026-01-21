@@ -33,7 +33,6 @@ const AdminQnACard = ({ qna, onToggleBlock }) => {
         </h3>
 
         <div className="flex items-center gap-4 mt-1">
-          {/* Author info */}
           <div className="flex items-center gap-2">
             <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200">
               {qna.author.charAt(0)}
@@ -44,12 +43,10 @@ const AdminQnACard = ({ qna, onToggleBlock }) => {
             </p>
           </div>
 
-          {/* Subject Badge */}
           <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 uppercase tracking-tighter">
             {qna.subject}
           </span>
 
-          {/* Stats */}
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
             <MessageSquare size={14} className="text-slate-300" />
             {qna.answersCount} Replies
@@ -57,7 +54,6 @@ const AdminQnACard = ({ qna, onToggleBlock }) => {
         </div>
       </div>
 
-      {/* RIGHT: High-Action Zone */}
       <div className="mt-6 grid grid-cols-2 gap-3">
         <button
           onClick={() => onToggleBlock(qna.id)}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import AdminGroupCard from "./Cards/AdminGroupCard";
 
 const initialGroups = [
@@ -44,8 +44,22 @@ const initialGroups = [
   },
 ];
 
-const AdminGroupsGrid = () => {
+const AdminGroupsGrid = ({ searchTerm, categoryFilter }) => {
   const [groups, setGroups] = useState(initialGroups);
+
+  // Filter Logic: Filters by Room Name/Creator and Category
+  const filteredGroups = useMemo(() => {
+    return groups.filter((group) => {
+      const matchesSearch =
+        group.Room_Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        group.Created_By.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesCategory =
+        categoryFilter === "all" || group.Based_On === categoryFilter;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [groups, searchTerm, categoryFilter]);
 
   const toggleBlockGroup = (id) => {
     setGroups((prev) =>
@@ -61,17 +75,33 @@ const AdminGroupsGrid = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col gap-4">
-      <h3 className="text-lg font-semibold text-gray-800">Groups Created</h3>
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Premium Grid Header */}
+      <div className="p-6 border-b border-gray-50 flex justify-between items-center">
+        <h3 className="text-lg font-bold text-gray-800">Groups Created</h3>
+        <span className="text-xs font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-full uppercase tracking-widest">
+          {filteredGroups.length} Groups Found
+        </span>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {groups.map((group) => (
-          <AdminGroupCard
-            key={group.id}
-            group={group}
-            onToggleBlock={toggleBlockGroup}
-          />
-        ))}
+      <div className="p-6 bg-gray-50/30">
+        {filteredGroups.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredGroups.map((group) => (
+              <AdminGroupCard
+                key={group.id}
+                group={group}
+                onToggleBlock={toggleBlockGroup}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="py-20 text-center flex flex-col items-center gap-2">
+            <p className="text-gray-400 font-bold uppercase text-xs tracking-[0.2em]">
+              No groups match your search or filter
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

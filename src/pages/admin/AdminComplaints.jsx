@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
-import ComplaintDashboard from "../ComplaintDashboard";
+import AdminComplaintsGrid from "../../components/admin/AdminComplaintsGrid";
 
 export const complaintsStats = [
   {
@@ -28,16 +28,33 @@ export const complaintsStats = [
 ];
 
 const AdminComplaints = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+
+  const categoryOptions = [
+    "Resource Access",
+    "Group Conflict",
+    "Technical Issue",
+    "Other",
+  ];
+
   return (
     <section className="flex flex-col gap-6">
       <AdminPageHeader
         title="Complaints Resolution"
         subtitle="Track, review, and resolve user complaints"
+        searchValue={searchTerm}
+        onSearch={setSearchTerm}
+        onFilter={setCategoryFilter}
+        filterOptions={categoryOptions}
       />
 
       <StatsRow stats={complaintsStats} />
 
-      <ComplaintDashboard />
+      <AdminComplaintsGrid
+        searchTerm={searchTerm}
+        categoryFilter={categoryFilter}
+      />
     </section>
   );
 };
