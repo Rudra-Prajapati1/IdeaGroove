@@ -26,25 +26,26 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // const { data } = await axios.post("", adminData, {
-      //   withCredentials: true,
-      // });
+      const { data } = await axios.post("/api/auth/admin-login", adminData, {
+        withCredentials: true,
+      });
 
-      // if (data.success) {
-      //   toast.success("Login Successful!");
-      // }
-      toast.success("Login Successful!");
+      if (data.success) {
+        toast.success(data.message || "Login Successful!");
 
-      setTimeout(() => {
-        navigate("/admin");
-      }, 500);
-
-      setAdminData({ username: "", password: "" });
+        // Clear data and redirect
+        setAdminData({ username: "", password: "" });
+        setTimeout(() => {
+          navigate("/admin");
+        }, 500);
+      }
     } catch (error) {
       console.error("Login Error:", error);
       toast.error(
-        error?.response?.data?.message || "Login failed. Please try again."
+        error?.response?.data?.message || "Login failed. Please try again.",
       );
+    } finally {
+      setLoading(false);
     }
   };
 
