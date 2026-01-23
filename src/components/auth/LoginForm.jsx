@@ -15,7 +15,7 @@ const LoginForm = ({ onSignup }) => {
   // 1. New State for Toggling Views
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
-  
+
   const [loginData, setLoginData] = useState({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,7 @@ const LoginForm = ({ onSignup }) => {
       const response = await axios.post(
         "http://localhost:8080/api/auth/login",
         loginData,
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (response.status === 200) {
@@ -68,10 +68,18 @@ const LoginForm = ({ onSignup }) => {
 
     setLoading(true);
     try {
-      // Replace with your actual forgot-password API endpoint
-      // await axios.post("http://localhost:8080/api/auth/forgot-password", { email: resetEmail });
-      toast.success("Reset link sent to your email!");
-      setIsForgotPassword(false); // Go back to login after success
+      //Replace with your actual forgot-password API endpoint
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/forgot-password",
+        { email: resetEmail },
+      );
+      if (response.status == 200) {
+        toast.success("Reset link sent to your email!");
+        setResetEmail("");
+        setTimeout(() => {
+          setIsForgotPassword(false);
+        }, 2000);
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || "Request Failed");
     } finally {
@@ -89,7 +97,9 @@ const LoginForm = ({ onSignup }) => {
         <>
           {/* LOGIN FIELDS */}
           <div className="flex flex-col">
-            <label className="text-lg font-semibold mb-1 text-primary">Username:</label>
+            <label className="text-lg font-semibold mb-1 text-primary">
+              Username:
+            </label>
             <input
               className="w-full text-sm border-2 border-gray-300 rounded-xl outline-none transition-colors duration-300 focus:border-primary/60 p-3"
               type="text"
@@ -102,7 +112,9 @@ const LoginForm = ({ onSignup }) => {
           </div>
 
           <div className="flex flex-col">
-            <label className="text-lg font-semibold mb-1 text-primary">Password:</label>
+            <label className="text-lg font-semibold mb-1 text-primary">
+              Password:
+            </label>
             <div className="flex items-center justify-end relative">
               <input
                 className="w-full text-sm border-2 border-gray-300 rounded-xl outline-none transition-colors duration-300 focus:border-primary/60 p-3"
@@ -115,19 +127,26 @@ const LoginForm = ({ onSignup }) => {
                 className="absolute mr-2 cursor-pointer hover:bg-primary/10 p-1 rounded-2xl"
                 onClick={() => setShowPassword((prev) => !prev)}
               >
-                {showPassword ? <Eye className="w-5 h-5 text-primary" /> : <EyeClosed className="w-5 h-5 text-primary" />}
+                {showPassword ? (
+                  <Eye className="w-5 h-5 text-primary" />
+                ) : (
+                  <EyeClosed className="w-5 h-5 text-primary" />
+                )}
               </span>
             </div>
           </div>
 
           <div className="text-[13px] flex flex-col items-start gap-1">
-            <span 
-              className="text-primary/80 hover:underline cursor-pointer" 
+            <span
+              className="text-primary/80 hover:underline cursor-pointer"
               onClick={() => setIsForgotPassword(true)} // Toggle to Forgot Password
             >
-              Forget password?
+              Forgot password?
             </span>
-            <span onClick={onSignup} className="text-primary/80 hover:underline cursor-pointer">
+            <span
+              onClick={onSignup}
+              className="text-primary/80 hover:underline cursor-pointer"
+            >
               Don't have an account? Signup
             </span>
           </div>
@@ -143,7 +162,9 @@ const LoginForm = ({ onSignup }) => {
         <>
           {/* FORGOT PASSWORD FIELD (One Field, One Button) */}
           <div className="flex flex-col">
-            <label className="text-lg font-semibold mb-1 text-primary">Enter you registered email:</label>
+            <label className="text-lg font-semibold mb-1 text-primary">
+              Enter you registered email:
+            </label>
             <input
               className="w-full text-sm border-2 border-gray-300 rounded-xl outline-none transition-colors duration-300 focus:border-primary/60 p-3"
               type="email"
@@ -156,7 +177,7 @@ const LoginForm = ({ onSignup }) => {
           </div>
 
           <div className="text-[13px]">
-            <span 
+            <span
               className="text-primary/80 hover:underline cursor-pointer flex items-center gap-1"
               onClick={() => setIsForgotPassword(false)} // Back to Login
             >

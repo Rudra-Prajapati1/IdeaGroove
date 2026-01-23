@@ -28,7 +28,7 @@ const UserRoutes = (
     <Route path="complaintDashboard" element={<ComplaintDashboard />} />
     <Route path="submitComplaint/:type?/:id?" element={<SubmitComplaint />} />
     <Route path="search" element={<Searchpage />} />
-    <Route path="resetPassword" element={<ResetPassword />} />
+    <Route path="/resetPassword/:id/:token" element={<ResetPassword />} />
     <Route path="*" element={<NotFound />} />
   </>
 );

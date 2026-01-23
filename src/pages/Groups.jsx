@@ -27,7 +27,7 @@ const Groups = () => {
     }
   }, [groupsStatus, dispatch]);
   return (
-    <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
+    <div className="min-h-screen bg-white font-poppins pb-20">
       {/* Hero Section */}
       <section className="relative bg-[#1A3C20] pt-40 pb-32">
         <div className="max-w-6xl mx-auto px-4 relative z-30">
@@ -49,8 +49,8 @@ const Groups = () => {
         </div>
       </section>
       {addGroup && <AddGroupOverlay onClose={() => setAddGroup(false)} />}
-      <div className="max-w-6xl mx-auto px-4 -mt-25 relative z-40">
-        <div className="flex justify-between items-center">
+      <div className="relative z-40">
+        <div className="max-w-6xl mx-auto px-4 -mt-25 flex justify-between items-center">
           <Controls
             search={search}
             setSearch={setSearch}
@@ -66,7 +66,7 @@ const Groups = () => {
             Upload Group
           </button>
         </div>
-        <div className="w-10/12 m-auto bg-white px-12 py-12 rounded-2xl">
+        <div className="max-w-7xl m-auto mt-12 bg-white px-12 py-12 rounded-2xl">
           <div>
             {groupsStatus === "loading" && <p>Loading Groups...</p>}
             {groupsStatus === "failed" && <p>Error: {groupsError}</p>}

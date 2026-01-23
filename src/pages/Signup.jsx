@@ -40,7 +40,7 @@ function Signup() {
             ? parseInt(formData.College_ID)
             : null,
           Degree_ID: formData.Degree_ID ? parseInt(formData.Degree_ID) : null,
-        }
+        },
       );
 
       if (response.status === 201) {
@@ -59,13 +59,13 @@ function Signup() {
 
   return (
     <div className="min-h-screen bg-green-700 flex justify-center items-center font-sans">
-      <div className="bg-white rounded-[40px] h-auto py-8 w-[45rem] flex justify-between items-center overflow-hidden">
+      <div className="bg-white rounded-[40px] h-auto py-8 w-180 flex justify-between items-center overflow-hidden">
         {/* Logo Section */}
         <div className="flex justify-center items-center">
           <img
             src="./DarkLogo.png"
             alt="logo"
-            className="h-[20rem] w-[20rem] border-r-2 border-green-700 object-contain"
+            className="h-80 w-[20rem] border-r-2 border-green-700 object-contain"
           />
         </div>
 
@@ -176,7 +176,7 @@ function Signup() {
 
             <button
               type="submit"
-              className="border-none rounded-[10px] bg-blue-600 text-white w-[7rem] cursor-pointer text-[1.1rem] p-2 shadow-[2px_2px_2px_rgba(0,0,0,0.3)] self-center mt-[15px] hover:bg-[#063280] transition-colors"
+              className="border-none rounded-[10px] bg-blue-600 text-white w-28 cursor-pointer text-[1.1rem] p-2 shadow-[2px_2px_2px_rgba(0,0,0,0.3)] self-center mt-[15px] hover:bg-[#063280] transition-colors"
             >
               Signup
             </button>

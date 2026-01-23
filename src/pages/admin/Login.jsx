@@ -30,6 +30,8 @@ const Login = () => {
         withCredentials: true,
       });
 
+      console.log(data);
+
       if (data.success) {
         toast.success(data.message || "Login Successful!");
 
