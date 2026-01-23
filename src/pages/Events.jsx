@@ -11,6 +11,7 @@ import {
 import EventCard from "../components/events/EventCard";
 import Loading from "../components/Loading";
 import Controls from "../components/Controls"; // The new component
+import { UploadIcon } from "lucide-react";
 
 const Events = () => {
   const dispatch = useDispatch();
@@ -67,13 +68,22 @@ const Events = () => {
 
       {/* Controls Section (Search & Filter) */}
       <div className="max-w-6xl mx-auto px-4 -mt-25 relative z-40">
-        <Controls
-          search={search}
-          setSearch={setSearch}
-          filter={filter}
-          setFilter={setFilter}
-          searchPlaceholder="Search events..."
-        />
+        <div className="flex justify-between items-center">
+          <Controls
+            search={search}
+            setSearch={setSearch}
+            filter={filter}
+            setFilter={setFilter}
+            searchPlaceholder="Search events..."
+          />
+          <button
+            onClick={() => setAddNotes(!addNotes)}
+            className="flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
+          >
+            <UploadIcon className="w-4 h-4" />
+            Upload Events
+          </button>
+        </div>
 
         {/* Status Messages */}
         <div className="mt-10">
