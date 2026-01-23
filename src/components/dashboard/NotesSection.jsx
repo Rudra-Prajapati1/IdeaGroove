@@ -16,6 +16,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import AddNotes from "../notes/AddNotes";
 
 // 1. Style Mapping for vibrant cards
 const STYLE_VARIANTS = [
@@ -46,6 +47,7 @@ const DEGREE_SUBJECTS = {
 const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
   const [selectedDegree, setSelectedDegree] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [addNotes, setAddNotes] = useState(false);
   const navigate = useNavigate();
   // Loading State
   if (status === "loading") {
@@ -74,6 +76,12 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-poppins">
+      {addNotes && (
+        <AddNotes
+          onClose={() => setAddNotes(false)}
+          onUpload={(data) => console.log("Uploading:", data)}
+        />
+      )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
         {/* <div>
@@ -82,7 +90,10 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
             Access your uploaded study materials
           </p>
         </div> */}
-        <button className="flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm">
+        <button
+          onClick={() => setAddNotes(!addNotes)}
+          className="flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
+        >
           <Upload className="w-4 h-4" />
           Upload Notes
         </button>
