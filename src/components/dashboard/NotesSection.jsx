@@ -188,11 +188,10 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
                     <div className="absolute top-4 left-4">
                       <button
                         onClick={handleReportClick}
-                        className="flex justify-center items-center bg-white/90 gap-1 text-red-500 hover:text-red-700 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors text-xs font-light"
-                        title="Report an issue with this event"
+                        className="absolute top-4 right-4 p-2 bg-black/10 hover:bg-red-500 text-white backdrop-blur-md rounded-full transition-all duration-300"
+                        title="Report note"
                       >
-                        <AlertTriangle className="pt-1 w-4 h-4" />
-                        <p className="pt-1">Raise a Complaint</p>
+                        <AlertTriangle className="w-4 h-4" />
                       </button>
                     </div>
 

@@ -194,11 +194,7 @@ const ActivitySection = () => {
 
       {/* QnA Section */}
       {option === "QnA" && (
-        // We remove the old wrapper style to let the new layout handle full width/spacing
         <div className="w-full min-h-screen">
-          {/* Ideally, pass your Redux data into this component 
-       e.g., <DiscussionLayout questions={questions} status={questionsStatus} />
-    */}
           <DiscussionForum questions={questions} status={questionsStatus} />
         </div>
       )}

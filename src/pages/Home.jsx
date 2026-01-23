@@ -11,7 +11,7 @@ const Home = () => {
   return (
     <>
       <HeroSection />
-      <SearchSection/>
+      <SearchSection />
       <EventSection />
       <GroupSection />
       <QnASection />
