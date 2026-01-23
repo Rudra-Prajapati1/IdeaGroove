@@ -12,10 +12,11 @@ import EventCard from "../components/events/EventCard";
 import Loading from "../components/Loading";
 import Controls from "../components/Controls"; // The new component
 import { UploadIcon } from "lucide-react";
+import AddEventOverlay from "../components/events/AddEvent";
 
 const Events = () => {
   const dispatch = useDispatch();
-
+  const [addEvent, setAddEvent] = useState(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
 
@@ -65,7 +66,7 @@ const Events = () => {
           </svg>
         </div>
       </section>
-
+      {addEvent && <AddEventOverlay onClose={() => setAddEvent(false)} />}
       {/* Controls Section (Search & Filter) */}
       <div className="max-w-6xl mx-auto px-4 -mt-25 relative z-40">
         <div className="flex justify-between items-center">
@@ -77,7 +78,7 @@ const Events = () => {
             searchPlaceholder="Search events..."
           />
           <button
-            onClick={() => setAddNotes(!addNotes)}
+            onClick={() => setAddEvent(!addEvent)}
             className="flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
           >
             <UploadIcon className="w-4 h-4" />
