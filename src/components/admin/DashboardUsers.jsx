@@ -1,18 +1,8 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import UserCard from "./Cards/AdminUserCard";
 
-const initialUsers = [
-  { id: 1, name: "Rohan Sharma", email: "rohan@gmail.com", status: "active" },
-  { id: 2, name: "Aisha Khan", email: "aisha@gmail.com", status: "inactive" },
-  { id: 3, name: "Kunal Verma", email: "kunal@gmail.com", status: "active" },
-  { id: 4, name: "Neha Patel", email: "neha@gmail.com", status: "active" },
-  { id: 5, name: "Arjun Mehta", email: "arjun@gmail.com", status: "inactive" },
-];
-
-const DashboardUsers = ({ searchTerm, filterStatus }) => {
-  const [users, setUsers] = useState(initialUsers);
-
-  // Filter logic
+const DashboardUsers = ({ users, searchTerm, filterStatus, onModerate }) => {
+  // Filter logic based on passed props
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const matchesSearch =
@@ -27,24 +17,11 @@ const DashboardUsers = ({ searchTerm, filterStatus }) => {
     });
   }, [users, searchTerm, filterStatus]);
 
-  const toggleBlockUser = (id) => {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === id
-          ? {
-              ...user,
-              status: user.status === "active" ? "inactive" : "active",
-            }
-          : user,
-      ),
-    );
-  };
-
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-inter">
       <div className="p-6 border-b border-gray-50 flex justify-between items-center">
-        <h3 className="text-lg font-bold text-gray-800">Recent Users</h3>
-        <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded-lg uppercase tracking-widest">
+        <h3 className="text-lg font-bold text-gray-800 font-poppins">Recent Users</h3>
+        <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-3 py-1.5 rounded-full uppercase tracking-widest">
           {filteredUsers.length} Found
         </span>
       </div>
@@ -55,7 +32,7 @@ const DashboardUsers = ({ searchTerm, filterStatus }) => {
             <UserCard
               key={user.id}
               user={user}
-              onToggleBlock={toggleBlockUser}
+              onModerate={onModerate} // Pass trigger function down
             />
           ))
         ) : (
