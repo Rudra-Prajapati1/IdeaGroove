@@ -1,62 +1,78 @@
 import React from "react";
 import event_temp_image from "/images/events_temp_image.jpg";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Clock, MapPin } from "lucide-react";
 
 const EventCard = ({ event }) => {
   const navigate = useNavigate();
+
   const handleReportClick = (e) => {
     e.stopPropagation();
-
     navigate(`/submitComplaint/event/${event.E_ID}`);
   };
+
+  // Date formatting for the Badge
+  const dateObj = new Date(event.Event_Date);
+  const month = dateObj.toLocaleString('en-IN', { month: 'short' }).toUpperCase();
+  const day = dateObj.getDate();
+
   return (
-    <div
-      className="
-        border border-primary text-primary font-inter rounded-2xl flex flex-col gap-3
-        shadow-md hover:shadow-lg/20 hover:-translate-y-2 duration-300
-        w-full max-w-[20rem] mx-auto
-      "
-    >
-      <img
-        src={event_temp_image}
-        alt={event.Description}
-        className="
-          rounded-t-2xl
-          h-56 w-full object-cover
-        "
-      />
-      <div className="flex flex-col justify-around h-full p-4">
-        <h2 className="text-xl text-center font-semibold line-clamp-2">
-          {event.Description}
-        </h2>
-
-        <div>
-          <p className="mt-2">
-            Event Date:{" "}
-            <span className="font-bold">
-              {new Date(event.Event_Date).toLocaleDateString("en-IN", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </span>
-          </p>
-
-          <p>
-            Added By: <span>{event.Added_By}</span>
-          </p>
+    <div className="group bg-white rounded-3xl overflow-hidden flex flex-col w-full max-w-[20rem] mx-auto transition-all duration-300 hover:shadow-xl border border-gray-100">
+      
+      {/* 1. Image Section with Floating Date Badge */}
+      <div className="relative h-64 w-full overflow-hidden">
+        <img
+          src={event_temp_image}
+          alt={event.Description}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+        
+        {/* Date Badge */}
+        <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-xl p-2 min-w-[3.5rem] flex flex-col items-center shadow-md border border-white/20">
+          <span className="text-[10px] font-bold text-green-600 tracking-wider leading-none">{month}</span>
+          <span className="text-2xl font-black text-gray-800 leading-none mt-1">{day}</span>
         </div>
-        <div className="flex justify-end">
-          <button
-            onClick={handleReportClick}
-            className="w-7/12 flex justify-center items-center gap-1 text-red-500 hover:text-red-700 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors text-xs font-light"
-            title="Report an issue with this event"
-          >
-            <AlertTriangle className="pt-1 w-4 h-4" />
-            <p className="pt-1">Raise a Complaint</p>
-          </button>
+
+        {/* Report Button (Subtle icon in the corner) */}
+        <button
+          onClick={handleReportClick}
+          className="absolute top-4 right-4 p-2 bg-black/10 hover:bg-red-500 text-white backdrop-blur-md rounded-full transition-all duration-300"
+          title="Report Event"
+        >
+          <AlertTriangle className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* 2. Content Section */}
+      <div className="p-5 flex flex-col justify-between flex-grow">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 line-clamp-2 mb-4 font-poppins">
+            {event.Description}
+          </h2>
+
+          {/* Event Details with Icons */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-gray-500">
+              <Clock className="w-4 h-4 text-green-600" />
+              <span className="text-sm font-medium">
+                {event.Start_Time || "4:00 PM"} - {event.End_Time || "10:00 PM"}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-2 text-gray-500 pb-2">
+              <MapPin className="w-4 h-4 text-green-600" />
+              <span className="text-sm font-medium line-clamp-1">
+                {event.Location || "Student Union"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Small separator or extra detail can go here if needed */}
+        <div className="mt-4 pt-4 border-t border-gray-50">
+           <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+             Added by {event.Added_By}
+           </p>
         </div>
       </div>
     </div>
