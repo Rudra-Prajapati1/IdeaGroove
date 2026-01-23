@@ -12,6 +12,7 @@ import ComplaintDashboard from "../pages/ComplaintDashboard";
 import SubmitComplaint from "../pages/SubmitComplaint";
 import Searchpage from "../pages/Searchpage";
 import NotFound from "../pages/NotFound";
+import ResetPassword from "../pages/ResetPassword";
 
 const UserRoutes = (
   <>
@@ -27,6 +28,7 @@ const UserRoutes = (
     <Route path="complaintDashboard" element={<ComplaintDashboard />} />
     <Route path="submitComplaint/:type?/:id?" element={<SubmitComplaint />} />
     <Route path="search" element={<Searchpage />} />
+    <Route path="resetPassword" element={<ResetPassword />} />
     <Route path="*" element={<NotFound />} />
   </>
 );

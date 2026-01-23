@@ -47,7 +47,7 @@ const EventCard = ({ event }) => {
       <div className="p-5 flex flex-col justify-between flex-grow">
         <div>
           <h2 className="text-xl font-bold text-gray-900 line-clamp-2 mb-4 font-poppins">
-            {event.Description}
+            {event.Description || "Description not available"}
           </h2>
 
           {/* Event Details with Icons */}
@@ -58,20 +58,13 @@ const EventCard = ({ event }) => {
                 {event.Start_Time || "4:00 PM"} - {event.End_Time || "10:00 PM"}
               </span>
             </div>
-            
-            <div className="flex items-center gap-2 text-gray-500 pb-2">
-              <MapPin className="w-4 h-4 text-green-600" />
-              <span className="text-sm font-medium line-clamp-1">
-                {event.Location || "Student Union"}
-              </span>
-            </div>
           </div>
         </div>
 
         {/* Small separator or extra detail can go here if needed */}
         <div className="mt-4 pt-4 border-t border-gray-50">
            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
-             Added by {event.Added_By}
+             Added by {event.Added_By || "username"}
            </p>
         </div>
       </div>
