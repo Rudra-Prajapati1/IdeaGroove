@@ -24,6 +24,19 @@ const Groups = () => {
   const groupsStatus = useSelector(selectChatRoomStatus);
   const groupsError = useSelector(selectChatRoomError);
 
+  const filteredGroups = groups.filter((group) => {
+    const groupDate = new Date(group.Created_On);
+    const today = new Date();
+
+    const matchesSearch =
+      group?.Room_Name.toLowerCase().includes(search.toLowerCase()) ?? false;
+
+    if (filter === "upcoming" && groupDate < today) return false;
+    if (filter === "past" && groupDate >= today) return false;
+
+    return matchesSearch;
+  });
+
   useEffect(() => {
     if (groupsStatus === "idle") {
       dispatch(fetchChatRooms());
@@ -60,6 +73,11 @@ const Groups = () => {
             filter={filter}
             setFilter={setFilter}
             searchPlaceholder="Search groups..."
+            filterOptions={{
+              All: "all",
+              "Newest to Oldest": "newest_to_oldest",
+              "Oldest to Newest": "oldest_to_newest",
+            }}
           />
           <button
             disabled={!isAuth}
@@ -67,7 +85,7 @@ const Groups = () => {
             className={`${!isAuth ? "cursor-not-allowed" : "cursor-pointer"} flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm`}
           >
             <LucideGroup className="w-4 h-4" />
-            Upload Group
+            Create Group
           </button>
         </div>
         <div className="max-w-7xl m-auto mt-12 bg-white px-12 py-12 rounded-2xl">
@@ -76,13 +94,14 @@ const Groups = () => {
             {groupsStatus === "failed" && <p>Error: {groupsError}</p>}
             {groupsStatus === "succeeded" && (
               <>
-                {groups.length === 0 ? (
-                  <p className="text-center py-8 text-teal-200">
-                    No Groups Found
-                  </p>
+                {filteredGroups.length === 0 ? (
+                  <div className="text-center py-20 text-gray-500">
+                    <p className="text-2xl font-semibold">No Groups Found</p>
+                    <p>Try adjusting your search or filters</p>
+                  </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {groups.map((group) => (
+                    {filteredGroups.map((group) => (
                       <GroupCard key={group.G_ID} group={group} />
                     ))}
                   </div>

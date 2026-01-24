@@ -10,10 +10,10 @@ import {
 // Components
 import EventCard from "../components/events/EventCard";
 import Loading from "../components/Loading";
-import Controls from "../components/Controls"; // The new component
 import { UploadIcon } from "lucide-react";
 import AddEventOverlay from "../components/events/AddEvent";
 import { selectIsAuthenticated } from "../redux/slice/authSlice";
+import Controls from "../components/Controls";
 
 const Events = () => {
   const isAuth = useSelector(selectIsAuthenticated);
@@ -79,6 +79,11 @@ const Events = () => {
             filter={filter}
             setFilter={setFilter}
             searchPlaceholder="Search events..."
+            filterOptions={{
+              All: "all",
+              Upcoming: "upcoming",
+              Past: "past",
+            }}
           />
           <button
             disabled={!isAuth}

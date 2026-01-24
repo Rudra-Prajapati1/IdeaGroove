@@ -32,9 +32,21 @@ import {
   selectNotesStatus,
 } from "../../redux/slice/notesSlice";
 import NotesCard from "../notes/NotesCard";
-import { CalendarDays, MessageSquare, NotebookPen, Users } from "lucide-react";
+import {
+  CalendarDays,
+  LucideGroup,
+  MessageSquare,
+  NotebookPen,
+  Upload,
+  UploadIcon,
+  Users,
+} from "lucide-react";
 import DiscussionForum from "./DiscussionForum";
 import NotesSection from "./NotesSection";
+import { selectIsAuthenticated } from "../../redux/slice/authSlice";
+import Controls from "../Controls";
+import AddEventOverlay from "../events/AddEvent";
+import AddGroupOverlay from "../groups/AddGroup";
 
 const ActivitySection = () => {
   const optionList = [
@@ -60,10 +72,27 @@ const ActivitySection = () => {
     },
   ];
   const [option, setOption] = useState("Events");
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [addEvent, setAddEvent] = useState(false);
+  const isAuth = useSelector(selectIsAuthenticated);
 
   const dispatch = useDispatch();
   const events = useSelector(selectAllEvents);
   const eventsStatus = useSelector(selectEventsStatus); // optional: for loading/error states
+
+  const filteredEvents = events.filter((event) => {
+    const eventDate = new Date(event.Event_Date);
+    const today = new Date();
+
+    const matchesSearch =
+      event?.Description.toLowerCase().includes(search.toLowerCase()) ?? false;
+
+    if (filter === "upcoming" && eventDate < today) return false;
+    if (filter === "past" && eventDate >= today) return false;
+
+    return matchesSearch;
+  });
 
   useEffect(() => {
     if (eventsStatus === "idle") {
@@ -74,6 +103,29 @@ const ActivitySection = () => {
   const groups = useSelector(selectAllChatRooms);
   const groupsStatus = useSelector(selectChatRoomStatus);
   const groupsError = useSelector(selectChatRoomError);
+  const [addGroup, setAddGroup] = useState(false);
+
+  const filteredGroups = groups
+    .filter((group) => {
+      const matchesSearch =
+        group?.Room_Name.toLowerCase().includes(search.toLowerCase()) ?? false;
+
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+
+      if (filter === "newest_to_oldest") {
+        return dateB - dateA; // Descending Order (New dates first)
+      }
+
+      if (filter === "oldest_to_newest") {
+        return dateA - dateB; // Ascending Order (Old dates first)
+      }
+
+      return 0; // Default: Don't change order if no sort filter is selected
+    });
 
   useEffect(() => {
     if (groupsStatus === "idle") {
@@ -139,19 +191,44 @@ const ActivitySection = () => {
       {/* Events */}
       {option === "Events" && (
         <div className="w-10/12 m-auto bg-white px-12 py-12 rounded-2xl">
-          <h1 className="text-4xl font-bold text-primary mb-8">Events</h1>
           <div>
             {eventsStatus === "loading" && <p>Loading Events...</p>}
             {eventsStatus === "failed" && <p>Error loading Events</p>}
             {eventsStatus === "succeeded" && (
               <>
-                {events.length === 0 ? (
-                  <p className="text-center py-8 text-teal-200">
-                    No Events Found
-                  </p>
+                {addEvent && (
+                  <AddEventOverlay onClose={() => setAddEvent(false)} />
+                )}
+                <div className="max-w-6xl mx-auto px-4 -mt-20 flex justify-between items-center mb-8">
+                  <Controls
+                    search={search}
+                    setSearch={setSearch}
+                    filter={filter}
+                    setFilter={setFilter}
+                    searchPlaceholder="Search events..."
+                    filterOptions={{
+                      All: "all",
+                      Upcoming: "upcoming",
+                      Past: "past",
+                    }}
+                  />
+                  <button
+                    disabled={!isAuth}
+                    onClick={() => setAddEvent(!addEvent)}
+                    className={`${!isAuth && "cursor-not-allowed"} flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm`}
+                  >
+                    <UploadIcon className="w-4 h-4" />
+                    Upload Events
+                  </button>
+                </div>
+                {filteredEvents.length === 0 ? (
+                  <div className="text-center py-20 text-gray-500">
+                    <p className="text-2xl font-semibold">No Events Found</p>
+                    <p>Try adjusting your search or filters</p>
+                  </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {events.map((event) => (
+                    {filteredEvents.map((event) => (
                       <EventCard
                         key={event.E_ID}
                         event={event}
@@ -169,19 +246,44 @@ const ActivitySection = () => {
       {/* Groups */}
       {option === "Groups" && (
         <div className="w-10/12 m-auto bg-white px-12 py-12 rounded-2xl">
-          <h1 className="text-4xl font-bold text-primary mb-8">Groups</h1>
           <div>
             {groupsStatus === "loading" && <p>Loading Groups...</p>}
             {groupsStatus === "failed" && <p>Error: {groupsError}</p>}
             {groupsStatus === "succeeded" && (
               <>
-                {groups.length === 0 ? (
-                  <p className="text-center py-8 text-teal-200">
-                    No Groups Found
-                  </p>
+                {addGroup && (
+                  <AddGroupOverlay onClose={() => setAddGroup(false)} />
+                )}
+                <div className="max-w-6xl mx-auto px-4 -mt-20 flex justify-between items-center mb-8">
+                  <Controls
+                    search={search}
+                    setSearch={setSearch}
+                    filter={filter}
+                    setFilter={setFilter}
+                    searchPlaceholder="Search groups..."
+                    filterOptions={{
+                      All: "all",
+                      "Newest to Oldest": "newest_to_oldest",
+                      "Oldest to Newest": "oldest_to_newest",
+                    }}
+                  />
+                  <button
+                    disabled={!isAuth}
+                    onClick={() => setAddGroup(!addGroup)}
+                    className={`${!isAuth ? "cursor-not-allowed" : "cursor-pointer"} flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm`}
+                  >
+                    <LucideGroup className="w-4 h-4" />
+                    Create Group
+                  </button>
+                </div>
+                {filteredGroups.length === 0 ? (
+                  <div className="text-center py-20 text-gray-500">
+                    <p className="text-2xl font-semibold">No Groups Found</p>
+                    <p>Try adjusting your search or filters</p>
+                  </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {groups.map((group) => (
+                    {filteredGroups.map((group) => (
                       <GroupCard key={group.G_ID} group={group} />
                     ))}
                   </div>
@@ -194,14 +296,16 @@ const ActivitySection = () => {
 
       {/* QnA Section */}
       {option === "QnA" && (
-        <div className="w-full min-h-screen">
+        <div className="-mt-8">
           <DiscussionForum questions={questions} status={questionsStatus} />
         </div>
       )}
 
       {/* Notes Section */}
       {option === "Notes" && (
-        <NotesSection notes={notes} status={notesStatus} error={notesError} />
+        <div className="mt-17">
+          <NotesSection notes={notes} status={notesStatus} error={notesError} />
+        </div>
       )}
     </section>
   );
