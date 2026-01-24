@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AddNotes from "../notes/AddNotes";
+import Controls from "../Controls";
 
 // 1. Style Mapping for vibrant cards
 const STYLE_VARIANTS = [
@@ -45,6 +46,9 @@ const DEGREE_SUBJECTS = {
 };
 
 const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+
   const [selectedDegree, setSelectedDegree] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
   const [addNotes, setAddNotes] = useState(false);
@@ -90,13 +94,22 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
             Access your uploaded study materials
           </p>
         </div> */}
-        <button
-          onClick={() => setAddNotes(!addNotes)}
-          className="flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
-        >
-          <Upload className="w-4 h-4" />
-          Upload Notes
-        </button>
+        <div className="flex justify-between items-center">
+          <Controls
+            search={search}
+            setSearch={setSearch}
+            filter={filter}
+            setFilter={setFilter}
+            searchPlaceholder="Search events..."
+          />
+          <button
+            onClick={() => setAddNotes(!addNotes)}
+            className="flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
+          >
+            <Upload className="w-4 h-4" />
+            Upload Notes
+          </button>
+        </div>
       </div>
 
       {/* Empty State */}
