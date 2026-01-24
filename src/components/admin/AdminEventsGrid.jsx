@@ -1,25 +1,37 @@
 import React, { useMemo } from "react";
 import AdminEventCard from "./Cards/AdminEventCard";
 
-const AdminEventsGrid = ({ events, searchTerm, statusFilter, onModerate }) => {
+const AdminEventsGrid = ({
+  events,
+  searchTerm,
+  filterDegree,
+  filterSubject,
+  onModerate,
+}) => {
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
+      const search = searchTerm.toLowerCase();
+
       const matchesSearch =
-        event.Description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.Added_By.toLowerCase().includes(searchTerm.toLowerCase());
+        (event.Description?.toLowerCase() ?? "").includes(search) ||
+        (event.Added_By_Name?.toLowerCase() ?? "").includes(search);
 
-      const matchesStatus =
-        statusFilter === "all" ||
-        event.status.toLowerCase() === statusFilter.toLowerCase();
+      // Category filters (Degrees and Subjects)
+      const matchesDegree =
+        filterDegree === "all" || event.Degree === filterDegree;
+      const matchesSubject =
+        filterSubject === "all" || event.Subject === filterSubject;
 
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesDegree && matchesSubject;
     });
-  }, [events, searchTerm, statusFilter]);
+  }, [events, searchTerm, filterDegree, filterSubject]);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="p-6 border-b border-gray-50 flex justify-between items-center">
-        <h3 className="text-lg font-bold text-gray-800 font-poppins">Events Registered</h3>
+        <h3 className="text-lg font-bold text-gray-800 font-poppins">
+          Events Registered
+        </h3>
         <span className="text-xs font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-full uppercase tracking-widest">
           {filteredEvents.length} Events Found
         </span>
