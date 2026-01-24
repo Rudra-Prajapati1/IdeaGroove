@@ -75,6 +75,13 @@ const Navbar = () => {
     };
   }, []);
 
+  const filteredNavLinks = navLinks.filter((link) => {
+    if (link.title === "Chats" && !isAuthenticated) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <header className="fixed top-5 left-1/2 -translate-x-1/2 w-[80%] lg:w-[40%] z-50">
       <nav
@@ -105,8 +112,8 @@ const Navbar = () => {
               scrolled
                 ? "opacity-100 scale-100"
                 : isHome
-                ? "opacity-0 scale-50 pointer-events-none"
-                : "opacity-100"
+                  ? "opacity-0 scale-50 pointer-events-none"
+                  : "opacity-100"
             }
           `}
         />
@@ -123,25 +130,11 @@ const Navbar = () => {
             >
               {/* <User className="w-5 h-5" /> */}
               <span className="hidden sm:inline">Profile</span>
-              {/* <ChevronDown
-                className={`w-4 h-4 transition-transform ${
-                  profileOpen ? "rotate-180" : ""
-                }`}
-              /> */}
             </button>
 
             {/* Profile Dropdown Menu */}
             {profileOpen && (
               <div className="absolute top-[120%] right-0 w-48 bg-white text-black rounded-xl shadow-xl overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2 duration-200 border border-gray-100">
-                {/* User Info Header */}
-                {/* <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                  <p className="text-xs text-gray-500">Signed in as</p>
-                  <p className="font-semibold text-sm truncate">
-                    {user?.Username || "User"}
-                  </p>
-                </div> */}
-
-                {/* Option 1: My Profile */}
                 <button
                   onClick={() => {
                     navigate("/profile");
@@ -198,7 +191,7 @@ const Navbar = () => {
         `}
       >
         <div className="flex max-md:flex-col items-center justify-evenly py-3 gap-3">
-          {navLinks.map((link) => (
+          {filteredNavLinks.map((link) => (
             <NavLink
               key={link.id}
               to={link.href}

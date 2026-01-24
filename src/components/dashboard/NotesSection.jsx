@@ -18,6 +18,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import AddNotes from "../notes/AddNotes";
 import Controls from "../Controls";
+import { useSelector } from "react-redux";
+import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 
 // 1. Style Mapping for vibrant cards
 const STYLE_VARIANTS = [
@@ -46,6 +48,8 @@ const DEGREE_SUBJECTS = {
 };
 
 const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
+  const isAuth = useSelector(selectIsAuthenticated);
+
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
 
@@ -88,12 +92,6 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
       )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
-        {/* <div>
-          <h2 className="text-4xl font-bold text-slate-900">My Notes</h2>
-          <p className="text-slate-500 text-sm mt-1">
-            Access your uploaded study materials
-          </p>
-        </div> */}
         <div className="flex justify-between items-center">
           <Controls
             search={search}
@@ -103,8 +101,9 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
             searchPlaceholder="Search events..."
           />
           <button
+            disabled={!isAuth}
             onClick={() => setAddNotes(!addNotes)}
-            className="flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
+            className={`flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm ${!isAuth && "cursor-not-allowed"}`}
           >
             <Upload className="w-4 h-4" />
             Upload Notes
@@ -236,8 +235,8 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
                     {/* Footer Buttons */}
                     <div className="flex gap-3 mt-auto pt-4 border-t border-slate-50">
                       <button
-                        disabled={true} // Kept disabled as per your snippet
-                        className="flex-1 flex items-center justify-center gap-2 bg-slate-900 text-white py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                        disabled={!isAuth} // Kept disabled as per your snippet
+                        className={`${isAuth ? "cursor-pointer" : "cursor-not-allowed"} flex-1 flex items-center justify-center gap-2 bg-slate-900 text-white py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-colors shadow-sm disabled:opacity-70`}
                       >
                         <Download className="w-4 h-4" />
                         Download
