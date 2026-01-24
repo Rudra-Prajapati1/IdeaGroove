@@ -66,7 +66,7 @@ const AdminDashboard = () => {
     <section className="flex flex-col gap-8 relative min-h-screen">
       <AdminPageHeader
         title="Users Dashboard"
-        subtitle="Overview of platform activity"
+        subtitle="Overview of users"
         searchValue={searchTerm}
         onSearch={setSearchTerm}
         onFilter={setStatusFilter}
