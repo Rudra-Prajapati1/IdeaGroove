@@ -1,216 +1,331 @@
-import React from 'react';
+import React from "react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
-import { 
-  Users, 
-  AlertTriangle, 
-  FileText, 
-  UsersRound, 
-  Calendar, 
-  MessageSquare, 
-  Search, 
-  Bell, 
-  CircleHelp,
-  Filter,
-  Download,
-  Eye,
-  ChevronLeft,
-  ChevronRight,
+import {
+  Users,
+  AlertTriangle,
+  FileText,
+  UsersRound,
+  Calendar,
+  Notebook,
+  Activity,
   TrendingUp,
-  Circle,
-  Notebook
-} from 'lucide-react';
+} from "lucide-react";
 
 const AdminDash = () => {
   const categories = [
-    { name: 'Notes', percentage: 45, color: 'bg-green-900', stroke: '#14532d' },
-    { name: 'Question', percentage: 30, color: 'bg-green-700', stroke: '#15803d' },
-    { name: 'Events', percentage: 15, color: 'bg-green-400', stroke: '#4ade80' },
-    { name: 'Groups', percentage: 10, color: 'bg-green-100', stroke: '#dcfce7' },
+    { name: "Notes", percentage: 45, color: "bg-rose-600" },
+    { name: "Question", percentage: 30, color: "bg-blue-600" },
+    { name: "Events", percentage: 15, color: "bg-amber-500" },
+    { name: "Groups", percentage: 10, color: "bg-purple-600" },
   ];
 
   const stats = [
-    { label: 'Total Users', value: '5,240', trend: '+2.5%', color: 'text-green-600', icon: Users },
-    { label: 'Notes', value: '12', trend: 'Pending', color: 'text-red-500', icon: Notebook, isAlert: true },
-    { label: 'Questions', value: '1,200', trend: '+5%', color: 'text-green-600', icon: FileText },
-    { label: 'Groups', value: '85', trend: '0%', color: 'text-gray-400', icon: UsersRound },
-    { label: 'Events', value: '14', trend: '+2 New', color: 'text-green-600', icon: Calendar },
-    { label: 'Complaints', value: '450', trend: '+8%', color: 'text-green-600', icon: AlertTriangle },
+    {
+      label: "Total Users",
+      value: "5,240",
+      color: "emerald",
+      icon: Users,
+      desc: "Active scholars",
+    },
+    {
+      label: "Total Notes",
+      value: "1,248",
+      color: "rose",
+      icon: Notebook,
+      desc: "Notes Uploaded",
+    }, // rose theme
+    {
+      label: "Total Questions",
+      value: "1,200",
+      color: "blue",
+      icon: FileText,
+      desc: "Community queries",
+    },
+    {
+      label: "Active Groups",
+      value: "85",
+      color: "purple",
+      icon: UsersRound,
+      desc: "Study circles",
+    },
+    {
+      label: "Upcoming Events",
+      value: "14",
+      color: "amber",
+      icon: Calendar,
+      desc: "Next 7 days",
+    },
+    {
+      label: "Complaints",
+      value: "450",
+      color: "orange",
+      icon: AlertTriangle,
+      desc: "Unresolved issues",
+    },
   ];
 
+  // Enhanced Theme Helper to include bar colors
+  const getTheme = (color) => {
+    const themes = {
+      emerald: {
+        text: "text-emerald-600",
+        bg: "bg-emerald-50",
+        border: "border-emerald-100",
+        bar: "bg-emerald-500",
+      },
+      rose: {
+        text: "text-rose-600",
+        bg: "bg-rose-50",
+        border: "border-rose-100",
+        bar: "bg-rose-500",
+      },
+      blue: {
+        text: "text-blue-600",
+        bg: "bg-blue-50",
+        border: "border-blue-100",
+        bar: "bg-blue-500",
+      },
+      purple: {
+        text: "text-purple-600",
+        bg: "bg-purple-50",
+        border: "border-purple-100",
+        bar: "bg-purple-500",
+      },
+      amber: {
+        text: "text-amber-600",
+        bg: "bg-amber-50",
+        border: "border-amber-100",
+        bar: "bg-amber-500",
+      },
+      orange: {
+        text: "text-orange-600",
+        bg: "bg-orange-50",
+        border: "border-orange-100",
+        bar: "bg-orange-500",
+      },
+    };
+    return themes[color] || themes.emerald;
+  };
+
   return (
-    <div className="bg-gray-50 min-h-screen p-4 md:p-8 font-sans text-slate-700">
+    <div className="bg-[#F8FAFC] min-h-screen p-4 md:p-8 font-sans text-slate-700">
       <AdminPageHeader
-        title="Dashboard"
-        subtitle="Overview of platform activity"
+        title="Admin Overview"
+        subtitle="Real-time analytics & platform health"
       />
 
-      {/* --- Top Scorecards --- */}
+      {/* --- Scorecards --- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {stats.map((card, idx) => (
-          <div key={idx} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gray-50 rounded-lg text-gray-600">
-                  <card.icon size={20} />
+        {stats.map((card, idx) => {
+          const theme = getTheme(card.color);
+          return (
+            <div
+              key={idx}
+              className="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
+            >
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div
+                    className={`p-3 rounded-xl ${theme.bg} ${theme.text} transition-transform group-hover:scale-110 duration-300`}
+                  >
+                    <card.icon size={22} />
+                  </div>
                 </div>
-                <span className="text-sm font-semibold text-gray-500">{card.label}</span>
+
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
+                    {card.label}
+                  </p>
+                  <h2 className="text-3xl font-black text-slate-800 tracking-tight">
+                    {card.value}
+                  </h2>
+                  <p className="text-[11px] text-slate-400 mt-2 font-medium italic">
+                    {card.desc}
+                  </p>
+                </div>
+              </div>
+
+              {/* DYNAMIC COLORED BOTTOM LINE (The Fix) */}
+              <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-50">
+                <div
+                  className={`h-full transition-all duration-1000 w-0 group-hover:w-full ${theme.bar}`}
+                />
               </div>
             </div>
-            <div className="flex items-end justify-between">
-              <div className="text-3xl font-bold text-slate-900">{card.value}</div>
-              {/* <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full bg-opacity-10`}>
-                {card.isAlert ? <AlertTriangle size={12} /> : <TrendingUp size={12} />}
-                {card.trend}
-              </div> */}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* --- Main Middle Section --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        
-        {/* Post Distribution Section */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="bg-green-900 text-white px-6 py-4 font-bold text-sm flex items-center gap-2">
-            <FileText size={16} />
-            Post Distribution by Category
+        {/* Content Distribution Section */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden group">
+          <div className="bg-[#062D1C] text-white px-6 py-4 font-bold text-sm flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Activity size={16} className="text-emerald-400" />
+              Content Distribution
+            </div>
           </div>
           <div className="p-8 flex flex-col md:flex-row items-center justify-around gap-8">
-            <div className="relative w-48 h-48">
-              <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
-                <circle cx="18" cy="18" r="15.9" fill="transparent" stroke="#f3f4f6" strokeWidth="3"></circle>
-                <circle cx="18" cy="18" r="15.9" fill="transparent" stroke="#14532d" strokeWidth="3.5" strokeDasharray="45 100" strokeDashoffset="0"></circle>
-                <circle cx="18" cy="18" r="15.9" fill="transparent" stroke="#15803d" strokeWidth="3.5" strokeDasharray="30 100" strokeDashoffset="-45"></circle>
-                <circle cx="18" cy="18" r="15.9" fill="transparent" stroke="#4ade80" strokeWidth="3.5" strokeDasharray="15 100" strokeDashoffset="-75"></circle>
+            <div className="relative w-52 h-52 transition-transform duration-500 group-hover:rotate-12">
+              <svg
+                viewBox="0 0 36 36"
+                className="w-full h-full transform -rotate-90"
+              >
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.9"
+                  fill="transparent"
+                  stroke="#F1F5F9"
+                  strokeWidth="3"
+                ></circle>
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.9"
+                  fill="transparent"
+                  stroke="#E11D48"
+                  strokeWidth="4"
+                  strokeDasharray="45 100"
+                  strokeDashoffset="0"
+                ></circle>
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.9"
+                  fill="transparent"
+                  stroke="#2563eb"
+                  strokeWidth="4"
+                  strokeDasharray="30 100"
+                  strokeDashoffset="-45"
+                ></circle>
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.9"
+                  fill="transparent"
+                  stroke="#f59e0b"
+                  strokeWidth="4"
+                  strokeDasharray="15 100"
+                  strokeDashoffset="-75"
+                ></circle>
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.9"
+                  fill="transparent"
+                  stroke="#7c3aed"
+                  strokeWidth="4"
+                  strokeDasharray="10 100"
+                  strokeDashoffset="-90"
+                ></circle>
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-3xl font-black text-slate-800">1,200</span>
-                <span className="text-[10px] uppercase text-gray-400 font-extrabold tracking-widest">Total Posts</span>
+                <span className="text-4xl font-black text-slate-800 tracking-tighter">
+                  1.2k
+                </span>
+                <span className="text-[9px] uppercase text-slate-400 font-black tracking-[0.2em]">
+                  Total Uploads
+                </span>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4 w-full max-w-xs">
+            <div className="grid grid-cols-1 gap-3 w-full max-w-xs">
               {categories.map((cat, i) => (
-                <div key={i} className="flex items-center justify-between group cursor-default">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${cat.color} group-hover:scale-125 transition-transform`}></div>
-                    <span className="text-gray-600 font-semibold text-sm">{cat.name}</span>
+                <div key={i} className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`w-2 h-2 rounded-full ${cat.color}`}
+                      ></div>
+                      <span className="text-slate-600 font-bold text-xs uppercase tracking-wider">
+                        {cat.name}
+                      </span>
+                    </div>
+                    <span className="text-xs font-black text-slate-800">
+                      {cat.percentage}%
+                    </span>
                   </div>
-                  <span className="font-bold text-slate-800">{cat.percentage}%</span>
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full ${cat.color} transition-all duration-1000 ease-out`}
+                      style={{ width: `${cat.percentage}%` }}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Top 3 Students */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="bg-green-900 text-white px-6 py-4 font-bold text-sm flex items-center gap-2">
-            <TrendingUp size={16} />
-            Top 3 Students
+        {/* Top Contributors Leaderboard (Uses student_tbl logic) */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-[#062D1C] text-white px-6 py-4 font-bold text-sm flex items-center gap-2">
+            <TrendingUp size={16} className="text-emerald-400" />
+            Top Contributors
           </div>
-          <div className="p-4 space-y-3">
+          <div className="p-4 space-y-4">
             {[
-              { name: 'Alex Johnson', dept: 'Computer Science Dept.', pts: 980, rank: 1, color: 'border-yellow-400' },
-              { name: 'Sarah Chen', dept: 'Business Management', pts: 945, rank: 2, color: 'border-slate-300' },
-              { name: 'Michael Brown', dept: 'Biotechnology', pts: 910, rank: 3, color: 'border-orange-400' },
+              {
+                name: "Alex Johnson",
+                dept: "CS Dept.",
+                pts: 980,
+                rank: 1,
+                color: "bg-yellow-400",
+              },
+              {
+                name: "Sarah Chen",
+                dept: "Business",
+                pts: 945,
+                rank: 2,
+                color: "bg-slate-300",
+              },
+              {
+                name: "Michael Brown",
+                dept: "Biotech",
+                pts: 910,
+                rank: 3,
+                color: "bg-orange-400",
+              },
             ].map((student, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-xl border border-transparent hover:border-gray-100 hover:bg-gray-50 transition-all">
-                <div className="flex items-center gap-3">
+              <div
+                key={i}
+                className="flex items-center justify-between p-3 rounded-2xl border border-slate-50 hover:bg-slate-50/50 hover:border-emerald-100 transition-all group"
+              >
+                <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className={`w-12 h-12 rounded-full border-2 ${student.color} p-0.5`}>
-                       <img className="w-full h-full rounded-full object-cover bg-gray-100" src={`https://i.pravatar.cc/150?u=${student.name}`} alt="avatar" />
-                    </div>
-                    <span className={`absolute -bottom-1 -right-1 text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-white text-white ${i === 0 ? 'bg-yellow-400' : 'bg-slate-400'}`}>
+                    <img
+                      className="w-12 h-12 rounded-2xl object-cover ring-2 ring-white shadow-md group-hover:scale-110 transition-transform"
+                      src={`https://i.pravatar.cc/150?u=${student.name}`}
+                      alt="avatar"
+                    />
+                    <div
+                      className={`absolute -top-2 -right-2 w-6 h-6 ${student.color} text-white text-[10px] font-black rounded-lg flex items-center justify-center border-2 border-white shadow-sm`}
+                    >
                       {student.rank}
-                    </span>
+                    </div>
                   </div>
                   <div>
-                    <p className="font-bold text-sm text-slate-800 leading-tight">{student.name}</p>
-                    <p className="text-[11px] text-gray-400 font-medium">{student.dept}</p>
+                    <p className="font-black text-sm text-slate-800 tracking-tight">
+                      {student.name}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                      {student.dept}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-green-800 font-black text-sm">{student.pts}</p>
-                  <p className="text-[8px] uppercase font-bold text-gray-300 tracking-tighter">Points</p>
+                  <p className="text-emerald-700 font-black text-sm">
+                    {student.pts}
+                  </p>
+                  <p className="text-[8px] uppercase font-black text-slate-300">
+                    Exp
+                  </p>
                 </div>
               </div>
             ))}
-            <button className="w-full mt-2 py-2.5 border-2 border-gray-100 rounded-xl text-xs font-bold text-gray-500 hover:bg-gray-50 hover:border-gray-200 transition-all flex items-center justify-center gap-2">
-              View Full Leaderboard <ChevronRight size={14} />
+            <button className="w-full mt-2 py-3 bg-slate-50 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 transition-all border border-slate-100">
+              Full Leaderboard
             </button>
-          </div>
-        </div>
-      </div>
-
-      {/* --- Recent Activities Table --- */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="bg-green-900 text-white px-6 py-4 font-bold text-sm flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Calendar size={16} />
-            <span>Recent Activities</span>
-          </div>
-          <div className="flex gap-2">
-            <button className="flex items-center gap-1.5 bg-green-800 px-3 py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors">
-              <Filter size={12} /> Filter
-            </button>
-            <button className="flex items-center gap-1.5 bg-green-800 px-3 py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors">
-              <Download size={12} /> Export
-            </button>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="text-[10px] uppercase text-gray-400 font-black bg-gray-50/50 border-b border-gray-100">
-              <tr>
-                <th className="px-6 py-4">User</th>
-                <th className="px-6 py-4">Action</th>
-                <th className="px-6 py-4">Category</th>
-                <th className="px-6 py-4">Timestamp</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody className="text-sm divide-y divide-gray-50">
-              {[
-                { user: 'Elena Gilbert', action: 'Created new study group: "Finals Prep"', cat: 'ACADEMIC', catColor: 'bg-blue-50 text-blue-600 border-blue-100', time: '2 mins ago', status: 'Live', statusColor: 'text-green-600' },
-                { user: 'Tyler Lockwood', action: 'Reported a post in "Social"', cat: 'COMPLAINT', catColor: 'bg-red-50 text-red-600 border-red-100', time: '14 mins ago', status: 'Pending', statusColor: 'text-orange-500' },
-                { user: 'Damon Salvatore', action: 'Updated portfolio in "Career Hub"', cat: 'CAREER', catColor: 'bg-emerald-50 text-emerald-600 border-emerald-100', time: '45 mins ago', status: 'Live', statusColor: 'text-green-600' },
-              ].map((row, i) => (
-                <tr key={i} className="hover:bg-gray-50/50 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <img className="w-8 h-8 rounded-full bg-gray-100 border border-gray-200" src={`https://i.pravatar.cc/100?u=${row.user}`} alt="" />
-                      <span className="font-bold text-slate-700">{row.user}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-gray-500 font-medium">{row.action}</td>
-                  <td className="px-6 py-4">
-                    <span className={`text-[10px] font-black px-2 py-1 rounded-md border ${row.catColor}`}>{row.cat}</span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-400 text-xs font-medium">{row.time}</td>
-                  <td className="px-6 py-4">
-                    <div className={`flex items-center gap-1.5 font-bold text-xs ${row.statusColor}`}>
-                      <Circle size={8} fill="currentColor" /> {row.status}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all">
-                      <Eye size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {/* Pagination */}
-        <div className="p-4 flex justify-between items-center border-t border-gray-100 bg-gray-50/30">
-          <span className="text-[11px] text-gray-400 font-bold uppercase tracking-tight">Showing 3 of 1,200 activities</span>
-          <div className="flex gap-2">
-            <button className="p-1.5 border border-gray-200 rounded-lg text-gray-400 hover:bg-white hover:text-gray-600 transition-all"><ChevronLeft size={16} /></button>
-            <button className="px-3 py-1 bg-green-900 text-white rounded-lg text-xs font-bold shadow-sm shadow-green-200">1</button>
-            <button className="p-1.5 border border-gray-200 rounded-lg text-gray-400 hover:bg-white hover:text-gray-600 transition-all"><ChevronRight size={16} /></button>
           </div>
         </div>
       </div>

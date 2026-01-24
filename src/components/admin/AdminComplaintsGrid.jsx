@@ -1,58 +1,31 @@
 import React, { useState, useMemo } from "react";
 import AdminComplaintCard from "./Cards/AdminComplaintCard";
 
-const initialComplaints = [
-  {
-    id: "#CMP-4582",
-    name: "Alex Thompson",
-    category: "Resource Access",
-    date: "Oct 24, 2023",
-    status: "PENDING",
-    description:
-      "Unable to access data science modules from hostel Wi-Fi. Shows 403 Forbidden error.",
-  },
-  {
-    id: "#CMP-4579",
-    name: "Sarah Jenkins",
-    category: "Group Conflict",
-    date: "Oct 22, 2023",
-    status: "IN PROGRESS",
-    description: "Conflict in BCA group project regarding task distribution.",
-  },
-  {
-    id: "#CMP-4570",
-    name: "Emma Rodriguez",
-    category: "Other",
-    date: "Oct 18, 2023",
-    status: "HIGH PRIORITY",
-    description: "Request for urgent meeting regarding scholarship deadlines.",
-  },
-  {
-    id: "#CMP-4575",
-    name: "Michael Chen",
-    category: "Technical Issue",
-    date: "Oct 20, 2023",
-    status: "RESOLVED",
-    description: "Portal login credentials reset manually.",
-  },
-];
-
-const AdminComplaintsGrid = ({ searchTerm, categoryFilter }) => {
-  const [complaints, setComplaints] = useState(initialComplaints);
-
+const AdminComplaintsGrid = ({
+  complaints,
+  searchTerm,
+  filterDegree,
+  filterStatus,
+  onResolve,
+  onBlock,
+}) => {
   const filteredComplaints = useMemo(() => {
     return complaints.filter((item) => {
+      const s = searchTerm.toLowerCase();
+
       const matchesSearch =
-        item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchTerm.toLowerCase());
+        item.Complaint_ID.toString().includes(s) ||
+        (item.Student_Name?.toLowerCase() ?? "").includes(s) ||
+        (item.Complaint_Text?.toLowerCase() ?? "").includes(s);
 
-      const matchesCategory =
-        categoryFilter === "all" || item.category === categoryFilter;
+      const matchesDegree =
+        filterDegree === "all" || item.degreeName === filterDegree;
+      const matchesStatus =
+        filterStatus === "all" || item.Status === filterStatus;
 
-      return matchesSearch && matchesCategory;
+      return matchesSearch && matchesDegree && matchesStatus;
     });
-  }, [complaints, searchTerm, categoryFilter]);
+  }, [complaints, searchTerm, filterDegree, filterStatus]);
 
   const handleResolve = (id) => {
     setComplaints((prev) =>
@@ -62,7 +35,6 @@ const AdminComplaintsGrid = ({ searchTerm, categoryFilter }) => {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      {/* Header with results count */}
       <div className="p-6 border-b border-gray-50 flex justify-between items-center">
         <h3 className="text-lg font-bold text-gray-800">
           Complaints Registered

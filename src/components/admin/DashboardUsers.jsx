@@ -1,26 +1,36 @@
 import React, { useMemo } from "react";
 import UserCard from "./Cards/AdminUserCard";
 
-const DashboardUsers = ({ users, searchTerm, filterStatus, onModerate }) => {
-  // Filter logic based on passed props
+const DashboardUsers = ({
+  users,
+  searchTerm,
+  filterDegree,
+  filterYear,
+  onModerate,
+}) => {
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
+      const s = searchTerm.toLowerCase();
       const matchesSearch =
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase());
+        user.name.toLowerCase().includes(s) ||
+        user.email.toLowerCase().includes(s) ||
+        user.username.toLowerCase().includes(s) ||
+        user.rollNo.toLowerCase().includes(s);
 
-      const matchesFilter =
-        filterStatus === "all" ||
-        user.status.toLowerCase() === filterStatus.toLowerCase();
+      const matchesDegree =
+        filterDegree === "all" || user.degree === filterDegree;
+      const matchesYear =
+        filterYear === "all" || user.year.toString() === filterYear;
 
-      return matchesSearch && matchesFilter;
+      return matchesSearch && matchesDegree && matchesYear;
     });
-  }, [users, searchTerm, filterStatus]);
-
+  }, [users, searchTerm, filterDegree, filterYear]);
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-inter">
       <div className="p-6 border-b border-gray-50 flex justify-between items-center">
-        <h3 className="text-lg font-bold text-gray-800 font-poppins">Recent Users</h3>
+        <h3 className="text-lg font-bold text-gray-800 font-poppins">
+          Recent Users
+        </h3>
         <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-3 py-1.5 rounded-full uppercase tracking-widest">
           {filteredUsers.length} Found
         </span>

@@ -1,25 +1,41 @@
 import { useMemo } from "react";
 import AdminNoteCard from "./Cards/AdminNoteCard";
 
-const AdminNotesGrid = ({ notes, searchTerm, filterSubject, onModerate }) => {
-  // Filter Logic
+const AdminNotesGrid = ({
+  notes,
+  searchTerm,
+  filterDegree,
+  filterSubject,
+  onModerate,
+}) => {
   const filteredNotes = useMemo(() => {
     return notes.filter((note) => {
-      const matchesSearch =
-        note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        note.uploadedBy.toLowerCase().includes(searchTerm.toLowerCase());
+      const searchStr = searchTerm.toLowerCase();
 
+      const title = note.title?.toLowerCase() ?? "";
+      const description = note.description?.toLowerCase() ?? "";
+      const uploadedBy = note.uploadedBy?.toLowerCase() ?? "";
+
+      const matchesSearch =
+        title.includes(searchStr) ||
+        description.includes(searchStr) ||
+        uploadedBy.includes(searchStr);
+
+      const matchesDegree =
+        filterDegree === "all" || note.degree === filterDegree;
       const matchesSubject =
         filterSubject === "all" || note.subject === filterSubject;
 
-      return matchesSearch && matchesSubject;
+      return matchesSearch && matchesDegree && matchesSubject;
     });
-  }, [notes, searchTerm, filterSubject]);
+  }, [notes, searchTerm, filterDegree, filterSubject]);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-inter">
       <div className="p-6 border-b border-gray-50 flex justify-between items-center">
-        <h3 className="text-lg font-bold text-gray-800 font-poppins">Notes Uploaded</h3>
+        <h3 className="text-lg font-bold text-gray-800 font-poppins">
+          Notes Uploaded
+        </h3>
         <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-3 py-1 rounded-full uppercase tracking-widest">
           {filteredNotes.length} Results Found
         </span>

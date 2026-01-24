@@ -1,24 +1,38 @@
 import { useMemo } from "react";
 import AdminGroupCard from "./Cards/AdminGroupCard";
 
-const AdminGroupsGrid = ({ groups, searchTerm, categoryFilter, onModerate }) => {
+const AdminGroupsGrid = ({
+  groups,
+  searchTerm,
+  filterDegree,
+  filterCategory,
+  onModerate,
+}) => {
   const filteredGroups = useMemo(() => {
     return groups.filter((group) => {
+      const searchStr = searchTerm.toLowerCase();
+
       const matchesSearch =
-        group.Room_Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        group.Created_By.toLowerCase().includes(searchTerm.toLowerCase());
+        (group.Room_Name?.toLowerCase() ?? "").includes(searchStr) ||
+        (group.Created_By_Name?.toLowerCase() ?? "").includes(searchStr) ||
+        (group.Room_Type?.toLowerCase() ?? "").includes(searchStr);
+
+      const matchesDegree =
+        filterDegree === "all" || group.Degree === filterDegree;
 
       const matchesCategory =
-        categoryFilter === "all" || group.Based_On === categoryFilter;
+        filterCategory === "all" || group.Based_On === filterCategory;
 
-      return matchesSearch && matchesCategory;
+      return matchesSearch && matchesDegree && matchesCategory;
     });
-  }, [groups, searchTerm, categoryFilter]);
+  }, [groups, searchTerm, filterDegree, filterCategory]);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="p-6 border-b border-gray-50 flex justify-between items-center">
-        <h3 className="text-lg font-bold text-gray-800 font-poppins">Groups Created</h3>
+        <h3 className="text-lg font-bold text-gray-800 font-poppins">
+          Groups Created
+        </h3>
         <span className="text-xs font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-full uppercase tracking-widest">
           {filteredGroups.length} Groups Found
         </span>
