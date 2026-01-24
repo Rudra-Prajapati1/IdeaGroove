@@ -13,8 +13,11 @@ import Loading from "../components/Loading";
 import Controls from "../components/Controls"; // The new component
 import { UploadIcon } from "lucide-react";
 import AddEventOverlay from "../components/events/AddEvent";
+import { selectIsAuthenticated } from "../redux/slice/authSlice";
 
 const Events = () => {
+  const isAuth = useSelector(selectIsAuthenticated);
+
   const dispatch = useDispatch();
   const [addEvent, setAddEvent] = useState(false);
   const [search, setSearch] = useState("");
@@ -78,8 +81,9 @@ const Events = () => {
             searchPlaceholder="Search events..."
           />
           <button
+            disabled={!isAuth}
             onClick={() => setAddEvent(!addEvent)}
-            className="flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
+            className={`${!isAuth && "cursor-not-allowed"} flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm`}
           >
             <UploadIcon className="w-4 h-4" />
             Upload Events

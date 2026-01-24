@@ -11,8 +11,11 @@ import GroupCard from "../components/groups/GroupCard";
 import AddGroupOverlay from "../components/groups/AddGroup";
 import { LucideGroup } from "lucide-react";
 import Controls from "../components/Controls";
+import { selectIsAuthenticated } from "../redux/slice/authSlice";
 
 const Groups = () => {
+  const isAuth = useSelector(selectIsAuthenticated);
+
   const [addGroup, setAddGroup] = useState(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -59,8 +62,9 @@ const Groups = () => {
             searchPlaceholder="Search groups..."
           />
           <button
+            disabled={!isAuth}
             onClick={() => setAddGroup(!addGroup)}
-            className="flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
+            className={`${!isAuth ? "cursor-not-allowed" : "cursor-pointer"} flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm`}
           >
             <LucideGroup className="w-4 h-4" />
             Upload Group

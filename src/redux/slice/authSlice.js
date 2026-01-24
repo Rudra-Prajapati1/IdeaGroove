@@ -1,55 +1,56 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const loginUserHelper = (userData) => {
-  localStorage.setItem("user", JSON.stringify(userData));
-};
-
 const getUserFromStorage = () => {
-  const userStr = localStorage.getItem("user");
-  if (userStr) return JSON.parse(userStr);
-  return null;
+  try {
+    const userStr = localStorage.getItem("user");
+    return userStr ? JSON.parse(userStr) : null;
+  } catch (error) {
+    localStorage.removeItem("user");
+    return null;
+  }
 };
-
-const removeUserFromStorage = () => {
-  localStorage.removeItem("user");
-};
-
-const user = getUserFromStorage();
 
 const initialState = {
-  user: user, // user exists -> storage, load them -> Redux
-  isAuthenticated: !!user, // user exists? true : false.
+  user: getUserFromStorage(),
+  isAuthenticated: !!getUserFromStorage(),
   loading: false,
   error: null,
 };
 
-// --- THE REDUX SLICE ---
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
+    setLoading: (state) => {
+      state.loading = true;
+    },
     loginSuccess: (state, action) => {
       state.user = action.payload;
       state.isAuthenticated = true;
+      state.loading = false;
       state.error = null;
-      loginUserHelper(action.payload); // Save to LocalStorage
+      localStorage.setItem("user", JSON.stringify(action.payload));
     },
-    // Call this action on Logout
     logout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
-      removeUserFromStorage(); // Clear LocalStorage
+      state.loading = false;
+      state.error = null;
+      localStorage.removeItem("user");
     },
     authError: (state, action) => {
       state.error = action.payload;
       state.loading = false;
+      state.isAuthenticated = false;
     },
   },
 });
 
-export const { loginSuccess, logout, authError } = authSlice.actions;
+export const { loginSuccess, logout, authError, setLoading } =
+  authSlice.actions;
 
-// Export helpers if you need them outside (optional)
-export const isLoggedIn = () => !!localStorage.getItem("user");
+// Selectors for easy use in components
+export const selectUser = (state) => state.auth.user;
+export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 
 export default authSlice.reducer;

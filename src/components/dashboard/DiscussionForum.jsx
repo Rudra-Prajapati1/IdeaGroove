@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import Controls from "../Controls";
 import AskQuestionModal from "../qna/AskQuestion";
+import { useSelector } from "react-redux";
+import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 
 // --- Configuration Data & Mock Data (Kept from your original) ---
 const DEGREE_SUBJECTS = {
@@ -81,20 +83,17 @@ const MOCK_DISCUSSIONS = [
 ];
 
 const DiscussionForum = () => {
-  // Search State
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all"); // Added to support Controls component
+  const isAuth = useSelector(selectIsAuthenticated);
 
-  // Filter States (Sidebar)
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
   const [selectedDegree, setSelectedDegree] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
 
-  const [showAskModal, setShowAskModal] = useState(false); // <--- Add this state
+  const [showAskModal, setShowAskModal] = useState(false);
 
-  // Mock handler for when a question is submitted
   const handleQuestionSubmit = (newQuestionData) => {
     console.log("New Question Submitted:", newQuestionData);
-    // Here you would typically add it to your MOCK_DISCUSSIONS or send to API
   };
 
   // UI States
@@ -143,12 +142,13 @@ const DiscussionForum = () => {
             filter={filter}
             setFilter={setFilter}
             searchPlaceholder="Search questions or topics..."
-            filterOptions={["all", "pinned", "recent"]} // Custom filters for this page
+            filterOptions={["all", "pinned", "recent"]}
           />
 
           <button
+            disabled={!isAuth}
             onClick={() => setShowAskModal(true)}
-            className="flex items-center gap-2 bg-green-600 text-white shadow-md px-6 py-3 rounded-xl hover:bg-green-700 transition-colors font-medium text-sm whitespace-nowrap"
+            className={`${!isAuth && "cursor-not-allowed"} flex items-center gap-2 bg-green-600 text-white shadow-md px-6 py-3 rounded-xl hover:bg-green-700 transition-colors font-medium text-sm whitespace-nowrap`}
           >
             <Plus className="w-4 h-4" />
             Ask Question
@@ -275,8 +275,9 @@ const DiscussionForum = () => {
                         </div>
                       </div>
                       <button
+                        disabled={!isAuth}
                         onClick={() => toggleAnswers(post.id)}
-                        className="text-green-600 text-sm font-semibold hover:underline"
+                        className={`${!isAuth && "cursor-not-allowed"} text-green-600 text-sm font-semibold hover:underline`}
                       >
                         {isExpanded ? "Hide Answers" : "View Answers"}
                       </button>

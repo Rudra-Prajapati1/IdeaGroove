@@ -19,13 +19,13 @@
 
 //   return (
 //     <div className="relative bg-white border border-gray-100 shadow-md rounded-2xl p-6 w-full max-w-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-      
+
 //       {/* 1. Category Badge and Report Icon (Top Right) */}
 //       <div className="absolute top-4 right-4 flex items-center gap-3">
 //         <span className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${getBadgeColor(group.Based_On)}`}>
 //           {group.Based_On}
 //         </span>
-//         <button 
+//         <button
 //           className="text-gray-300 hover:text-red-500 transition-colors"
 //           title="Report Group" onClick={SubmitComplaint}
 //         >
@@ -47,7 +47,7 @@
 //         <h3 className="font-bold font-poppins text-xl text-gray-900 mb-1">
 //           {group.Room_Name}
 //         </h3>
-        
+
 //         {/* Member Count */}
 //         <div className="flex items-center gap-1.5 text-gray-400 text-sm mb-3">
 //           <Users className="w-4 h-4" />
@@ -66,7 +66,7 @@
 //           View
 //           <Eye className="w-4 h-4" />
 //         </button>
-        
+
 //         <button className="flex-1 bg-primary text-white py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-[#153416] transition-colors text-sm shadow-md shadow-primary/20">
 //           Join
 //           <UserPlus className="w-4 h-4" />
@@ -80,9 +80,22 @@
 
 import React, { useState } from "react";
 import group_temp_image from "/images/group_temp_image.jpg";
-import { Eye, UserPlus, Flag, Users, X, Search, MessageSquare, UserPlus as InviteIcon } from "lucide-react";
+import {
+  Eye,
+  UserPlus,
+  Flag,
+  Users,
+  X,
+  Search,
+  MessageSquare,
+  UserPlus as InviteIcon,
+} from "lucide-react";
+import { useSelector } from "react-redux";
+import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 
 const GroupCard = ({ group }) => {
+  const isAuth = useSelector(selectIsAuthenticated);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -113,7 +126,9 @@ const GroupCard = ({ group }) => {
       {/* --- GROUP CARD --- */}
       <div className="relative bg-white border border-gray-100 shadow-md rounded-2xl p-6 w-full max-w-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
         <div className="absolute top-4 right-4 flex items-center gap-3">
-          <span className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${getBadgeColor(group.Based_On)}`}>
+          <span
+            className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${getBadgeColor(group.Based_On)}`}
+          >
             {group.Based_On}
           </span>
           <button className="text-gray-300 hover:text-red-500 transition-colors">
@@ -122,28 +137,41 @@ const GroupCard = ({ group }) => {
         </div>
 
         <div className="mb-4">
-          <img src={group_temp_image} alt={group.Room_Name} className="rounded-full h-16 w-16 object-cover border-2 border-gray-50 shadow-sm" />
+          <img
+            src={group_temp_image}
+            alt={group.Room_Name}
+            className="rounded-full h-16 w-16 object-cover border-2 border-gray-50 shadow-sm"
+          />
         </div>
 
         <div className="mb-6">
-          <h3 className="font-bold font-poppins text-xl text-gray-900 mb-1">{group.Room_Name}</h3>
+          <h3 className="font-bold font-poppins text-xl text-gray-900 mb-1">
+            {group.Room_Name}
+          </h3>
           <div className="flex items-center gap-1.5 text-gray-400 text-sm mb-3">
             <Users className="w-4 h-4" />
-            <span className="font-medium">{group.Member_Count || "0"} Members</span>
+            <span className="font-medium">
+              {group.Member_Count || "0"} Members
+            </span>
           </div>
-          <p className="text-gray-500 text-sm leading-relaxed line-clamp-2 min-h-[40px]">
-            {group.Description || "Exploring data structures and creative collaborations..."}
+          <p className="text-gray-500 text-sm leading-relaxed line-clamp-2 min-h-10">
+            {group.Description ||
+              "Exploring data structures and creative collaborations..."}
           </p>
         </div>
 
         <div className="flex gap-3">
-          <button 
+          <button
+            disabled={!isAuth}
             onClick={() => setIsModalOpen(true)} // Open Modal
-            className="flex-1 border border-primary text-primary py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors text-sm"
+            className={`${isAuth ? "cursor-pointer" : "cursor-not-allowed"} flex-1 border border-primary text-primary py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors text-sm`}
           >
             View <Eye className="w-4 h-4" />
           </button>
-          <button className="flex-1 bg-primary text-white py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-[#153416] transition-colors text-sm shadow-md shadow-primary/20">
+          <button
+            disabled={!isAuth}
+            className={`${isAuth ? "cursor-pointer" : "cursor-not-allowed"} flex-1 bg-primary text-white py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-[#153416] transition-colors text-sm shadow-md shadow-primary/20`}
+          >
             Join <UserPlus className="w-4 h-4" />
           </button>
         </div>
@@ -153,16 +181,17 @@ const GroupCard = ({ group }) => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            
             {/* Modal Header */}
             <div className="bg-[#0D2E0E] p-6 text-white relative">
-              <button 
+              <button
                 onClick={() => setIsModalOpen(false)}
                 className="absolute top-4 right-4 text-white/70 hover:text-white"
               >
                 <X className="w-6 h-6" />
               </button>
-              <h2 className="text-xl font-bold font-poppins">{group.Room_Name}</h2>
+              <h2 className="text-xl font-bold font-poppins">
+                {group.Room_Name}
+              </h2>
               <p className="text-green-400 text-xs font-medium mt-1">
                 {group.Based_On} • {group.Member_Count || "12"} Members
               </p>
@@ -173,7 +202,7 @@ const GroupCard = ({ group }) => {
               {/* Search Bar */}
               <div className="relative mb-6">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input 
+                <input
                   type="text"
                   placeholder="Search members by name or role..."
                   className="w-full bg-gray-50 border-none rounded-xl py-3 pl-11 pr-4 text-sm focus:ring-2 focus:ring-green-500 outline-none"
@@ -185,15 +214,25 @@ const GroupCard = ({ group }) => {
               {/* Member List */}
               <div className="space-y-4 max-h-72 overflow-y-auto pr-2 custom-scrollbar">
                 {members.map((member) => (
-                  <div key={member.id} className="flex items-center justify-between group">
+                  <div
+                    key={member.id}
+                    className="flex items-center justify-between group"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border border-gray-100">
                         {/* Avatar placeholder */}
-                        <img src={`https://i.pravatar.cc/150?u=${member.id}`} alt={member.name} />
+                        <img
+                          src={`https://i.pravatar.cc/150?u=${member.id}`}
+                          alt={member.name}
+                        />
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900 text-sm">{member.name}</p>
-                        <p className={`text-[10px] font-black tracking-tighter ${member.isAdmin ? 'text-green-600' : 'text-gray-400'}`}>
+                        <p className="font-bold text-gray-900 text-sm">
+                          {member.name}
+                        </p>
+                        <p
+                          className={`text-[10px] font-black tracking-tighter ${member.isAdmin ? "text-green-600" : "text-gray-400"}`}
+                        >
                           {member.role}
                         </p>
                       </div>
@@ -201,7 +240,9 @@ const GroupCard = ({ group }) => {
                     {member.isAdmin ? (
                       <MessageSquare className="w-4 h-4 text-gray-900 cursor-pointer" />
                     ) : (
-                      <span className="text-[10px] text-gray-300 font-medium uppercase tracking-widest">Member</span>
+                      <span className="text-[10px] text-gray-300 font-medium uppercase tracking-widest">
+                        Member
+                      </span>
                     )}
                   </div>
                 ))}
@@ -220,7 +261,6 @@ const GroupCard = ({ group }) => {
                 Done
               </button>
             </div> */}
-
           </div>
         </div>
       )}

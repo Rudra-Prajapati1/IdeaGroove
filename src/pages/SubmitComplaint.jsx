@@ -429,8 +429,11 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
+import { selectIsAuthenticated } from "../redux/slice/authSlice";
 
 const SubmitComplaint = () => {
+  const isAuth = useSelector(selectIsAuthenticated);
+
   const { type, id } = useParams();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
@@ -738,8 +741,9 @@ const SubmitComplaint = () => {
             </div>
 
             <button
+              disabled={!isAuth}
               type="submit"
-              className="w-full bg-[#1A3C20] text-white py-4 rounded-xl font-bold text-sm hover:bg-[#143424] transition-colors shadow-lg shadow-[#1A3C20]/20"
+              className={`${isAuth ? "cursor-pointer" : "cursor-not-allowed"} w-full bg-[#1A3C20] text-white py-4 rounded-xl font-bold text-sm hover:bg-[#143424] transition-colors shadow-lg shadow-[#1A3C20]/20`}
             >
               Submit Complaint
             </button>
@@ -826,7 +830,7 @@ const SubmitComplaint = () => {
                   <div className="col-span-2">
                     <span
                       className={`px-4 py-1.5 rounded-lg border text-[10px] font-black tracking-widest uppercase ${getStatusStyles(
-                        item.status
+                        item.status,
                       )}`}
                     >
                       {item.status}
