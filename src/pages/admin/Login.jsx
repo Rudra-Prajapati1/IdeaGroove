@@ -26,11 +26,15 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.post("/api/auth/admin-login", adminData, {
-        withCredentials: true,
-      });
+      const { data } = await axios.post(
+        "http://localhost:8080/api/admin/login",
+        adminData,
+        {
+          withCredentials: true,
+        },
+      );
 
-      console.log(data);
+      // console.log(data);
 
       if (data.success) {
         toast.success(data.message || "Login Successful!");
