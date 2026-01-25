@@ -122,8 +122,9 @@ const DiscussionForum = () => {
             searchPlaceholder="Search questions..."
             filterOptions={{
               All: "all",
-              Newest: "newest_to_oldest",
-              Oldest: "oldest_to_newest",
+
+              "Newest to Oldest": "newest_to_oldest",
+              "Oldest to Newest": "oldest_to_newest",
             }}
           />
           <button
