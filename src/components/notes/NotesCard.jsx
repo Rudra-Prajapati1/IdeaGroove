@@ -10,7 +10,6 @@ import {
 
 const NotesCard = ({
   note,
-  index,
   style,
   isAuth,
   currentUserId,
@@ -41,15 +40,17 @@ const NotesCard = ({
         className={`${style.color} h-32 relative p-4 transition-colors duration-300`}
       >
         {/* Report Button */}
-        <div className="absolute top-4 left-4 z-10">
-          <button
-            onClick={(e) => onReport(e, note.N_ID)}
-            className="p-2 bg-black/10 hover:bg-red-500 text-white backdrop-blur-md rounded-full transition-all duration-300"
-            title="Report note"
-          >
-            <AlertTriangle className="w-4 h-4" />
-          </button>
-        </div>
+        {!isOwner && (
+          <div className="absolute top-4 left-4 z-10">
+            <button
+              onClick={(e) => onReport(e, note.N_ID)}
+              className="p-2 bg-red-400 hover:bg-red-500 text-white backdrop-blur-md rounded-full transition-all duration-300"
+              title="Report note"
+            >
+              <AlertTriangle className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Subject Badge */}
         <div className="absolute top-4 right-4 bg-black/20 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 z-10">

@@ -24,7 +24,7 @@ const EventCard = ({ event }) => {
     .toUpperCase();
   const day = dateObj.getDate();
 
-  const MOCK_CURRENT_USER_ID = 103;
+  const MOCK_CURRENT_USER_ID = 104;
 
   // NOTE: Ensure data types match (e.g., if Added_By is string "1", convert types)
   const isOwner = event.Added_By === MOCK_CURRENT_USER_ID;
@@ -44,7 +44,7 @@ const EventCard = ({ event }) => {
   };
 
   return (
-    <div className="group bg-white rounded-3xl overflow-hidden flex flex-col w-full max-w-[20rem] mx-auto transition-all duration-300 hover:shadow-xl border border-gray-100">
+    <div className="group bg-white rounded-3xl overflow-hidden flex flex-col w-full max-w-[20rem] mx-auto transition-all duration-300 shadow-md hover:shadow-xl border border-gray-300">
       {/* 1. Image Section with Floating Date Badge */}
       <div className="relative h-64 w-full overflow-hidden">
         <img
@@ -63,14 +63,15 @@ const EventCard = ({ event }) => {
           </span>
         </div>
 
-        {/* Report Button (Subtle icon in the corner) */}
-        <button
-          onClick={handleReportClick}
-          className="absolute top-4 right-4 p-2 bg-black/10 hover:bg-red-500 text-white backdrop-blur-md rounded-full transition-all duration-300"
-          title="Report Event"
-        >
-          <AlertTriangle className="w-4 h-4" />
-        </button>
+        {!isOwner && (
+          <button
+            onClick={handleReportClick}
+            className="absolute top-4 right-4 p-2 bg-red-400 hover:bg-red-500 text-white backdrop-blur-md rounded-full transition-all duration-300"
+            title="Report Event"
+          >
+            <AlertTriangle className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* 2. Content Section */}

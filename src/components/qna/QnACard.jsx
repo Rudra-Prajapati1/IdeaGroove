@@ -1,7 +1,15 @@
 import React, { useState } from "react";
-import { MessageSquare, Send, Edit2, Trash2 } from "lucide-react";
+import {
+  MessageSquare,
+  Send,
+  Edit2,
+  Trash2,
+  AlertTriangle,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
+  const navigate = useNavigate();
   // Local state for expanding answers
   const [isExpanded, setIsExpanded] = useState(false);
   const [answerText, setAnswerText] = useState("");
@@ -17,6 +25,11 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
   const handleSubmitAnswer = () => {
     console.log(`Answer to Post ${post.id}:`, answerText);
     setAnswerText("");
+  };
+
+  const handleReportClick = (e) => {
+    e.stopPropagation();
+    navigate(`/submitComplaint/qna/${post.id}`);
   };
 
   // 2. Safe Access Helpers
@@ -52,23 +65,31 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
               </span>
             )}
 
-            {isOwner && (
+            {isOwner ? (
               <div className="flex items-center gap-1 ml-2">
                 <button
                   onClick={() => onEdit(post.id)}
-                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
                   title="Edit Discussion"
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => onDelete(post.id)}
-                  className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-blue-100"
                   title="Delete Discussion"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
+            ) : (
+              <button
+                onClick={handleReportClick}
+                className="p-2 bg-red-400 hover:bg-red-500 text-white backdrop-blur-md rounded-full transition-all duration-300"
+                title="Report QnA"
+              >
+                <AlertTriangle className="w-4 h-4" />
+              </button>
             )}
           </div>
         </div>

@@ -11,15 +11,23 @@ import {
   UserPlus as InviteIcon,
   Edit2,
   Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice";
+import { useNavigate } from "react-router-dom";
 
 const GroupCard = ({ group }) => {
   const isAuth = useSelector(selectIsAuthenticated);
+  const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const handleReportClick = (e) => {
+    e.stopPropagation();
+    navigate(`/submitComplaint/group/${group.G_ID}`);
+  };
 
   // Mock data for members based on your design
   const members = [
@@ -48,60 +56,6 @@ const GroupCard = ({ group }) => {
 
   return (
     <>
-      {/* --- GROUP CARD ---
-      <div className="relative bg-white border border-gray-100 shadow-md rounded-2xl p-6 w-full max-w-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-        <div className="absolute top-4 right-4 flex items-center gap-3">
-          <span
-            className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${getBadgeColor(group.Based_On)}`}
-          >
-            {group.Based_On}
-          </span>
-          <button className="text-gray-300 hover:text-red-500 transition-colors">
-            <Flag className="w-4 h-4 fill-current" />
-          </button>
-        </div>
-
-        <div className="mb-4">
-          <img
-            src={group_temp_image}
-            alt={group.Room_Name}
-            className="rounded-full h-16 w-16 object-cover border-2 border-gray-50 shadow-sm"
-          />
-        </div>
-
-        <div className="mb-6">
-          <h3 className="font-bold font-poppins text-xl text-gray-900 mb-1">
-            {group.Room_Name}
-          </h3>
-          <div className="flex items-center gap-1.5 text-gray-400 text-sm mb-3">
-            <Users className="w-4 h-4" />
-            <span className="font-medium">
-              {group.Member_Count || "0"} Members
-            </span>
-          </div>
-          <p className="text-gray-500 text-sm leading-relaxed line-clamp-2 min-h-10">
-            {group.Description ||
-              "Exploring data structures and creative collaborations..."}
-          </p>
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            disabled={!isAuth}
-            onClick={() => setIsModalOpen(true)} // Open Modal
-            className={`${isAuth ? "cursor-pointer" : "cursor-not-allowed"} flex-1 border border-primary text-primary py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors text-sm`}
-          >
-            View <Eye className="w-4 h-4" />
-          </button>
-          <button
-            disabled={!isAuth}
-            className={`${isAuth ? "cursor-pointer" : "cursor-not-allowed"} flex-1 bg-primary text-white py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-[#153416] transition-colors text-sm shadow-md shadow-primary/20`}
-          >
-            Join <UserPlus className="w-4 h-4" />
-          </button>
-        </div>
-      </div> */}
-
       <div
         key={group.G_ID}
         className="relative bg-white border border-gray-100 shadow-md rounded-2xl p-6 w-full max-w-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
@@ -117,11 +71,11 @@ const GroupCard = ({ group }) => {
           {/* ✅ Logic: Hide Report Flag if Owner */}
           {!isOwner && (
             <button
-              className="text-gray-300 hover:text-red-500 transition-colors"
+              onClick={handleReportClick}
+              className="relative p-2 bg-red-400 hover:bg-red-500 text-white backdrop-blur-md rounded-full transition-all duration-300"
               title="Report Group"
-              onClick={() => console.log("Report Group:", group.Room_Name)}
             >
-              <Flag className="w-4 h-4 fill-current" />
+              <AlertTriangle className="w-4 h-4" />
             </button>
           )}
         </div>
