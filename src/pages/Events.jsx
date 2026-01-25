@@ -10,7 +10,7 @@ import {
 // Components
 import EventCard from "../components/events/EventCard";
 import Loading from "../components/Loading";
-import { UploadIcon } from "lucide-react";
+import { ArrowLeft, UploadIcon } from "lucide-react";
 import AddEventOverlay from "../components/events/AddEvent";
 import { selectIsAuthenticated } from "../redux/slice/authSlice";
 import Controls from "../components/Controls";
@@ -49,13 +49,7 @@ const Events = () => {
 
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
-      {/* Hero Section */}
-      <section className="relative bg-[#1A3C20] pt-40 pb-32">
-        <div className="max-w-6xl mx-auto px-4 relative z-30">
-          <h1 className="text-5xl font-extrabold text-[#FFFBEB]">Events</h1>
-        </div>
-
-        {/* Wave SVG */}
+      <section className="relative bg-[#1A3C20] pt-40 pb-50">
         <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
           <svg
             viewBox="0 0 1440 120"
@@ -69,9 +63,21 @@ const Events = () => {
           </svg>
         </div>
       </section>
+
+      <div className="max-w-7xl mx-auto -mt-50 relative z-30 px-0.01 flex gap-10">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-[#FFFBEB]/80 hover:text-white mb-6 transition-colors"
+        >
+          <ArrowLeft size={20} /> Back
+        </button>
+        <h1 className="text-5xl font-extrabold mb-4 text-[#FFFBEB]">
+         Events
+        </h1>
+      </div>
       {addEvent && <AddEventOverlay onClose={() => setAddEvent(false)} />}
       {/* Controls Section (Search & Filter) */}
-      <div className="max-w-6xl mx-auto px-4 -mt-25 relative z-40">
+      <div className="max-w-6xl  mx-auto px-6 relative z-30 mt-10">
         <div className="flex justify-between items-center">
           <Controls
             search={search}
