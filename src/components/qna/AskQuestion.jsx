@@ -184,27 +184,6 @@ const AskQuestionModal = ({ onClose, onSubmit }) => {
                 </div>
               </div>
             </div>
-
-            {/* Optional Description */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
-                Additional Details{" "}
-                <span className="text-slate-400 font-normal">(Optional)</span>
-              </label>
-              <div className="relative">
-                <textarea
-                  name="Description"
-                  rows={4}
-                  placeholder="Add context, code snippets, or specific errors..."
-                  value={formData.Description}
-                  onChange={handleChange}
-                  className={`${inputClass} resize-none`}
-                />
-                <div className="absolute top-3 right-4 pointer-events-none text-slate-400">
-                  <FileText className="w-4 h-4" />
-                </div>
-              </div>
-            </div>
           </form>
         </div>
 

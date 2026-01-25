@@ -230,7 +230,7 @@ const AddNotes = ({ onClose, onUpload }) => {
                       Click to upload or drag and drop
                     </p>
                     <p className="text-xs text-slate-400 mt-1">
-                      PDF, DOC, PPT (Max 10MB)
+                      PDF only (Max 5MB)
                     </p>
                   </>
                 )}
