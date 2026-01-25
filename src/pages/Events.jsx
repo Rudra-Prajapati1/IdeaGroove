@@ -14,8 +14,10 @@ import { ArrowLeft, UploadIcon } from "lucide-react";
 import AddEventOverlay from "../components/events/AddEvent";
 import { selectIsAuthenticated } from "../redux/slice/authSlice";
 import Controls from "../components/Controls";
+import { useNavigate } from "react-router-dom";
 
 const Events = () => {
+  const navigate = useNavigate();
   const isAuth = useSelector(selectIsAuthenticated);
 
   const dispatch = useDispatch();
@@ -71,9 +73,7 @@ const Events = () => {
         >
           <ArrowLeft size={20} /> Back
         </button>
-        <h1 className="text-5xl font-extrabold mb-4 text-[#FFFBEB]">
-         Events
-        </h1>
+        <h1 className="text-5xl font-extrabold mb-4 text-[#FFFBEB]">Events</h1>
       </div>
       {addEvent && <AddEventOverlay onClose={() => setAddEvent(false)} />}
       {/* Controls Section (Search & Filter) */}

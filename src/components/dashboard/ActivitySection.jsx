@@ -81,7 +81,11 @@ const ActivitySection = () => {
   const events = useSelector(selectAllEvents);
   const eventsStatus = useSelector(selectEventsStatus); // optional: for loading/error states
 
+  const MOCK_CURRENT_USER_NAME = 104;
+
+  const isOwnerEvent = event.author === MOCK_CURRENT_USER_NAME;
   const filteredEvents = events.filter((event) => {
+    if (!isOwnerEvent) return false;
     const eventDate = new Date(event.Event_Date);
     const today = new Date();
 
@@ -233,6 +237,7 @@ const ActivitySection = () => {
                         key={event.E_ID}
                         event={event}
                         className="bg-amber-50"
+                        isOwner={isOwnerEvent}
                       />
                     ))}
                   </div>
