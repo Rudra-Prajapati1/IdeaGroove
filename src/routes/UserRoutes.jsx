@@ -13,6 +13,8 @@ import SubmitComplaint from "../pages/SubmitComplaint";
 import Searchpage from "../pages/Searchpage";
 import NotFound from "../pages/NotFound";
 import ResetPassword from "../pages/ResetPassword";
+import TermCondition from "../pages/TermCondition";
+import PrivacyPolicies from "../pages/PrivayPolicy";
 
 const UserRoutes = (
   <>
@@ -29,6 +31,8 @@ const UserRoutes = (
     <Route path="submitComplaint/:type?/:id?" element={<SubmitComplaint />} />
     <Route path="search" element={<Searchpage />} />
     <Route path="/resetPassword/:id/:token" element={<ResetPassword />} />
+    <Route path="/termsCondition" element={<TermCondition />} />
+    <Route path="/privacyPolicies" element={<PrivacyPolicies />} />
     <Route path="*" element={<NotFound />} />
   </>
 );

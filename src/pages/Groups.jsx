@@ -9,7 +9,7 @@ import {
 } from "../redux/slice/chatRoomsSlice";
 import GroupCard from "../components/groups/GroupCard";
 import AddGroupOverlay from "../components/groups/AddGroup";
-import { LucideGroup } from "lucide-react";
+import { ArrowLeft, LucideGroup } from "lucide-react";
 import Controls from "../components/Controls";
 import { selectIsAuthenticated } from "../redux/slice/authSlice";
 
@@ -43,14 +43,8 @@ const Groups = () => {
     }
   }, [groupsStatus, dispatch]);
   return (
-    <div className="min-h-screen bg-white font-poppins pb-20">
-      {/* Hero Section */}
-      <section className="relative bg-[#1A3C20] pt-40 pb-32">
-        <div className="max-w-6xl mx-auto px-4 relative z-30">
-          <h1 className="text-5xl font-extrabold text-[#FFFBEB]">Groups</h1>
-        </div>
-
-        {/* Wave SVG */}
+    <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
+      <section className="relative bg-[#1A3C20] pt-40 pb-50">
         <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
           <svg
             viewBox="0 0 1440 120"
@@ -64,8 +58,21 @@ const Groups = () => {
           </svg>
         </div>
       </section>
+
+      <div className="max-w-7xl mx-auto -mt-50 relative z-30 px-0.01 flex gap-10">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-[#FFFBEB]/80 hover:text-white mb-6 transition-colors"
+        >
+          <ArrowLeft size={20} /> Back
+        </button>
+        <h1 className="text-5xl font-extrabold mb-4 text-[#FFFBEB]">
+         Groups
+        </h1>
+      </div>
+
       {addGroup && <AddGroupOverlay onClose={() => setAddGroup(false)} />}
-      <div className="relative z-40">
+      <div className="mx-auto px-6 relative z-30 mt-35 ">
         <div className="max-w-6xl mx-auto px-4 -mt-25 flex justify-between items-center">
           <Controls
             search={search}
