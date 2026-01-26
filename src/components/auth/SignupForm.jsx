@@ -12,7 +12,7 @@ import Select from "./Select";
 
 import { loginSuccess } from "../../redux/slice/authSlice";
 
-// --- CUSTOM COMPONENT: SEARCHABLE DROPDOWN ---
+
 const SearchableDropdown = ({
   label,
   options,
@@ -27,23 +27,6 @@ const SearchableDropdown = ({
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef(null);
 
-  // // --- DEBUGGING: Check Console when opening dropdown ---
-  // useEffect(() => {
-  //   if (isOpen) {
-  //     console.log(`Dropdown [${label}] Options:`, options);
-  //     if (options && options.length > 0) {
-  //       console.log(`First Item Keys:`, Object.keys(options[0]));
-  //       console.log(`Code is looking for key: "${labelKey}"`);
-  //       if (options[0][labelKey] === undefined) {
-  //         console.error(
-  //           `⚠️ MISMATCH: The key "${labelKey}" does not exist in your data! Check the "First Item Keys" above to see the correct spelling.`
-  //         );
-  //       }
-  //     }
-  //   }
-  // }, [isOpen, options, label, labelKey]);
-
-  // Close dropdown if clicked outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -54,9 +37,6 @@ const SearchableDropdown = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- SAFE FILTERING ---
-  // 1. Check if 'options' exists
-  // 2. Check if the specific text (opt[labelKey]) exists before lowercasing
   const filteredOptions = options
     ? options.filter((opt) => {
         const text = opt[labelKey];
@@ -66,9 +46,6 @@ const SearchableDropdown = ({
       })
     : [];
 
-  // console.log(`Filtered Options for [${label}]:`, filteredOptions);
-
-  // Find the display name for the selected value
   const selectedItem = options
     ? options.find((opt) => opt[idKey] === value)
     : null;
@@ -416,7 +393,7 @@ const SignupForm = ({ onLogin }) => {
         formData, // Send the FormData object
         {
           headers: { "Content-Type": "multipart/form-data" },
-        }
+        },
       );
 
       if (response.status === 201 || response.status === 200) {
@@ -430,7 +407,6 @@ const SignupForm = ({ onLogin }) => {
           // You can add more fields if needed for display
         };
 
-        // ✅ REDUX: Dispatch user to state + LocalStorage
         dispatch(loginSuccess(userToStore));
 
         toast.success("Signup Successful!");

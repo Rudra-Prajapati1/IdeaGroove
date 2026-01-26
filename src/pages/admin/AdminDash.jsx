@@ -9,6 +9,12 @@ import {
   Notebook,
   Activity,
   TrendingUp,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Circle,
+  Download,
+  Filter,
 } from "lucide-react";
 
 const AdminDash = () => {
@@ -64,7 +70,6 @@ const AdminDash = () => {
     },
   ];
 
-  // Enhanced Theme Helper to include bar colors
   const getTheme = (color) => {
     const themes = {
       emerald: {
@@ -108,13 +113,12 @@ const AdminDash = () => {
   };
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen p-4 md:p-8 font-sans text-slate-700">
+    <section className="flex flex-col gap-6 relative min-h-screen">
       <AdminPageHeader
         title="Admin Overview"
         subtitle="Real-time analytics & platform health"
       />
 
-      {/* --- Scorecards --- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {stats.map((card, idx) => {
           const theme = getTheme(card.color);
@@ -145,7 +149,6 @@ const AdminDash = () => {
                 </div>
               </div>
 
-              {/* DYNAMIC COLORED BOTTOM LINE (The Fix) */}
               <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-50">
                 <div
                   className={`h-full transition-all duration-1000 w-0 group-hover:w-full ${theme.bar}`}
@@ -157,9 +160,8 @@ const AdminDash = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Content Distribution Section */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden group">
-          <div className="bg-[#062D1C] text-white px-6 py-4 font-bold text-sm flex items-center justify-between">
+          <div className="bg-primary text-white px-6 py-4 font-bold text-sm flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Activity size={16} className="text-emerald-400" />
               Content Distribution
@@ -257,9 +259,8 @@ const AdminDash = () => {
           </div>
         </div>
 
-        {/* Top Contributors Leaderboard (Uses student_tbl logic) */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="bg-[#062D1C] text-white px-6 py-4 font-bold text-sm flex items-center gap-2">
+          <div className="bg-primary text-white px-6 py-4 font-bold text-sm flex items-center gap-2">
             <TrendingUp size={16} className="text-emerald-400" />
             Top Contributors
           </div>
@@ -329,7 +330,148 @@ const AdminDash = () => {
           </div>
         </div>
       </div>
-    </div>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-primary text-white px-6 py-4 font-bold text-sm flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Calendar size={16} />
+
+            <span>Recent Activities</span>
+          </div>
+
+          <div className="flex gap-2">
+            <button className="flex items-center gap-1.5 bg-green-800 px-3 py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors">
+              <Filter size={12} /> Filter
+            </button>
+
+            <button className="flex items-center gap-1.5 bg-green-800 px-3 py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors">
+              <Download size={12} /> Export
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="text-[10px] uppercase text-gray-400 font-black bg-gray-50/50 border-b border-gray-100">
+              <tr>
+                <th className="px-6 py-4">User</th>
+
+                <th className="px-6 py-4">Action</th>
+
+                <th className="px-6 py-4">Category</th>
+
+                <th className="px-6 py-4">Timestamp</th>
+
+                <th className="px-6 py-4">Status</th>
+
+                <th className="px-6 py-4 text-center">Action</th>
+              </tr>
+            </thead>
+
+            <tbody className="text-sm divide-y divide-gray-50">
+              {[
+                {
+                  user: "Elena Gilbert",
+                  action: 'Created new study group: "Finals Prep"',
+                  cat: "ACADEMIC",
+                  catColor: "bg-blue-50 text-blue-600 border-blue-100",
+                  time: "2 mins ago",
+                  status: "Live",
+                  statusColor: "text-green-600",
+                },
+
+                {
+                  user: "Tyler Lockwood",
+                  action: 'Reported a post in "Social"',
+                  cat: "COMPLAINT",
+                  catColor: "bg-red-50 text-red-600 border-red-100",
+                  time: "14 mins ago",
+                  status: "Pending",
+                  statusColor: "text-orange-500",
+                },
+
+                {
+                  user: "Damon Salvatore",
+                  action: 'Updated portfolio in "Career Hub"',
+                  cat: "CAREER",
+                  catColor: "bg-emerald-50 text-emerald-600 border-emerald-100",
+                  time: "45 mins ago",
+                  status: "Live",
+                  statusColor: "text-green-600",
+                },
+              ].map((row, i) => (
+                <tr
+                  key={i}
+                  className="hover:bg-gray-50/50 transition-colors group"
+                >
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <img
+                        className="w-8 h-8 rounded-full bg-gray-100 border border-gray-200"
+                        src={`https://i.pravatar.cc/100?u=${row.user}`}
+                        alt=""
+                      />
+
+                      <span className="font-bold text-slate-700">
+                        {row.user}
+                      </span>
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-4 text-gray-500 font-medium">
+                    {row.action}
+                  </td>
+
+                  <td className="px-6 py-4">
+                    <span
+                      className={`text-[10px] font-black px-2 py-1 rounded-md border ${row.catColor}`}
+                    >
+                      {row.cat}
+                    </span>
+                  </td>
+
+                  <td className="px-6 py-4 text-gray-400 text-xs font-medium">
+                    {row.time}
+                  </td>
+
+                  <td className="px-6 py-4">
+                    <div
+                      className={`flex items-center gap-1.5 font-bold text-xs ${row.statusColor}`}
+                    >
+                      <Circle size={8} fill="currentColor" /> {row.status}
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-4 text-center">
+                    <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all">
+                      <Eye size={18} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="p-4 flex justify-between items-center border-t border-gray-100 bg-gray-50/30">
+          <span className="text-[11px] text-gray-400 font-bold uppercase tracking-tight">
+            Showing 3 of 1,200 activities
+          </span>
+
+          <div className="flex gap-2">
+            <button className="p-1.5 border border-gray-200 rounded-lg text-gray-400 hover:bg-white hover:text-gray-600 transition-all">
+              <ChevronLeft size={16} />
+            </button>
+
+            <button className="px-3 py-1 bg-green-900 text-white rounded-lg text-xs font-bold shadow-sm shadow-green-200">
+              1
+            </button>
+
+            <button className="p-1.5 border border-gray-200 rounded-lg text-gray-400 hover:bg-white hover:text-gray-600 transition-all">
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 };
 
