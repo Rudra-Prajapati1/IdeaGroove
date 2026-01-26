@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
-import { X, Send, Ban, CheckCircle, AlertCircle } from "lucide-react";
+import { X, AlertCircle } from "lucide-react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
 import AdminQnAGrid from "../../components/admin/AdminQnAGrid";
+import EmailConfirmationModal from "../../components/admin/EmailConfrimationModal";
 
-// Initial data moved here to allow state management
 const initialData = [
   {
     id: 1,
@@ -16,19 +16,12 @@ const initialData = [
     degreeName: "B.Tech",
     answersCount: 2,
     status: "active",
+    answers: [
+      { id: 101, author: "Sarah J.", time: "2 days ago", text: "Does this apply to group projects or only individual submissions?", status: "active" },
+      { id: 102, author: "Prof. H. Smith", time: "1 day ago", text: "It applies to both. Please check the updated PDF on the portal.", status: "active" }
+    ]
   },
-
-  {
-    id: 2,
-    question: "Help needed with Linear Algebra Eigenvalues",
-    authorName: "Jessica S.",
-    addedOn: "2025-01-24T09:15:00",
-    subjectName: "Linear Algebra",
-    degreeName: "BCA",
-    answersCount: 0,
-    status: "active",
-  },
-
+  { id: 2, question: "Help needed with Linear Algebra Eigenvalues", authorName: "Jessica S.", addedOn: "2025-01-24T09:15:00", subjectName: "Linear Algebra", degreeName: "BCA", answersCount: 0, status: "active", answers: [] },
   {
     id: 3,
     question: "Thermodynamics: Second Law confusion",
@@ -38,8 +31,8 @@ const initialData = [
     degreeName: "B.Tech",
     answersCount: 1,
     status: "active",
+    answers: [{ id: 301, author: "Dr. Kelvin", time: "5 hours ago", text: "Remember that entropy in an isolated system never decreases over time.", status: "active" }]
   },
-
   {
     id: 4,
     question: "Is recursion better than iteration?",
@@ -49,7 +42,12 @@ const initialData = [
     degreeName: "BCA",
     answersCount: 3,
     status: "blocked",
-  },
+    answers: [
+      { id: 401, author: "CodeWizard", time: "3 days ago", text: "It depends on stack depth.", status: "active" },
+      { id: 402, author: "DevOps_Guy", time: "2 days ago", text: "Iteration is efficient.", status: "active" },
+      { id: 403, author: "Student_01", time: "1 day ago", text: "Recursion is elegant.", status: "active" }
+    ]
+  }
 ];
 
 const AdminQnA = () => {
@@ -62,129 +60,74 @@ const AdminQnA = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAction, setSelectedAction] = useState(null);
   const [targetId, setTargetId] = useState(null);
+  const [targetAnswerId, setTargetAnswerId] = useState(null); // New state to track if moderating an answer
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
-  const degreeOptions = ["B.Tech", "BCA", "MCA"];
-  const subjectOptions = [
-    "Web Development",
-    "Linear Algebra",
-    "Thermodynamics",
-    "Data Structures",
-  ];
 
+  // Trigger modal for Question
   const handleModerateRequest = (type, questionId) => {
     setSelectedAction(type);
     setTargetId(questionId);
+    setTargetAnswerId(null); // Ensure answer ID is cleared
     setModalOpen(true);
-    setReason(
-      type === "block"
-        ? "Your question has been hidden for violating community guidelines."
-        : "Your question has been reinstated after review.",
-    );
+    setReason(type === "block" ? "Your question violated community guidelines." : "Your question was reinstated.");
+  };
+
+  // Trigger modal for Answer
+  const handleAnswerModerateRequest = (type, questionId, answerId) => {
+    setSelectedAction(type);
+    setTargetId(questionId);
+    setTargetAnswerId(answerId); // Track the specific answer
+    setModalOpen(true);
+    setReason(type === "block" ? "Your reply has been hidden for violating community standards." : "Your reply has been reinstated.");
   };
 
   const handleActionSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate API Call
     setTimeout(() => {
-      // UPDATE STATUS LOGIC
       setQnas((prev) =>
-        prev.map((q) =>
-          q.id === targetId
-            ? {
+        prev.map((q) => {
+          if (q.id === targetId) {
+            // Case 1: Moderating a specific answer
+            if (targetAnswerId) {
+              return {
                 ...q,
-                status: selectedAction === "block" ? "blocked" : "active",
-              }
-            : q,
-        ),
+                answers: q.answers.map((ans) =>
+                  ans.id === targetAnswerId ? { ...ans, status: selectedAction === "block" ? "blocked" : "active" } : ans
+                ),
+              };
+            }
+            // Case 2: Moderating the whole question
+            return { ...q, status: selectedAction === "block" ? "blocked" : "active" };
+          }
+          return q;
+        })
       );
 
-      toast.success(`Content successfully ${selectedAction}ed`);
+      toast.success(`${targetAnswerId ? "Answer" : "Question"} successfully ${selectedAction}ed`);
       setModalOpen(false);
       setLoading(false);
     }, 1000);
   };
 
   return (
-    <section className="flex flex-col gap-6 relative min-h-screen font-inter">
-      <AdminPageHeader
-        title="QnA Moderation"
-        subtitle="Manage questions and user compliance"
-        searchValue={searchTerm}
-        onSearch={setSearchTerm}
-        // Pass dual filters to Header
-        degreeOptions={degreeOptions}
-        subjectOptions={subjectOptions}
-        onDegreeFilter={setDegreeFilter}
-        onSubjectFilter={setSubjectFilter}
-      />
-
+    <section className="flex flex-col gap-6 relative min-h-screen font-inter p-6">
+      <AdminPageHeader title="QnA Moderation" subtitle="Manage questions and user compliance" searchValue={searchTerm} onSearch={setSearchTerm} degreeOptions={["B.Tech", "BCA", "MCA"]} subjectOptions={["Web Development", "Linear Algebra", "Thermodynamics", "Data Structures"]} onDegreeFilter={setDegreeFilter} onSubjectFilter={setSubjectFilter} />
       <StatsRow stats={[]} />
+      <AdminQnAGrid qnas={qnas} searchTerm={searchTerm} filterDegree={degreeFilter} filterSubject={subjectFilter} onModerate={handleModerateRequest} onModerateAnswer={handleAnswerModerateRequest} />
 
-      <AdminQnAGrid
-        qnas={qnas}
-        searchTerm={searchTerm}
-        filterDegree={degreeFilter}
-        filterSubject={subjectFilter}
-        onModerate={handleModerateRequest}
+      <EmailConfirmationModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleActionSubmit}
+        actionType={selectedAction}
+        targetType={targetAnswerId ? "Answer" : "Question"}
+        reason={reason}
+        setReason={setReason}
+        loading={loading}
       />
-
-      {/* MODERATION MODAL */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 border border-gray-100">
-            <div
-              className={`p-6 text-white flex justify-between items-center ${selectedAction === "block" ? "bg-red-600" : "bg-[#1B431C]"}`}
-            >
-              <h2 className="text-xl font-bold font-poppins capitalize">
-                {selectedAction} Question
-              </h2>
-              <button
-                onClick={() => setModalOpen(false)}
-                className="hover:bg-white/20 p-1 rounded-full"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={handleActionSubmit}
-              className="p-6 flex flex-col gap-5"
-            >
-              <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 flex gap-3 text-xs text-blue-800">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <p>
-                  Inform the user why their status changed. This will be sent to
-                  their email.
-                </p>
-              </div>
-              <textarea
-                rows="4"
-                className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl outline-none focus:border-[#1B431C]/40 text-sm resize-none"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                required
-              />
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="flex-1 py-3 font-bold text-gray-400"
-                >
-                  Cancel
-                </button>
-                <button
-                  className={`flex-1 py-3 rounded-xl font-bold text-white shadow-lg ${selectedAction === "block" ? "bg-red-600 shadow-red-100" : "bg-[#1B431C] shadow-green-100"}`}
-                >
-                  {loading ? "Sending..." : "Confirm & Send"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </section>
   );
 };

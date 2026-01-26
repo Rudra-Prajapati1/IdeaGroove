@@ -16,7 +16,7 @@ const UserCard = ({ user, onModerate }) => {
       <div
         className={`group bg-white border border-gray-100 border-l-4 ${
           isActive ? "border-l-emerald-500" : "border-l-red-500"
-        } rounded-xl p-4 flex items-center justify-between transition-all hover:shadow-lg hover:border-gray-200`}
+        } rounded-xl p-4 flex items-center justify-between transition-all hover:shadow-lg  hover:border-gray-200`}
       >
         <div className="flex items-center gap-4">
           <div

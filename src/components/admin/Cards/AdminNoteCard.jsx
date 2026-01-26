@@ -9,7 +9,7 @@ const AdminNoteCard = ({ note, onModerate }) => {
     <div
       className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all group border-l-4 ${
         !isActive ? "border-l-red-500" : "border-l-emerald-500"
-      }`}
+      }  hover:border-gray-200`}
     >
       <div className="p-4 pb-2 flex justify-between items-start">
         <span className="text-[10px] font-mono font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded">

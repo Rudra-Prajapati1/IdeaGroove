@@ -94,7 +94,7 @@ const QnASection = () => {
   };
 
   return (
-    <section className="flex flex-col px-6 sm:px-10 py-8 items-center">
+    <section className="flex flex-col px-6 sm:px-10 py-8 items-center bg-[#FFFBEB]">
       <FilledTitle text="QnA" />
 
       {/* Show loading only if you want to wait for real data, 

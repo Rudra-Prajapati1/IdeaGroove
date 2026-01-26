@@ -9,14 +9,14 @@ import SearchSection from "../components/home/SearchSection";
 
 const Home = () => {
   return (
-    <>
+    <div className="bg-[#FFFBEB] min-h-screen">
       <HeroSection />
       <SearchSection />
       <EventSection />
       <GroupSection />
       <QnASection />
       <NotesSection />
-    </>
+    </div>
   );
 };
 

@@ -25,7 +25,7 @@ const EventSection = () => {
   }, [status, dispatch]);
 
   return (
-    <section className="flex flex-col px-6 sm:px-10 py-8 items-center mt-10">
+    <section className="flex flex-col px-6 sm:px-10 py-8 items-center mt-10 bg-[#FFFBEB]">
       <FilledTitle text="Events" />
 
       {status === "loading" && <Loading text="loading events" />}
