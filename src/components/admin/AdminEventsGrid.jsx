@@ -28,8 +28,8 @@ const AdminEventsGrid = ({
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="p-6 border-b border-gray-50 flex justify-between items-center">
-        <h3 className="text-lg font-bold text-gray-800 font-poppins">
+      <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-[#0f3d1e]">
+        <h3 className="text-lg font-bold text-white font-poppins">
           Events Registered
         </h3>
         <span className="text-xs font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-full uppercase tracking-widest">

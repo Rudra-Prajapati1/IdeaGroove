@@ -62,7 +62,7 @@ const NotesSection = () => {
   const handleDelete = (id) => console.log("Delete Note ID:", id);
 
   return (
-    <section className="flex flex-col px-6 sm:px-10 py-8 items-center">
+    <section className="flex flex-col px-6 sm:px-10 py-8 items-center bg-[#FFFBEB]">
       <FilledTitle text="Notes" />
 
       {status === "loading" && <Loading text="loading notes" />}

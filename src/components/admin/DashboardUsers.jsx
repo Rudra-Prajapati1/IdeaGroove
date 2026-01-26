@@ -26,12 +26,12 @@ const DashboardUsers = ({
     });
   }, [users, searchTerm, filterDegree, filterYear]);
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-inter">
-      <div className="p-6 border-b border-gray-50 flex justify-between items-center">
-        <h3 className="text-lg font-bold text-gray-800 font-poppins">
+    <div className="bg-whitw rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-inter">
+      <div className="p-6 border-b bg-[#0f3d1e] border-gray-50 flex justify-between items-center">
+        <h3 className="text-lg font-bold text-white font-poppins">
           Recent Users
         </h3>
-        <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-3 py-1.5 rounded-full uppercase tracking-widest">
+        <span className="text-[10px] font-black text-gray-400 bg-white px-3 py-1.5 rounded-full uppercase tracking-widest">
           {filteredUsers.length} Found
         </span>
       </div>

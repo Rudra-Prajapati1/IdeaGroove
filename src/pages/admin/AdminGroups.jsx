@@ -4,6 +4,7 @@ import { X, Send, Ban, CheckCircle, AlertCircle } from "lucide-react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
 import AdminGroupsGrid from "../../components/admin/AdminGroupsGrid";
+import EmailConfirmationModal from "../../components/admin/EmailConfrimationModal";
 
 const initialGroups = [
   {
@@ -170,73 +171,16 @@ const AdminGroups = () => {
         onModerate={handleModerateRequest}
       />
 
-      {/* MODERATION MODAL */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 border border-gray-100">
-            <div
-              className={`p-6 text-white flex justify-between items-center ${selectedAction === "block" ? "bg-red-600" : "bg-[#1B431C]"}`}
-            >
-              <div className="flex items-center gap-3">
-                {selectedAction === "block" ? (
-                  <Ban className="w-6 h-6" />
-                ) : (
-                  <CheckCircle className="w-6 h-6" />
-                )}
-                <h2 className="text-xl font-bold font-poppins capitalize">
-                  {selectedAction} Group
-                </h2>
-              </div>
-              <button
-                onClick={() => setModalOpen(false)}
-                className="hover:bg-white/20 p-1 rounded-full"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={handleActionSubmit}
-              className="p-6 flex flex-col gap-5"
-            >
-              <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 flex gap-3 text-xs text-blue-800">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <p>
-                  Inform the group creator why the status changed. This will be
-                  sent to their dashboard notifications.
-                </p>
-              </div>
-              <textarea
-                rows="4"
-                className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl outline-none focus:border-[#1B431C]/40 text-sm resize-none font-inter"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                required
-              />
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="flex-1 py-3 font-bold text-gray-400 hover:bg-gray-50 rounded-xl transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  className={`flex-1 py-3 rounded-xl font-bold text-white shadow-lg active:scale-95 transition-all ${selectedAction === "block" ? "bg-red-600 shadow-red-100" : "bg-[#1B431C] shadow-green-100"}`}
-                >
-                  {loading ? (
-                    "Updating..."
-                  ) : (
-                    <>
-                      Send <Send className="ml-2 w-4 h-4 inline" />
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+     <EmailConfirmationModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleActionSubmit}
+        actionType={selectedAction}
+        targetType="Notes"
+        reason={reason}
+        setReason={setReason}
+        loading={loading}
+      />
     </section>
   );
 };
