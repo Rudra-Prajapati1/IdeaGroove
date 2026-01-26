@@ -5,6 +5,7 @@ import { navLinks } from "../links/navLinks";
 import { logout } from "../redux/slice/authSlice";
 import { UserCircle, LogOut, LayoutDashboard, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
+import { useClickOutside } from "./useClickOutside";
 
 const Navbar = () => {
   const location = useLocation();
@@ -12,11 +13,14 @@ const Navbar = () => {
   const dispatch = useDispatch();
   const navRef = useRef(null);
 
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
   const [scrolled, setScrolled] = useState(false);
+
+  useClickOutside(profileRef, () => setProfileOpen(false));
 
   const isHome = location.pathname === "/";
   const isLogin = location.pathname === "/auth";
@@ -119,8 +123,7 @@ const Navbar = () => {
         />
 
         {isAuthenticated ? (
-          <div className="relative">
-            {/* Profile Button */}
+          <div className="relative" ref={profileRef}>
             <button
               onClick={() => {
                 setProfileOpen((prev) => !prev);
@@ -156,7 +159,6 @@ const Navbar = () => {
                   My Dashboard
                 </button>
 
-                {/* Option 2: Logout */}
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-red-50 hover:text-red-600 transition-colors text-left border-t border-gray-100"

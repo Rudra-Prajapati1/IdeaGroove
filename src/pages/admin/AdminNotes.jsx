@@ -4,7 +4,7 @@ import { X, Send, Ban, CheckCircle, AlertCircle } from "lucide-react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
 import AdminNotesGrid from "../../components/admin/AdminNotesGrid";
-import EmailConfirmationModal from "../../components/admin/EmailConfrimationModal";
+import EmailConfirmationModal from "../../components/admin/EmailConfirmationModal";
 
 // Moved initial data here to allow global state management
 const initialNotes = [
@@ -150,7 +150,6 @@ const AdminNotes = () => {
         onModerate={handleModerateRequest}
       />
 
-
       <EmailConfirmationModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -161,7 +160,6 @@ const AdminNotes = () => {
         setReason={setReason}
         loading={loading}
       />
-
     </section>
   );
 };

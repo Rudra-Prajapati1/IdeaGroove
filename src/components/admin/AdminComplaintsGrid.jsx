@@ -54,7 +54,7 @@ const AdminComplaintsGrid = ({
   };
 
   return (
-    <div className="bg-white rounded-4xl shadow-sm border border-gray-100 overflow-hidden font-inter mx-4 mb-10">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-inter">
       <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-primary">
         <h3 className="text-lg font-bold text-white uppercase tracking-wider">
           Complaint Logs

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
 import AdminComplaintsGrid from "../../components/admin/AdminComplaintsGrid";
-import EmailConfirmationModal from "../../components/admin/EmailConfrimationModal";
+import EmailConfirmationModal from "../../components/admin/EmailConfirmationModal";
 import toast from "react-hot-toast";
 
 export const complaintsStats = [

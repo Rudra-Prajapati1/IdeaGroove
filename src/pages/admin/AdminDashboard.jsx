@@ -4,7 +4,7 @@ import { X, Send, Ban, CheckCircle, AlertCircle } from "lucide-react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
 import DashboardUsers from "../../components/admin/DashboardUsers";
-import EmailConfirmationModal from "../../components/admin/EmailConfrimationModal";
+import EmailConfirmationModal from "../../components/admin/EmailConfirmationModal";
 
 // Initial user data moved here to allow global state management
 const initialUsersData = [
@@ -160,7 +160,7 @@ const AdminDashboard = () => {
         onModerate={handleModerateRequest}
       />
 
-     <EmailConfirmationModal
+      <EmailConfirmationModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleActionSubmit}
