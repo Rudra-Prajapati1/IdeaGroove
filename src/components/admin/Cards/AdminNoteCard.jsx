@@ -1,14 +1,15 @@
 import { CheckCircle, Ban, Calendar, FileText, User } from "lucide-react";
 import React, { useState } from "react";
+
 const AdminNoteCard = ({ note, onModerate }) => {
   const isActive = note.status === "active";
-  
+
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
     <div
-      className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all group border-l-4 ${
-        !isActive ? "border-l-red-500" : "border-l-emerald-500"
+      className={`bg-white rounded-2xl  border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all group border-2 ${
+        !isActive ? "border-red-500" : "border-green-500"
       }  hover:border-gray-200`}
     >
       <div className="p-4 pb-2 flex justify-between items-start">
@@ -47,16 +48,23 @@ const AdminNoteCard = ({ note, onModerate }) => {
         <div className="space-y-2 font-inter">
           <div className="flex items-center gap-2">
             <User size={14} className="text-gray-400" />
-            <p className="text-xs text-gray-500" onClick={() => setIsProfileOpen(true)}>
+            <p
+              className="text-xs text-gray-500"
+              onClick={() => setIsProfileOpen(true)}
+            >
               By{" "}
-              <span className="text-gray-700 font-bold" >{note.uploadedBy}</span>
+              <span className="text-gray-700 font-bold">{note.uploadedBy}</span>
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Calendar size={14} className="text-gray-400" />
             <p className="text-[11px] text-gray-400">
-              {/* Mapping to Added_On */}
-              Uploaded: {new Date().toLocaleDateString()}
+              Uploaded:{" "}
+              {new Date().toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
             </p>
           </div>
         </div>
@@ -93,11 +101,10 @@ const AdminNoteCard = ({ note, onModerate }) => {
       {isProfileOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden">
-            
             {/* 2. Pass the data and the close function to the profile component */}
-            <StudentProfile 
-              user={note.uploadedBy} 
-              onClose={() => setIsProfileOpen(false)} 
+            <StudentProfile
+              user={note.uploadedBy}
+              onClose={() => setIsProfileOpen(false)}
             />
           </div>
         </div>

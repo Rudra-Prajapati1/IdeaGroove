@@ -12,8 +12,8 @@ const AdminGroupCard = ({ group, onModerate }) => {
 
   return (
     <div
-      className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group flex flex-col border-l-4 ${
-        !isActive ? "border-l-red-500" : "border-l-emerald-500"
+      className={`bg-white rounded-2xl border-2 border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group flex flex-col ${
+        !isActive ? "border-red-500" : "border-green-500"
       }  hover:border-gray-200`}
     >
       <div className="p-5 flex flex-col flex-1">
@@ -70,7 +70,12 @@ const AdminGroupCard = ({ group, onModerate }) => {
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <Calendar size={14} className="text-slate-400" />
             <span>
-              Created: {new Date(group.Created_On).toLocaleDateString("en-IN")}
+              Created:{" "}
+              {new Date(group.Created_On).toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
             </span>
           </div>
         </div>

@@ -17,11 +17,33 @@ const initialData = [
     answersCount: 2,
     status: "active",
     answers: [
-      { id: 101, author: "Sarah J.", time: "2 days ago", text: "Does this apply to group projects or only individual submissions?", status: "active" },
-      { id: 102, author: "Prof. H. Smith", time: "1 day ago", text: "It applies to both. Please check the updated PDF on the portal.", status: "active" }
-    ]
+      {
+        id: 101,
+        author: "Sarah J.",
+        time: "2 days ago",
+        text: "Does this apply to group projects or only individual submissions?",
+        status: "active",
+      },
+      {
+        id: 102,
+        author: "Prof. H. Smith",
+        time: "1 day ago",
+        text: "It applies to both. Please check the updated PDF on the portal.",
+        status: "active",
+      },
+    ],
   },
-  { id: 2, question: "Help needed with Linear Algebra Eigenvalues", authorName: "Jessica S.", addedOn: "2025-01-24T09:15:00", subjectName: "Linear Algebra", degreeName: "BCA", answersCount: 0, status: "active", answers: [] },
+  {
+    id: 2,
+    question: "Help needed with Linear Algebra Eigenvalues",
+    authorName: "Jessica S.",
+    addedOn: "2025-01-24T09:15:00",
+    subjectName: "Linear Algebra",
+    degreeName: "BCA",
+    answersCount: 0,
+    status: "active",
+    answers: [],
+  },
   {
     id: 3,
     question: "Thermodynamics: Second Law confusion",
@@ -31,7 +53,15 @@ const initialData = [
     degreeName: "B.Tech",
     answersCount: 1,
     status: "active",
-    answers: [{ id: 301, author: "Dr. Kelvin", time: "5 hours ago", text: "Remember that entropy in an isolated system never decreases over time.", status: "active" }]
+    answers: [
+      {
+        id: 301,
+        author: "Dr. Kelvin",
+        time: "5 hours ago",
+        text: "Remember that entropy in an isolated system never decreases over time.",
+        status: "active",
+      },
+    ],
   },
   {
     id: 4,
@@ -43,11 +73,53 @@ const initialData = [
     answersCount: 3,
     status: "blocked",
     answers: [
-      { id: 401, author: "CodeWizard", time: "3 days ago", text: "It depends on stack depth.", status: "active" },
-      { id: 402, author: "DevOps_Guy", time: "2 days ago", text: "Iteration is efficient.", status: "active" },
-      { id: 403, author: "Student_01", time: "1 day ago", text: "Recursion is elegant.", status: "active" }
-    ]
-  }
+      {
+        id: 401,
+        author: "CodeWizard",
+        time: "3 days ago",
+        text: "It depends on stack depth.",
+        status: "active",
+      },
+      {
+        id: 402,
+        author: "DevOps_Guy",
+        time: "2 days ago",
+        text: "Iteration is efficient.",
+        status: "active",
+      },
+      {
+        id: 403,
+        author: "Student_01",
+        time: "1 day ago",
+        text: "Recursion is elegant.",
+        status: "active",
+      },
+    ],
+  },
+];
+
+export const qnaStats = [
+  {
+    title: "Total Questions",
+    value: "1,240",
+    infoText: "+22 today",
+    color: "green",
+    type: "total",
+  },
+  {
+    title: "Unanswered",
+    value: "48",
+    infoText: "Needs attention",
+    color: "yellow",
+    type: "pending",
+  },
+  {
+    title: "Reported Questions",
+    value: "19",
+    infoText: "Policy review",
+    color: "red",
+    type: "blocked",
+  },
 ];
 
 const AdminQnA = () => {
@@ -70,7 +142,11 @@ const AdminQnA = () => {
     setTargetId(questionId);
     setTargetAnswerId(null); // Ensure answer ID is cleared
     setModalOpen(true);
-    setReason(type === "block" ? "Your question violated community guidelines." : "Your question was reinstated.");
+    setReason(
+      type === "block"
+        ? "Your question violated community guidelines."
+        : "Your question was reinstated.",
+    );
   };
 
   // Trigger modal for Answer
@@ -79,7 +155,11 @@ const AdminQnA = () => {
     setTargetId(questionId);
     setTargetAnswerId(answerId); // Track the specific answer
     setModalOpen(true);
-    setReason(type === "block" ? "Your reply has been hidden for violating community standards." : "Your reply has been reinstated.");
+    setReason(
+      type === "block"
+        ? "Your reply has been hidden for violating community standards."
+        : "Your reply has been reinstated.",
+    );
   };
 
   const handleActionSubmit = async (e) => {
@@ -95,28 +175,60 @@ const AdminQnA = () => {
               return {
                 ...q,
                 answers: q.answers.map((ans) =>
-                  ans.id === targetAnswerId ? { ...ans, status: selectedAction === "block" ? "blocked" : "active" } : ans
+                  ans.id === targetAnswerId
+                    ? {
+                        ...ans,
+                        status:
+                          selectedAction === "block" ? "blocked" : "active",
+                      }
+                    : ans,
                 ),
               };
             }
             // Case 2: Moderating the whole question
-            return { ...q, status: selectedAction === "block" ? "blocked" : "active" };
+            return {
+              ...q,
+              status: selectedAction === "block" ? "blocked" : "active",
+            };
           }
           return q;
-        })
+        }),
       );
 
-      toast.success(`${targetAnswerId ? "Answer" : "Question"} successfully ${selectedAction}ed`);
+      toast.success(
+        `${targetAnswerId ? "Answer" : "Question"} successfully ${selectedAction}ed`,
+      );
       setModalOpen(false);
       setLoading(false);
     }, 1000);
   };
 
   return (
-    <section className="flex flex-col gap-6 relative min-h-screen font-inter p-6">
-      <AdminPageHeader title="QnA Moderation" subtitle="Manage questions and user compliance" searchValue={searchTerm} onSearch={setSearchTerm} degreeOptions={["B.Tech", "BCA", "MCA"]} subjectOptions={["Web Development", "Linear Algebra", "Thermodynamics", "Data Structures"]} onDegreeFilter={setDegreeFilter} onSubjectFilter={setSubjectFilter} />
-      <StatsRow stats={[]} />
-      <AdminQnAGrid qnas={qnas} searchTerm={searchTerm} filterDegree={degreeFilter} filterSubject={subjectFilter} onModerate={handleModerateRequest} onModerateAnswer={handleAnswerModerateRequest} />
+    <section className="flex flex-col gap-6 relative min-h-screen">
+      <AdminPageHeader
+        title="QnA Moderation"
+        subtitle="Manage questions and user compliance"
+        searchValue={searchTerm}
+        onSearch={setSearchTerm}
+        degreeOptions={["B.Tech", "BCA", "MCA"]}
+        subjectOptions={[
+          "Web Development",
+          "Linear Algebra",
+          "Thermodynamics",
+          "Data Structures",
+        ]}
+        onDegreeFilter={setDegreeFilter}
+        onSubjectFilter={setSubjectFilter}
+      />
+      <StatsRow stats={qnaStats} />
+      <AdminQnAGrid
+        qnas={qnas}
+        searchTerm={searchTerm}
+        filterDegree={degreeFilter}
+        filterSubject={subjectFilter}
+        onModerate={handleModerateRequest}
+        onModerateAnswer={handleAnswerModerateRequest}
+      />
 
       <EmailConfirmationModal
         isOpen={modalOpen}

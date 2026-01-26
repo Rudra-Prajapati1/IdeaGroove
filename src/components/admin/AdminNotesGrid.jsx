@@ -32,7 +32,7 @@ const AdminNotesGrid = ({
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-inter">
-      <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-[#0f3d1e]">
+      <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-primary">
         <h3 className="text-lg font-bold text-white font-poppins">
           Notes Uploaded
         </h3>

@@ -4,10 +4,11 @@ import { ChevronDown } from "lucide-react";
 const SimpleDropdown = ({
   icon: Icon,
   options,
-  value,
+  value, // ✅ controlled value
   onChange,
   placeholder,
   accent = "blue",
+  allowReset = true, // ✅ allow "All" option
 }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -41,6 +42,19 @@ const SimpleDropdown = ({
       {/* Options */}
       {open && (
         <div className="absolute top-[110%] left-0 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+          {/* Reset / All option */}
+          {allowReset && (
+            <div
+              onClick={() => {
+                onChange("all");
+                setOpen(false);
+              }}
+              className="px-4 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer text-gray-500 hover:bg-gray-100 transition-colors"
+            >
+              {placeholder}
+            </div>
+          )}
+
           {options.map((opt) => (
             <div
               key={opt}
