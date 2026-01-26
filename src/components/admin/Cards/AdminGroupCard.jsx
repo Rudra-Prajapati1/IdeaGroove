@@ -14,7 +14,7 @@ const AdminGroupCard = ({ group, onModerate }) => {
     <div
       className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group flex flex-col border-l-4 ${
         !isActive ? "border-l-red-500" : "border-l-emerald-500"
-      }`}
+      }  hover:border-gray-200`}
     >
       <div className="p-5 flex flex-col flex-1">
         {/* Header: Status & ID */}

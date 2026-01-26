@@ -7,7 +7,7 @@ const AdminEventCard = ({ event, onModerate }) => {
 
   return (
     <div
-      className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group flex flex-col border-l-4 ${!isActive ? "border-l-red-500" : "border-l-emerald-500"}`}
+      className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group flex flex-col border-l-4 ${!isActive ? "border-l-red-500" : "border-l-emerald-500"}  hover:border-gray-200`}
     >
       {/* IMAGE SECTION - Mapping to Poster_File */}
       <div className="relative h-48 w-full overflow-hidden bg-slate-100">
@@ -25,7 +25,7 @@ const AdminEventCard = ({ event, onModerate }) => {
               !isActive ? "bg-red-500/90" : "bg-emerald-500/90"
             }`}
           >
-            {isActive ? "Live" : "Blocked"}
+            {isActive ? "Upcoming" : "Past"}
           </span>
         </div>
       </div>

@@ -21,7 +21,7 @@ const StudentProfile = ({ user, onClose }) => {
     <div className="bg-white w-full font-sans">
       
       {/* Top Green Header */}
-      <div className="bg-[#0f3d1e] text-white p-5 flex justify-between items-center sticky top-0 z-10">
+      <div className="bg-white text-[#0f3d1e] p-5 flex justify-between items-center sticky top-0 z-10">
         <div>
           <h1 className="text-lg font-bold tracking-tight">Student Report</h1>
         </div>
