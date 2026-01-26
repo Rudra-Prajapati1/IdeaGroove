@@ -108,7 +108,6 @@ const AdminNotes = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate API logic
     setTimeout(() => {
       setNotes((prev) =>
         prev.map((n) =>
@@ -135,12 +134,13 @@ const AdminNotes = () => {
         subtitle="Review and manage user uploads"
         searchValue={searchTerm}
         onSearch={setSearchTerm}
-        // Pass the new props
         degreeOptions={degreeOptions}
         subjectOptions={subjectOptions}
         onDegreeFilter={setDegreeFilter}
         onSubjectFilter={setSubjectFilter}
       />
+
+      <StatsRow stats={notesStats} />
 
       <AdminNotesGrid
         notes={notes}
@@ -149,6 +149,7 @@ const AdminNotes = () => {
         filterSubject={subjectFilter}
         onModerate={handleModerateRequest}
       />
+
 
       <EmailConfirmationModal
         isOpen={modalOpen}
@@ -160,6 +161,7 @@ const AdminNotes = () => {
         setReason={setReason}
         loading={loading}
       />
+
     </section>
   );
 };
