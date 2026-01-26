@@ -27,7 +27,7 @@ const DashboardUsers = ({
   }, [users, searchTerm, filterDegree, filterYear]);
   return (
     <div className="bg-whitw rounded-2xl shadow-sm border border-gray-100 overflow-hidden font-inter">
-      <div className="p-6 border-b bg-[#0f3d1e] border-gray-50 flex justify-between items-center">
+      <div className="p-6 border-b bg-primary border-gray-50 flex justify-between items-center">
         <h3 className="text-lg font-bold text-white font-poppins">
           Recent Users
         </h3>
@@ -36,22 +36,24 @@ const DashboardUsers = ({
         </span>
       </div>
 
-      <div className="p-4 flex flex-col gap-3 bg-gray-50/30">
-        {filteredUsers.length > 0 ? (
-          filteredUsers.map((user) => (
-            <UserCard
-              key={user.id}
-              user={user}
-              onModerate={onModerate} // Pass trigger function down
-            />
-          ))
-        ) : (
-          <div className="py-20 text-center flex flex-col items-center gap-2">
-            <p className="text-gray-400 font-bold uppercase text-xs tracking-[0.2em]">
-              No Users Match Your Search
-            </p>
-          </div>
-        )}
+      <div className="p-4 bg-gray-50/20">
+        <div className="flex flex-col gap-6">
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((user) => (
+              <UserCard
+                key={user.id}
+                user={user}
+                onModerate={onModerate} // Pass trigger function down
+              />
+            ))
+          ) : (
+            <div className="py-20 text-center flex flex-col items-center gap-2">
+              <p className="text-gray-400 font-bold uppercase text-xs tracking-[0.2em]">
+                No Users Match Your Search
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

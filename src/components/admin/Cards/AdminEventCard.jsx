@@ -2,14 +2,12 @@ import React from "react";
 import { Ban, CheckCircle, CalendarDays, User, Clock } from "lucide-react";
 
 const AdminEventCard = ({ event, onModerate }) => {
-  // Mapping DD status: Is_Active (BOOLEAN)
   const isActive = event.status === "active";
 
   return (
     <div
-      className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group flex flex-col border-l-4 ${!isActive ? "border-l-red-500" : "border-l-emerald-500"}  hover:border-gray-200`}
+      className={`bg-white rounded-2xl border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group flex flex-col border-2 ${!isActive ? "border-red-500" : "border-green-500"}  hover:border-gray-200`}
     >
-      {/* IMAGE SECTION - Mapping to Poster_File */}
       <div className="relative h-48 w-full overflow-hidden bg-slate-100">
         <img
           src={event.Poster_File || "/images/events_temp_image.jpg"}
@@ -41,11 +39,19 @@ const AdminEventCard = ({ event, onModerate }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
               <CalendarDays className="w-4 h-4 text-blue-500" />
-              {new Date(event.Event_Date).toLocaleDateString("en-IN")}{" "}
+              {new Date(event.Event_Date).toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
             </div>
             <div className="flex items-center gap-1 text-[10px] text-slate-400">
               <Clock size={12} />
-              {new Date(event.Added_On).toLocaleDateString()}{" "}
+              {new Date(event.Added_On).toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
             </div>
           </div>
 
@@ -54,15 +60,14 @@ const AdminEventCard = ({ event, onModerate }) => {
               <User size={12} className="text-slate-500" />
             </div>
             <span className="text-xs text-slate-400">
-              Organized by{" "}
+              By{" "}
               <span className="font-semibold text-slate-600">
                 {event.Added_By_Name}
-              </span>{" "}
+              </span>
             </span>
           </div>
         </div>
 
-        {/* ADMIN ACTIONS */}
         <div className="mt-5 grid grid-cols-2 gap-3">
           <button
             onClick={() => onModerate("block", event.id)}

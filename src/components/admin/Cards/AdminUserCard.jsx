@@ -1,21 +1,17 @@
-
-
 import React, { useState } from "react";
 import { Shield, Calendar, Ban, CheckCircle, Hash, X } from "lucide-react";
-import StudentProfile from "../StudentProfile"; // Ensure path is correct
+import StudentProfile from "../StudentProfile";
 
 const UserCard = ({ user, onModerate }) => {
-  // 1. State to track if the modal is visible
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  
+
   const isActive = user.status === "active";
 
   return (
     <>
-      {/* User List Item */}
       <div
-        className={`group bg-white border border-gray-100 border-l-4 ${
-          isActive ? "border-l-emerald-500" : "border-l-red-500"
+        className={`group bg-white border-gray-100 border-2 ${
+          isActive ? "border-green-500" : "border-red-500"
         } rounded-xl p-4 flex items-center justify-between transition-all hover:shadow-lg  hover:border-gray-200`}
       >
         <div className="flex items-center gap-4">
@@ -28,9 +24,8 @@ const UserCard = ({ user, onModerate }) => {
 
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              {/* CLICK HANDLER: Sets state to true to show profile */}
-              <h4 
-                className="font-bold text-gray-900 leading-tight group-hover:text-[#1B431C] cursor-pointer hover:underline" 
+              <h4
+                className="font-bold text-gray-900 leading-tight group-hover:text-[#1B431C] cursor-pointer hover:underline"
                 onClick={() => setIsProfileOpen(true)}
               >
                 {user.name}
@@ -46,18 +41,24 @@ const UserCard = ({ user, onModerate }) => {
                 <Hash size={12} className="text-blue-500" /> {user.rollNo}
               </span>
               <span className="flex items-center gap-1">
-                <Calendar size={12} className="text-orange-500" /> Year {user.year}
+                <Calendar size={12} className="text-orange-500" /> Year{" "}
+                {user.year}
               </span>
               <span className="flex items-center gap-1">
-                <Shield size={12} className="text-emerald-500" /> S_ID: {user.id}
+                <Shield size={12} className="text-emerald-500" /> S_ID:{" "}
+                {user.id}
               </span>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-6">
-          <span className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full border shadow-sm ${isActive ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-red-50 text-red-700 border-red-100"}`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${isActive ? "bg-emerald-500" : "bg-red-500"}`} />
+          <span
+            className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full border shadow-sm ${isActive ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-red-50 text-red-700 border-red-100"}`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${isActive ? "bg-emerald-500" : "bg-red-500"}`}
+            />
             {isActive ? "Active" : "Deleted/Inactive"}
           </span>
 
@@ -85,11 +86,10 @@ const UserCard = ({ user, onModerate }) => {
       {isProfileOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden">
-            
             {/* 2. Pass the data and the close function to the profile component */}
-            <StudentProfile 
-              user={user} 
-              onClose={() => setIsProfileOpen(false)} 
+            <StudentProfile
+              user={user}
+              onClose={() => setIsProfileOpen(false)}
             />
           </div>
         </div>

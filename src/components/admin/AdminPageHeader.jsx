@@ -1,5 +1,5 @@
-import React from "react";
-import { Search, GraduationCap, BookOpen, CalendarDays } from "lucide-react";
+import React, { useState } from "react";
+import { Search, GraduationCap, BookOpen } from "lucide-react";
 import SimpleDropdown from "./SimpleDropdown";
 
 const AdminPageHeader = ({
@@ -11,8 +11,12 @@ const AdminPageHeader = ({
   subjectOptions = [],
   onDegreeFilter,
   onSubjectFilter,
+  firstTitle = "All Degrees",
   secondTitle = "All Subjects",
 }) => {
+  const [selectedDegree, setSelectedDegree] = useState("all");
+  const [selectedSubject, setSelectedSubject] = useState("all");
+
   return (
     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-2">
       <div className="flex-1">
@@ -30,7 +34,7 @@ const AdminPageHeader = ({
         {onSearch && (
           <div className="relative group flex-1 min-w-[250px]">
             <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
               size={18}
             />
             <input
@@ -38,7 +42,7 @@ const AdminPageHeader = ({
               value={searchValue}
               onChange={(e) => onSearch(e.target.value)}
               placeholder={`Search ${title.split(" ")[0]}...`}
-              className="w-full bg-white border border-gray-200 rounded-2xl py-2.5 pl-12 pr-4 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-sm"
+              className="w-full bg-white border border-gray-200 rounded-2xl py-2.5 pl-12 pr-4 text-sm font-medium"
             />
           </div>
         )}
@@ -47,10 +51,13 @@ const AdminPageHeader = ({
           <SimpleDropdown
             icon={GraduationCap}
             options={degreeOptions}
-            value={null}
-            placeholder="All Degrees"
-            onChange={onDegreeFilter}
+            value={selectedDegree !== "all" ? selectedDegree : null}
+            placeholder={firstTitle}
             accent="blue"
+            onChange={(val) => {
+              setSelectedDegree(val);
+              onDegreeFilter(val);
+            }}
           />
         )}
 
@@ -58,10 +65,13 @@ const AdminPageHeader = ({
           <SimpleDropdown
             icon={BookOpen}
             options={subjectOptions}
-            value={null}
+            value={selectedSubject !== "all" ? selectedSubject : null}
             placeholder={secondTitle}
-            onChange={onSubjectFilter}
             accent="emerald"
+            onChange={(val) => {
+              setSelectedSubject(val);
+              onSubjectFilter(val);
+            }}
           />
         )}
       </div>
