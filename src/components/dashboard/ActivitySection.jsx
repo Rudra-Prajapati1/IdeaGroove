@@ -80,15 +80,17 @@ const ActivitySection = () => {
   const dispatch = useDispatch();
   const events = useSelector(selectAllEvents);
   const eventsStatus = useSelector(selectEventsStatus); // optional: for loading/error states
+  // 1. Identify the Owner (Using your ID 104)
+  const MOCK_CURRENT_USER_ID = 104;
 
-  const MOCK_CURRENT_USER_NAME = 104;
-
-  const isOwnerEvent = event.author === MOCK_CURRENT_USER_NAME;
+  // Events Filter (Already mostly correct in your code)
   const filteredEvents = events.filter((event) => {
+    // Ensure 'author' matches the ID 104
+    const isOwnerEvent = event.author === MOCK_CURRENT_USER_ID;
     if (!isOwnerEvent) return false;
+
     const eventDate = new Date(event.Event_Date);
     const today = new Date();
-
     const matchesSearch =
       event?.Description.toLowerCase().includes(search.toLowerCase()) ?? false;
 
@@ -111,10 +113,13 @@ const ActivitySection = () => {
 
   const filteredGroups = groups
     .filter((group) => {
-      const matchesSearch =
-        group?.Room_Name.toLowerCase().includes(search.toLowerCase()) ?? false;
+      // Assuming 'Admin_ID' or 'author' is the key for the group creator
+      const isOwnerGroup = group.Admin_ID === MOCK_CURRENT_USER_ID;
+      if (!isOwnerGroup) return false;
 
-      return matchesSearch;
+      return (
+        group?.Room_Name.toLowerCase().includes(search.toLowerCase()) ?? false
+      );
     })
     .sort((a, b) => {
       const dateA = new Date(a.date);
@@ -163,6 +168,14 @@ const ActivitySection = () => {
       dispatch(fetchNotes());
     }
   }, [notesStatus, dispatch]);
+
+  // QnA Filter (Filtering the questions array before passing it)
+  const ownedQuestions = questions.filter(
+    (q) => q.author === MOCK_CURRENT_USER_ID,
+  );
+
+  // Notes Filter (Filtering the notes array before passing it)
+  const ownedNotes = notes.filter((n) => n.author === MOCK_CURRENT_USER_ID);
 
   return (
     <section>
@@ -237,7 +250,6 @@ const ActivitySection = () => {
                         key={event.E_ID}
                         event={event}
                         className="bg-amber-50"
-                        isOwner={isOwnerEvent}
                       />
                     ))}
                   </div>
@@ -302,14 +314,21 @@ const ActivitySection = () => {
       {/* QnA Section */}
       {option === "QnA" && (
         <div className="-mt-8">
-          <DiscussionForum questions={questions} status={questionsStatus} />
+          <DiscussionForum
+            questions={ownedQuestions}
+            status={questionsStatus}
+          />
         </div>
       )}
 
       {/* Notes Section */}
       {option === "Notes" && (
         <div className="mt-17">
-          <NotesSection notes={notes} status={notesStatus} error={notesError} />
+          <NotesSection
+            notes={ownedNotes}
+            status={notesStatus}
+            error={notesError}
+          />
         </div>
       )}
     </section>

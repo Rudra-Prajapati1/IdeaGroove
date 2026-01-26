@@ -4,7 +4,7 @@ import { X, Send, Ban, CheckCircle, AlertCircle } from "lucide-react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
 import AdminEventsGrid from "../../components/admin/AdminEventsGrid";
-import EmailConfirmationModal from "../../components/admin/EmailConfrimationModal";
+import EmailConfirmationModal from "../../components/admin/EmailConfirmationModal";
 
 const initialEvents = [
   {
@@ -152,7 +152,7 @@ const AdminEvents = () => {
         onModerate={handleModerateRequest}
       />
 
-     <EmailConfirmationModal
+      <EmailConfirmationModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleActionSubmit}

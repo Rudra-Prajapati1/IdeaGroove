@@ -9,8 +9,8 @@ function Signup() {
   const [formData, setFormData] = useState({
     Name: "",
     Username: "",
-    Email: "", // ✅ Added input field below
-    Roll_No: "", // ✅ Added input field below
+    Email: "",
+    Roll_No: "",
     College_ID: "",
     Degree_ID: "",
     Password: "",
@@ -30,7 +30,6 @@ function Signup() {
     setError("");
 
     try {
-      // ✅ FIX 1: URL changed to /register to match your backend route
       const response = await axios.post(
         "http://localhost:8080/api/auth/signup",
         {
@@ -71,7 +70,6 @@ function Signup() {
 
         {/* Form Section */}
         <div className="h-full mr-10 flex justify-center items-center flex-1 ml-10">
-          {/* ✅ FIX 2: Added onSubmit here. Removed onClick from button */}
           <form
             className="flex flex-col gap-[15px] w-full"
             onSubmit={handleSubmit}
@@ -86,7 +84,7 @@ function Signup() {
             <div className="flex flex-col">
               <label className="text-[18px] font-semibold">Your name :</label>
               <input
-                name="Name" // ✅ FIX 3: Added name attribute
+                name="Name"
                 className="w-full p-2 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none focus:border-green-700"
                 type="text"
                 placeholder="Enter name"
@@ -98,7 +96,7 @@ function Signup() {
             <div className="flex flex-col">
               <label className="text-[18px] font-semibold">Username :</label>
               <input
-                name="Username" // ✅ Added name attribute
+                name="Username"
                 className="w-full p-2 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none focus:border-green-700"
                 type="text"
                 onChange={handleChange}
@@ -107,7 +105,6 @@ function Signup() {
               />
             </div>
 
-            {/* ✅ ADDED MISSING FIELD: Email */}
             <div className="flex flex-col">
               <label className="text-[18px] font-semibold">Email :</label>
               <input
@@ -120,7 +117,6 @@ function Signup() {
               />
             </div>
 
-            {/* ✅ ADDED MISSING FIELD: Roll No */}
             <div className="flex flex-col">
               <label className="text-[18px] font-semibold">Roll No :</label>
               <input
@@ -133,11 +129,10 @@ function Signup() {
               />
             </div>
 
-            {/* Note: In a real app, College & Degree should be dropdowns (Select) */}
             <div className="flex flex-col">
               <label className="text-[18px] font-semibold">College ID :</label>
               <input
-                name="College_ID" // ✅ Added name attribute
+                name="College_ID"
                 className="w-full p-2 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none focus:border-green-700"
                 type="number"
                 onChange={handleChange}
@@ -148,7 +143,7 @@ function Signup() {
             <div className="flex flex-col">
               <label className="text-[18px] font-semibold">Degree ID :</label>
               <input
-                name="Degree_ID" // ✅ Added name attribute
+                name="Degree_ID"
                 className="w-full p-2 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none focus:border-green-700"
                 type="number"
                 onChange={handleChange}
@@ -159,7 +154,7 @@ function Signup() {
             <div className="flex flex-col">
               <label className="text-[18px] font-semibold">Password</label>
               <input
-                name="Password" // ✅ Added name attribute
+                name="Password"
                 className="w-full p-2 text-[14px] border-2 border-gray-300 rounded-[10px] outline-none focus:border-green-700"
                 type="password"
                 onChange={handleChange}

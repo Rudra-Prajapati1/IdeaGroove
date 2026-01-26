@@ -4,7 +4,7 @@ import { X, AlertCircle } from "lucide-react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
 import AdminQnAGrid from "../../components/admin/AdminQnAGrid";
-import EmailConfirmationModal from "../../components/admin/EmailConfrimationModal";
+import EmailConfirmationModal from "../../components/admin/EmailConfirmationModal";
 
 const initialData = [
   {

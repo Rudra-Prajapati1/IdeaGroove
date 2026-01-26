@@ -4,7 +4,7 @@ import { X, Send, Ban, CheckCircle, AlertCircle } from "lucide-react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
 import AdminGroupsGrid from "../../components/admin/AdminGroupsGrid";
-import EmailConfirmationModal from "../../components/admin/EmailConfrimationModal";
+import EmailConfirmationModal from "../../components/admin/EmailConfirmationModal";
 
 const initialGroups = [
   {
@@ -171,7 +171,7 @@ const AdminGroups = () => {
         onModerate={handleModerateRequest}
       />
 
-     <EmailConfirmationModal
+      <EmailConfirmationModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleActionSubmit}
