@@ -50,6 +50,8 @@ const SearchableDropdown = ({
     ? options.find((opt) => opt[idKey] === value)
     : null;
 
+    // Add this inside your SignupForm component or above it
+
   return (
     <div className="flex flex-col gap-2 w-full relative" ref={dropdownRef}>
       <label className="text-sm font-medium text-gray-700">{label}</label>
@@ -250,7 +252,60 @@ const SignupForm = ({ onLogin }) => {
     }
     setSignupData((prev) => ({ ...prev, Profile_Pic: file }));
   };
+// 1. Add this to your state management at the top of SignupForm
+const [displayBatch, setDisplayBatch] = useState("");
 
+// 2. The Formatter & Validator Logic
+const handleBatchInputChange = (e) => {
+  // Remove all non-numeric characters
+  let value = e.target.value.replace(/\D/g, ""); 
+  let formattedValue = "";
+
+  // A. Block if the first digit isn't '2' (Forces 2000s)
+  if (value.length > 0 && value[0] !== '2') {
+    setErrors(prev => ({ ...prev, Year: "Batch must start with the year 2000+" }));
+    return;
+  }
+
+  // B. Auto-Hyphen Logic (YYYY-YYYY)
+  if (value.length > 0) {
+    formattedValue = value.substring(0, 4);
+    if (value.length > 4) {
+      formattedValue += "-" + value.substring(4, 8);
+    } else if (value.length === 4 && e.nativeEvent.inputType !== "deleteContentBackward") {
+      formattedValue += "-";
+    }
+  }
+
+  setDisplayBatch(formattedValue);
+
+  // C. Range Validation & Internal ID update
+  if (formattedValue.length === 9) {
+    const startYear = parseInt(formattedValue.substring(0, 4));
+    const endYear = parseInt(formattedValue.substring(5, 9));
+
+    // Validate 2000-2099 range
+    if (startYear < 2000 || startYear > 2099 || endYear < 2000 || endYear > 2099) {
+      setErrors(prev => ({ ...prev, Year: "Years must be between 2000 and 2099" }));
+      handleData("Year", ""); // Reset DB value
+      return;
+    }
+
+    // Validate Chronology
+    if (endYear <= startYear) {
+      setErrors(prev => ({ ...prev, Year: "End year must be after start year" }));
+      handleData("Year", "");
+      return;
+    }
+
+    // Success: Extract last two digits of each (e.g., 2023-2026 -> 2326)
+    const internalID = formattedValue.substring(2, 4) + formattedValue.substring(7, 9);
+    handleData("Year", internalID);
+    setErrors(prev => ({ ...prev, Year: null })); // Clear errors
+  } else {
+    handleData("Year", ""); // Keep DB value empty until input is complete
+  }
+};
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -292,6 +347,9 @@ const SignupForm = ({ onLogin }) => {
         "Roll No can only contain numbers, letters, hyphens (-), and spaces.",
       );
     }
+    if (signupData.Year && parseInt(signupData.Year.substring(2,4)) <= parseInt(signupData.Year.substring(0,2))) {
+  return toast.error("End year must be after start year!");
+}
 
     setLoading(true);
 
@@ -318,6 +376,7 @@ const SignupForm = ({ onLogin }) => {
         formData.append("Hobbies", signupData.Hobbies.join(","));
       }
 
+      
       const response = await axios.post(
         "http://localhost:8080/api/auth/signup",
         formData,
@@ -350,6 +409,43 @@ const SignupForm = ({ onLogin }) => {
     }
   };
 
+
+  // 1. Add 'otp' to your step options: 'personal' | 'educational' | 'otp'
+const [otp, setOtp] = useState(["", "", "", ""]);
+const otpRefs = [useRef(), useRef(), useRef(), useRef()];
+
+// 2. Handle OTP input logic (Auto-focus next box)
+const handleOtpChange = (index, value) => {
+  if (isNaN(value)) return; // Only numbers
+  const newOtp = [...otp];
+  newOtp[index] = value.substring(value.length - 1); // Keep only the last digit
+  setOtp(newOtp);
+
+  // Move to next box if value is entered
+  if (value && index < 3) {
+    otpRefs[index + 1].current.focus();
+  }
+};
+
+const handleKeyDown = (index, e) => {
+  // Move to previous box on backspace
+  if (e.key === "Backspace" && !otp[index] && index > 0) {
+    otpRefs[index - 1].current.focus();
+  }
+};
+
+// 3. Logic for the "Send OTP" button
+const handleSendOtp = () => {
+  // Add your validation for Step 2 here (College, Degree, Year, Email)
+  if (!signupData.College_ID || !signupData.Degree_ID || !signupData.Year || !signupData.Email) {
+    return toast.error("Please fill all educational details first.");
+  }
+  
+
+  // MOCK API CALL or Actual Logic to send OTP
+  toast.success(`OTP sent to ${signupData.Email}`);
+  setStep("otp");
+};
   return (
     <div className="w-full h-full flex items-center pt-20 justify-center">
       <form
@@ -489,16 +585,31 @@ const SignupForm = ({ onLogin }) => {
               <ErrorMessage message={errors.Degree_ID} />
             </div>
 
-            <div>
-              <Select
-                label="Year"
-                value={signupData.Year}
-                options={[1, 2, 3, 4, 5]}
-                onChange={(v) => handleData("Year", v)}
-                className={errors.Year ? "border-red-500" : ""}
-              />
-              <ErrorMessage message={errors.Year} />
-            </div>
+          {/* --- Inside Educational Details Section --- */}
+<div className="flex flex-col gap-1 w-full">
+  <label className="text-md font-semibold text-primary">
+    Batch (Start Year - End Year)
+  </label>
+  <input
+    type="text"
+    placeholder="e.g. 2023-2027"
+    value={displayBatch} // Use the local formatted state
+    onChange={handleBatchInputChange}
+    maxLength={9}
+    className={`w-full text-sm border-2 border-gray-300 rounded-xl outline-none 
+      transition-colors duration-300 focus:border-primary/60 p-3 
+      ${errors.Year ? "border-red-500" : ""}`}
+  />
+  
+  {/* Helper text so user knows it's working */}
+  {signupData.Year && (
+    <span className="text-[10px] text-gray-400 mt-1 ml-1">
+      Internal ID: {signupData.Year}
+    </span>
+  )}
+  
+  <ErrorMessage message={errors.Year} />
+</div>
             <div>
               <Input
                 label="Email"
@@ -512,49 +623,83 @@ const SignupForm = ({ onLogin }) => {
             </div>
           </SectionWrapper>
         )}
-        <div className="flex gap-4 mt-4">
-          {/* Back button */}
-          {step === "educational" && (
-            <button
-              type="button"
-              onClick={() => setStep("personal")}
-              className="border border-primary text-primary px-6 py-2 rounded-lg
-                 hover:bg-primary/10 transition-colors"
-            >
-              Back
-            </button>
-          )}
 
-          {/* Next button */}
-          {step === "personal" && (
-            <button
-              type="button"
-              onClick={() => {
-                const isValid = validateStep1();
-                if (isValid) {
-                  setStep("educational");
-                }
-              }}
-              disabled={loading}
-              className="bg-primary text-white px-6 py-2 rounded-lg
-                 hover:bg-primary/80 transition-colors"
-            >
-              Next
-            </button>
-          )}
+        {/* --- OTP VERIFICATION STEP --- */}
+{step === "otp" && (
+  <SectionWrapper title="OTP Verification">
+    <div className="flex flex-col items-center gap-6 py-4">
+      <p className="text-sm text-gray-500 text-center">
+        We have sent a 4-digit code to <br />
+        <span className="font-bold text-primary">{signupData.Email}</span>
+      </p>
+      
+      <div className="flex gap-4">
+        {otp.map((digit, index) => (
+          <input
+            key={index}
+            ref={otpRefs[index]}
+            type="text"
+            maxLength={1}
+            value={digit}
+            onChange={(e) => handleOtpChange(index, e.target.value)}
+            onKeyDown={(e) => handleKeyDown(index, e)}
+            className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-xl focus:border-primary outline-none transition-all"
+          />
+        ))}
+      </div>
 
-          {/* Signup button */}
-          {step === "educational" && (
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-primary text-white px-6 py-2 rounded-lg
-                 hover:bg-primary/80 transition-colors"
-            >
-              {loading ? "Loading..." : "Signup"}
-            </button>
-          )}
-        </div>
+      <button 
+        type="button" 
+        onClick={handleSendOtp}
+        className="text-xs text-primary hover:underline font-medium"
+      >
+        Didn't receive code? Resend OTP
+      </button>
+    </div>
+  </SectionWrapper>
+)}
+
+{/* --- UPDATED BUTTONS SECTION --- */}
+<div className="flex gap-4 mt-4">
+  {/* Back button logic */}
+  {step !== "personal" && (
+    <button
+      type="button"
+      onClick={() => setStep(step === "otp" ? "educational" : "personal")}
+      className="border border-primary text-primary px-6 py-2 rounded-lg hover:bg-primary/10 transition-colors"
+    >
+      Back
+    </button>
+  )}
+
+  {/* Dynamic Action Button */}
+  {step === "personal" ? (
+    <button
+      type="button"
+      onClick={() => validateStep1() && setStep("educational")}
+      className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/80 transition-colors"
+    >
+      Next
+    </button>
+  ) : step === "educational" ? (
+    <button
+      type="button"
+      onClick={handleSendOtp}
+      className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/80 transition-colors"
+    >
+      Send OTP
+    </button>
+  ) : (
+    <button
+      type="submit"
+      disabled={loading || otp.join("").length < 4}
+      className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/80 transition-colors disabled:opacity-50"
+    >
+      {loading ? "Verifying..." : "Signup"}
+    </button>
+  )}
+</div>
+        
 
         <span
           onClick={onLogin}
