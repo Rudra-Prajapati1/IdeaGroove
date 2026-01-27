@@ -25,7 +25,7 @@ const ChatList = ({ search, filter, onSelectRoom, activeRoom }) => {
 
   const roomIdsSelector = useMemo(
     () => selectRoomIdsForStudent(LOGGED_IN_STUDENT_ID),
-    [LOGGED_IN_STUDENT_ID]
+    [LOGGED_IN_STUDENT_ID],
   );
   const myRoomIds = useSelector(roomIdsSelector);
 
@@ -39,7 +39,7 @@ const ChatList = ({ search, filter, onSelectRoom, activeRoom }) => {
   }, [roomStatus, memberStatus, dispatch]);
 
   const visibleRooms = rooms.filter(
-    (room) => myRoomIds.includes(room.Room_ID) && room.Is_Active === true
+    (room) => myRoomIds.includes(room.Room_ID) && room.Is_Active === true,
   );
 
   const filteredByType = visibleRooms.filter((room) => {
@@ -94,7 +94,7 @@ const ChatList = ({ search, filter, onSelectRoom, activeRoom }) => {
 
             <div className="flex-1">
               <h4 className="font-semibold font-inter">
-                {room.Room_Type === "group" ? room.Room_Name : "Direct Chat"}
+                {room.Room_Type === "group" ? room.Room_Name : "Student"}
               </h4>
               <p className="text-sm text-gray-400 truncate">
                 {room.Room_Type === "group" ? "Group chat" : "Direct message"}

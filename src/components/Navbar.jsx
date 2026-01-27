@@ -33,10 +33,10 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    dispatch(logout()); // Clear Redux state & LocalStorage
+    dispatch(logout());
     setProfileOpen(false);
     toast.success("Logged out successfully!");
-    navigate("/"); // Redirect to home
+    navigate("/");
   };
 
   useEffect(() => {
