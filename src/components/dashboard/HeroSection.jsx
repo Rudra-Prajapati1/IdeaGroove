@@ -44,7 +44,7 @@ const HeroSection = () => {
             ) : (
               <div>
                 <p className="w-48 h-48 lg:w-60 lg:h-60 rounded-full bg-green-500 flex items-center justify-center text-white text-7xl lg:text-8xl font-bold uppercase shadow-xl transition-all duration-500 hover:scale-105">
-                  {user?.Name.charAt(0)}
+                  {user?.Name?.charAt(0)}
                 </p>
               </div>
             )}

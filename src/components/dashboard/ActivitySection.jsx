@@ -85,8 +85,7 @@ const ActivitySection = () => {
 
   // Events Filter (Already mostly correct in your code)
   const filteredEvents = events.filter((event) => {
-    // Ensure 'author' matches the ID 104
-    const isOwnerEvent = event.author === MOCK_CURRENT_USER_ID;
+    const isOwnerEvent = event.Added_By === MOCK_CURRENT_USER_ID;
     if (!isOwnerEvent) return false;
 
     const eventDate = new Date(event.Event_Date);
@@ -114,7 +113,7 @@ const ActivitySection = () => {
   const filteredGroups = groups
     .filter((group) => {
       // Assuming 'Admin_ID' or 'author' is the key for the group creator
-      const isOwnerGroup = group.Admin_ID === MOCK_CURRENT_USER_ID;
+      const isOwnerGroup = group.Created_By === MOCK_CURRENT_USER_ID;
       if (!isOwnerGroup) return false;
 
       return (
@@ -141,6 +140,9 @@ const ActivitySection = () => {
       dispatch(fetchChatRooms());
     }
   }, [groupsStatus, dispatch]);
+
+  console.log(filteredGroups);
+  console.log(groups);
 
   const questions = useSelector(selectAllQuestions);
   const questionsStatus = useSelector(selectQuestionsStatus);
@@ -171,11 +173,11 @@ const ActivitySection = () => {
 
   // QnA Filter (Filtering the questions array before passing it)
   const ownedQuestions = questions.filter(
-    (q) => q.author === MOCK_CURRENT_USER_ID,
+    (q) => q.Added_By === MOCK_CURRENT_USER_ID,
   );
 
   // Notes Filter (Filtering the notes array before passing it)
-  const ownedNotes = notes.filter((n) => n.author === MOCK_CURRENT_USER_ID);
+  const ownedNotes = notes.filter((n) => n.Added_By === MOCK_CURRENT_USER_ID);
 
   return (
     <section>

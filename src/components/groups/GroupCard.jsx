@@ -227,12 +227,9 @@ const GroupCard = ({ group }) => {
                         </div>
                       </div>
                       {member.isAdmin ? (
-
-                        <span className="text-[10px] text-[#1A3C20] font-medium uppercase tracking-widest px-3">Admin</span>
-
-                        <button className="p-2 hover:bg-white rounded-full transition-shadow">
-                          <MessageSquare className="w-4 h-4 text-gray-900" />
-                        </button>
+                        <span className="text-[10px] text-[#1A3C20] font-medium uppercase tracking-widest px-3">
+                          Admin
+                        </span>
                       ) : (
                         <span className="text-[10px] text-gray-300 font-medium uppercase tracking-widest px-3">
                           Member
