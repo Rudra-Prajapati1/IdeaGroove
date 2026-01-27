@@ -35,11 +35,19 @@ const HeroSection = () => {
         <div className="relative group">
           <div className="absolute -inset-1 bg-linear-to-r from-green-400 to-emerald-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
           <div className="relative bg-[#1B431C] rounded-full p-2 border border-white/20 shadow-2xl">
-            <img
-              src={user?.Profile_Pic || "https://via.placeholder.com/150"}
-              alt="User Profile"
-              className="w-48 h-48 lg:w-60 lg:h-60 rounded-full object-cover grayscale-[20%] hover:grayscale-0 transition-all duration-500"
-            />
+            {user?.Profile_Pic ? (
+              <img
+                src={user?.Profile_Pic}
+                alt="User Profile"
+                className="w-48 h-48 lg:w-60 lg:h-60 rounded-full object-cover grayscale-[20%] hover:grayscale-0 transition-all duration-500"
+              />
+            ) : (
+              <div>
+                <p className="w-48 h-48 lg:w-60 lg:h-60 rounded-full bg-green-500 flex items-center justify-center text-white text-7xl lg:text-8xl font-bold uppercase shadow-xl transition-all duration-500 hover:scale-105">
+                  {user?.Name.charAt(0)}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -108,7 +108,7 @@ const Navbar = () => {
 
         <img
           onClick={goHome}
-          src={scrolled ? "./Logo.png" : "./DarkLogo.png"}
+          src={scrolled ? "/Logo.png" : "/DarkLogo.png"}
           alt="IdeaGroove Logo"
           className={`h-12 w-12 lg:h-18 lg:w-18 p-1 border rounded-full cursor-pointer
             transition-all duration-500
