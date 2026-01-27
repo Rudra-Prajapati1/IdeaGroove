@@ -17,6 +17,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { selectIsAuthenticated } from "../redux/slice/authSlice";
+import PageHeader from "../components/PageHeader";
 
 const SubmitComplaint = () => {
   const isAuth = useSelector(selectIsAuthenticated);
@@ -38,9 +39,17 @@ const SubmitComplaint = () => {
   const genericTopics = {
     Notes: ["PHP by @khushal", "Bio-chem by @fiona", "Cpp by @sejal"],
     User: ["@rudri", "@sejal", "@khushal"],
-    Groups: ["Coder club by @jinesh", "Chess ke master by @gukesh", "Cockroach dance by @cockroach"],
+    Groups: [
+      "Coder club by @jinesh",
+      "Chess ke master by @gukesh",
+      "Cockroach dance by @cockroach",
+    ],
     Events: ["@rudri on 5th feb", "@sejal on 31th jan", "@khushal on 25th jan"],
-    QnA: ["What is function ? [by @rudri]", "What is micro-organism ? [by @falguni]", "How to initailize array ? [by @yash]"],
+    QnA: [
+      "What is function ? [by @rudri]",
+      "What is micro-organism ? [by @falguni]",
+      "How to initailize array ? [by @yash]",
+    ],
     Other: ["General Feedback", "Bug Report", "Feature Request"],
   };
 
@@ -170,32 +179,7 @@ const SubmitComplaint = () => {
 
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
-          <section className="relative bg-[#1A3C20] pt-40 pb-50">
-            <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
-              <svg
-                viewBox="0 0 1440 120"
-                preserveAspectRatio="none"
-                className="block w-full h-[100px]"
-              >
-                <path
-                  fill="#FFFBEB"
-                  d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z"
-                ></path>
-              </svg>
-            </div>
-          </section>
-    
-          <div className="max-w-7xl mx-auto -mt-50 relative z-30 px-0.01 flex gap-10">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-[#FFFBEB]/80 hover:text-white mb-6 transition-colors"
-            >
-              <ArrowLeft size={20} /> Back
-            </button>
-            <h1 className="text-5xl font-extrabold mb-4 text-[#FFFBEB]">
-             Submit Complaint
-            </h1>
-          </div>
+      <PageHeader title="Submit Complaint" />
 
       <main className="max-w-6xl mx-auto py-12 px-8 grid grid-cols-12 gap-8 mx-auto px-6 relative z-30">
         <div className="col-span-8 bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
@@ -221,7 +205,9 @@ const SubmitComplaint = () => {
               </label>
               <select
                 className={`w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#1a432e]/10 outline-none ${
-                  id ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "cursor-pointer"
+                  id
+                    ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                    : "cursor-pointer"
                 }`}
                 value={formData.category}
                 disabled={!!id}
@@ -250,16 +236,18 @@ const SubmitComplaint = () => {
                 <select
                   className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#1a432e]/10 outline-none"
                   value={formData.topic}
-                  onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, topic: e.target.value })
+                  }
                 >
                   <option value="">Select specific issue</option>
-                  {(genericTopics[formData.category] || genericTopics["Other"]).map(
-                    (t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    )
-                  )}
+                  {(
+                    genericTopics[formData.category] || genericTopics["Other"]
+                  ).map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
                 </select>
               </div>
             )}
@@ -299,12 +287,22 @@ const SubmitComplaint = () => {
             </div>
             <ul className="space-y-5">
               <li className="flex gap-3">
-                <CheckCircle2 className="text-[#1A3C20] shrink-0 mt-0.5" size={16} />
-                <p className="text-xs text-gray-600">Be Specific: Provide details.</p>
+                <CheckCircle2
+                  className="text-[#1A3C20] shrink-0 mt-0.5"
+                  size={16}
+                />
+                <p className="text-xs text-gray-600">
+                  Be Specific: Provide details.
+                </p>
               </li>
               <li className="flex gap-3">
-                <CheckCircle2 className="text-[#1A3C20] shrink-0 mt-0.5" size={16} />
-                <p className="text-xs text-gray-600">Stay Objective: Stick to facts.</p>
+                <CheckCircle2
+                  className="text-[#1A3C20] shrink-0 mt-0.5"
+                  size={16}
+                />
+                <p className="text-xs text-gray-600">
+                  Stay Objective: Stick to facts.
+                </p>
               </li>
             </ul>
           </div>
@@ -369,7 +367,10 @@ const SubmitComplaint = () => {
           <div className="divide-y divide-gray-50">
             {processedComplaints.length > 0 ? (
               processedComplaints.map((item) => (
-                <div key={item.id} className="group transition-colors hover:bg-gray-50/30">
+                <div
+                  key={item.id}
+                  className="group transition-colors hover:bg-gray-50/30"
+                >
                   <div
                     className="grid grid-cols-12 px-8 py-6 items-center cursor-pointer"
                     onClick={() =>
@@ -395,7 +396,7 @@ const SubmitComplaint = () => {
                     <div className="col-span-2">
                       <span
                         className={`px-4 py-1.5 rounded-lg border text-[10px] font-black tracking-widest uppercase ${getStatusStyles(
-                          item.status
+                          item.status,
                         )}`}
                       >
                         {item.status}
