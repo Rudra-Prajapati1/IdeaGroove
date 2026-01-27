@@ -18,7 +18,7 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
   if (!post) return null;
 
   // 1. Check Ownership (using 'author' which matches your mock data)
-  const isOwner = post.author === currentUser;
+  const isOwner = post.id === currentUser;
 
   const handleToggle = () => setIsExpanded(!isExpanded);
 
