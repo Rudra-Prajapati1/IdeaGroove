@@ -17,8 +17,7 @@ const AdminRoutes = (
     <Route path="groups" element={<AdminGroups />} />
     <Route path="qna" element={<AdminQnA />} />
     <Route path="complaints" element={<AdminComplaints />} />
-    
-    <Route path="adminDash" element={<AdminDash />} />
+
     <Route path="*" element={<NotFound />} />
   </>
 );

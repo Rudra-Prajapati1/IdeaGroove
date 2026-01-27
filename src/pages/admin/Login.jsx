@@ -39,10 +39,19 @@ const Login = () => {
       if (data.success) {
         toast.success(data.message || "Login Successful!");
 
-        // Clear data and redirect
+        // ✅ SAVE ADMIN DATA
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            role: "admin",
+            username: data.admin?.username || adminData.username,
+          }),
+        );
+
         setAdminData({ username: "", password: "" });
+
         setTimeout(() => {
-          navigate("/admin");
+          navigate("/admin", { replace: true });
         }, 500);
       }
     } catch (error) {
