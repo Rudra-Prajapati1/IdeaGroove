@@ -20,9 +20,9 @@ const App = () => {
         {UserRoutes}
       </Route>
 
-      <Route path="/admin/login" element={<Login />} />
+      <Route path="/admin" element={<Login />} />
       <Route
-        path="/admin"
+        path="/admin/*"
         element={
           <ProtectAdmin>
             <AdminLayout />
