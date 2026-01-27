@@ -40,5 +40,15 @@
 body {
   margin: 0;
   padding: 0;
-  background-color:#FFFBEB;
+  background-color: #fffbeb;
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
 }

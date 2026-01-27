@@ -3,7 +3,6 @@ import toast from "react-hot-toast";
 import { Eye, EyeClosed, CheckCircle } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-//import ideaGrooveLogo from "../public/Images/DarkLogo.png"; // Ensure path matches your logo
 
 const ResetPassword = () => {
   // 3. Get ID and Token from URL
@@ -15,6 +14,7 @@ const ResetPassword = () => {
     confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -105,16 +105,28 @@ const ResetPassword = () => {
                 <label className="text-lg font-semibold mb-1 text-primary">
                   Confirm Password:
                 </label>
-                <input
-                  className="w-full text-sm border-2 border-gray-300 rounded-xl outline-none focus:border-primary/60 p-3"
-                  type={!showPassword ? "password" : "text"}
-                  placeholder="Confirm your password"
-                  required
-                  value={passwords.confirmPassword}
-                  onChange={(e) =>
-                    handleData("confirmPassword", e.target.value)
-                  }
-                />
+                <div className="flex items-center justify-end relative">
+                  <input
+                    className="w-full text-sm border-2 border-gray-300 rounded-xl outline-none focus:border-primary/60 p-3"
+                    type={!showConfirmPassword ? "password" : "text"}
+                    placeholder="Confirm your password"
+                    required
+                    value={passwords.confirmPassword}
+                    onChange={(e) =>
+                      handleData("confirmPassword", e.target.value)
+                    }
+                  />
+                  <span
+                    className="absolute mr-2 cursor-pointer p-1"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <Eye className="w-5 h-5 text-primary" />
+                    ) : (
+                      <EyeClosed className="w-5 h-5 text-primary" />
+                    )}
+                  </span>
+                </div>
               </div>
 
               <button
@@ -151,7 +163,7 @@ const ResetPassword = () => {
         <div className="hidden md:flex w-1/2 items-center justify-center p-12">
           {/* Ensure this path is correct for your Vite/React setup */}
           <img
-            src={"../public/Images/DarkLogo.png"}
+            src={"/DarkLogo.png"}
             alt="Idea Groove"
             className="max-w-xs object-contain animate-pulse-slow"
           />

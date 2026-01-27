@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { Eye, EyeClosed, ArrowLeft } from "lucide-react"; // Added ArrowLeft icon
 import { useNavigate } from "react-router-dom";
@@ -20,9 +20,14 @@ const LoginForm = ({ onSignup }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const toastShown = useRef(false);
+
   useEffect(() => {
     if (isAuthenticated) {
-      toast.success("You are already logged in!");
+      if (!toastShown.current) {
+        toast.success("You are already logged in!");
+        toastShown.current = true;
+      }
       navigate("/dashboard");
     }
   }, [isAuthenticated, navigate]);

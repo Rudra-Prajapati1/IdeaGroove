@@ -4,7 +4,7 @@ const ProfileUpload = ({ file, onChange }) => (
   <div>
     <label
       htmlFor="profilePic"
-      className="w-30 h-30 border-2 border-dashed border-primary/60
+      className="w-36 h-36 border-2 border-dashed border-primary/60
                  rounded-full flex flex-col items-center justify-center
                  cursor-pointer hover:border-primary hover:bg-primary/5
                  transition-colors text-sm text-primary"
