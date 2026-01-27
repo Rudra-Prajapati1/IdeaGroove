@@ -9,9 +9,9 @@ import {
 } from "../../redux/slice/eventsSlice";
 import {
   fetchChatRooms,
-  selectAllChatRooms,
   selectChatRoomError,
   selectChatRoomStatus,
+  selectGroupChatRooms,
 } from "../../redux/slice/chatRoomsSlice";
 import FilledTitle from "../FilledTitle";
 import QnACard from "../qna/QnACard";
@@ -71,6 +71,68 @@ const ActivitySection = () => {
       icon: NotebookPen,
     },
   ];
+
+  // --- Configuration Data ---
+  const DEGREE_SUBJECTS = {
+    "Computer Science": [
+      "Data Structures",
+      "Algorithms",
+      "Web Development",
+      "Operating Systems",
+    ],
+    Mathematics: ["Calculus", "Linear Algebra", "Statistics", "Discrete Math"],
+    Engineering: ["Thermodynamics", "Circuit Theory", "Mechanics", "Robotics"],
+    Business: ["Marketing", "Finance", "Economics", "Management"],
+  };
+
+  // --- Mock Data ---
+  const MOCK_DISCUSSIONS = [
+    {
+      id: 1,
+      author: "Prof. H. Smith",
+      time: "2h ago",
+      title: "Clarification on Project Submission Guidelines",
+      excerpt: "Please ensure that all repositories are public...",
+      degree: "Computer Science",
+      subject: "Web Development",
+      pinned: true,
+      avatarColor: "bg-green-100",
+      answers: [
+        {
+          id: 101,
+          author: "Sarah J.",
+          time: "1h ago",
+          text: "Does this apply to group projects?",
+          votes: 5,
+        },
+      ],
+    },
+    {
+      id: 2,
+      author: "Jessica S.",
+      time: "45m ago",
+      title: "Help needed with Linear Algebra Eigenvalues",
+      excerpt: "I'm struggling to understand the geometric interpretation...",
+      degree: "Mathematics",
+      subject: "Linear Algebra",
+      pinned: false,
+      avatarColor: "bg-blue-100",
+      answers: [],
+    },
+    {
+      id: 3,
+      author: "Michael P.",
+      time: "3h ago",
+      title: "Thermodynamics: Second Law confusion",
+      excerpt: "Can someone explain entropy in a closed system...",
+      degree: "Engineering",
+      subject: "Thermodynamics",
+      pinned: false,
+      avatarColor: "bg-orange-100",
+      answers: [],
+    },
+  ];
+
   const [option, setOption] = useState("Events");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -82,11 +144,11 @@ const ActivitySection = () => {
   const eventsStatus = useSelector(selectEventsStatus); // optional: for loading/error states
   // 1. Identify the Owner (Using your ID 104)
   const MOCK_CURRENT_USER_ID = 104;
+  const MOCK_CURRENT_USER_ID_QUESTION = 2;
 
   // Events Filter (Already mostly correct in your code)
   const filteredEvents = events.filter((event) => {
-    // Ensure 'author' matches the ID 104
-    const isOwnerEvent = event.author === MOCK_CURRENT_USER_ID;
+    const isOwnerEvent = event.Added_By === MOCK_CURRENT_USER_ID;
     if (!isOwnerEvent) return false;
 
     const eventDate = new Date(event.Event_Date);
@@ -106,7 +168,7 @@ const ActivitySection = () => {
     }
   }, [eventsStatus, dispatch]);
 
-  const groups = useSelector(selectAllChatRooms);
+  const groups = useSelector(selectGroupChatRooms);
   const groupsStatus = useSelector(selectChatRoomStatus);
   const groupsError = useSelector(selectChatRoomError);
   const [addGroup, setAddGroup] = useState(false);
@@ -114,7 +176,7 @@ const ActivitySection = () => {
   const filteredGroups = groups
     .filter((group) => {
       // Assuming 'Admin_ID' or 'author' is the key for the group creator
-      const isOwnerGroup = group.Admin_ID === MOCK_CURRENT_USER_ID;
+      const isOwnerGroup = group.Created_By === MOCK_CURRENT_USER_ID;
       if (!isOwnerGroup) return false;
 
       return (
@@ -141,6 +203,9 @@ const ActivitySection = () => {
       dispatch(fetchChatRooms());
     }
   }, [groupsStatus, dispatch]);
+
+  console.log(filteredGroups);
+  console.log(groups);
 
   const questions = useSelector(selectAllQuestions);
   const questionsStatus = useSelector(selectQuestionsStatus);
@@ -170,12 +235,12 @@ const ActivitySection = () => {
   }, [notesStatus, dispatch]);
 
   // QnA Filter (Filtering the questions array before passing it)
-  const ownedQuestions = questions.filter(
-    (q) => q.author === MOCK_CURRENT_USER_ID,
+  const ownedQuestions = MOCK_DISCUSSIONS.filter(
+    (q) => q.id === MOCK_CURRENT_USER_ID_QUESTION,
   );
 
   // Notes Filter (Filtering the notes array before passing it)
-  const ownedNotes = notes.filter((n) => n.author === MOCK_CURRENT_USER_ID);
+  const ownedNotes = notes.filter((n) => n.Added_By === MOCK_CURRENT_USER_ID);
 
   return (
     <section>
@@ -315,8 +380,8 @@ const ActivitySection = () => {
       {option === "QnA" && (
         <div className="-mt-8">
           <DiscussionForum
-            questions={ownedQuestions}
-            status={questionsStatus}
+            MOCK_DISCUSSIONS={ownedQuestions}
+            DEGREE_SUBJECTS={DEGREE_SUBJECTS}
           />
         </div>
       )}

@@ -6,70 +6,9 @@ import QnACard from "../qna/QnACard"; // ✅ Import the new component
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 
-// --- Configuration Data ---
-const DEGREE_SUBJECTS = {
-  "Computer Science": [
-    "Data Structures",
-    "Algorithms",
-    "Web Development",
-    "Operating Systems",
-  ],
-  Mathematics: ["Calculus", "Linear Algebra", "Statistics", "Discrete Math"],
-  Engineering: ["Thermodynamics", "Circuit Theory", "Mechanics", "Robotics"],
-  Business: ["Marketing", "Finance", "Economics", "Management"],
-};
-
-// --- Mock Data ---
-const MOCK_DISCUSSIONS = [
-  {
-    id: 1,
-    author: "Prof. H. Smith",
-    time: "2h ago",
-    title: "Clarification on Project Submission Guidelines",
-    excerpt: "Please ensure that all repositories are public...",
-    degree: "Computer Science",
-    subject: "Web Development",
-    pinned: true,
-    avatarColor: "bg-green-100",
-    answers: [
-      {
-        id: 101,
-        author: "Sarah J.",
-        time: "1h ago",
-        text: "Does this apply to group projects?",
-        votes: 5,
-      },
-    ],
-  },
-  {
-    id: 2,
-    author: "Jessica S.",
-    time: "45m ago",
-    title: "Help needed with Linear Algebra Eigenvalues",
-    excerpt: "I'm struggling to understand the geometric interpretation...",
-    degree: "Mathematics",
-    subject: "Linear Algebra",
-    pinned: false,
-    avatarColor: "bg-blue-100",
-    answers: [],
-  },
-  {
-    id: 3,
-    author: "Michael P.",
-    time: "3h ago",
-    title: "Thermodynamics: Second Law confusion",
-    excerpt: "Can someone explain entropy in a closed system...",
-    degree: "Engineering",
-    subject: "Thermodynamics",
-    pinned: false,
-    avatarColor: "bg-orange-100",
-    answers: [],
-  },
-];
-
-const DiscussionForum = () => {
+const DiscussionForum = ({ MOCK_DISCUSSIONS, DEGREE_SUBJECTS }) => {
   const isAuth = useSelector(selectIsAuthenticated);
-  const MOCK_CURRENT_USER_NAME = "Jessica S.";
+  const MOCK_CURRENT_USER_ID = 2;
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -219,7 +158,7 @@ const DiscussionForum = () => {
                 key={post.id}
                 post={post}
                 isAuth={isAuth}
-                currentUser={MOCK_CURRENT_USER_NAME} // Pass Mock User Name
+                currentUser={MOCK_CURRENT_USER_ID} // Pass Mock User Name
                 onEdit={handleEditPost}
                 onDelete={handleDeletePost}
               />

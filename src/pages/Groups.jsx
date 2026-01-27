@@ -3,9 +3,9 @@ import FilledTitle from "../components/FilledTitle";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchChatRooms,
-  selectAllChatRooms,
   selectChatRoomError,
   selectChatRoomStatus,
+  selectGroupChatRooms,
 } from "../redux/slice/chatRoomsSlice";
 import GroupCard from "../components/groups/GroupCard";
 import AddGroupOverlay from "../components/groups/AddGroup";
@@ -21,7 +21,7 @@ const Groups = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const dispatch = useDispatch();
-  const groups = useSelector(selectAllChatRooms);
+  const groups = useSelector(selectGroupChatRooms);
   const groupsStatus = useSelector(selectChatRoomStatus);
   const groupsError = useSelector(selectChatRoomError);
 
