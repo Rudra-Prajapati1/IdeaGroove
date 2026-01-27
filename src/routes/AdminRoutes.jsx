@@ -11,6 +11,8 @@ import AdminDash from "../pages/admin/AdminDash";
 const AdminRoutes = (
   <>
     <Route index element={<AdminDash />} />
+    <Route path="dashboard" element={<AdminDash />} />
+
     <Route path="notes" element={<AdminNotes />} />
     <Route path="users" element={<AdminDashboard />} />
     <Route path="events" element={<AdminEvents />} />

@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Input from "../../components/auth/Input";
 import { Eye, EyeClosed } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [adminData, setAdminData] = useState({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
@@ -51,7 +52,7 @@ const Login = () => {
         setAdminData({ username: "", password: "" });
 
         setTimeout(() => {
-          navigate("/admin", { replace: true });
+          navigate("/admin/dashboard", { replace: true });
         }, 500);
       }
     } catch (error) {
@@ -63,6 +64,13 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user?.role === "admin" && location.state?.from === "protected") {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  }, []);
 
   return (
     <section className="bg-primary min-h-screen flex flex-col gap-4 justify-center items-center">
