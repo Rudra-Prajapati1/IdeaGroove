@@ -22,7 +22,6 @@ const GroupCard = ({ group }) => {
   const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
 
   const handleReportClick = (e) => {
     e.stopPropagation();
@@ -43,11 +42,6 @@ const GroupCard = ({ group }) => {
 
   const MOCK_CURRENT_USER_ID = 104;
   const isOwner = group.Created_By === MOCK_CURRENT_USER_ID;
-
-  // Filter members based on search
-  const filteredMembers = members.filter((m) =>
-    m.name.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
 
   return (
     <>
@@ -123,7 +117,13 @@ const GroupCard = ({ group }) => {
       </div>
 
       {/* --- EXPANDED VIEW MODAL --- */}
-      {isModalOpen && <ViewMembers />}
+      {isModalOpen && (
+        <ViewMembers
+          group={group}
+          setIsModalOpen={setIsModalOpen}
+          isOwner={isOwner}
+        />
+      )}
     </>
   );
 };
