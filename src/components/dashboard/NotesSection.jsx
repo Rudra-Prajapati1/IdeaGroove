@@ -55,23 +55,49 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [addNotes, setAddNotes] = useState(false);
 
+<<<<<<< HEAD
   // MOCK USER ID for ownership check (In real app, get from Redux)
   let MOCK_CURRENT_USER_ID = 0;
   if (isAuth) {
     MOCK_CURRENT_USER_ID = 104;
   }
+=======
+  // MOCK USER ID for ownership check
+  const MOCK_CURRENT_USER_ID = 104;
+>>>>>>> d677a43bec9df0c0f83c1deb3184e5942d73e8da
 
-  const filteredNotes = notes.filter((note) => {
-    const noteDate = new Date(note.Added_On);
-    const today = new Date();
-    const matchesSearchDesc =
-      note?.Description.toLowerCase().includes(search.toLowerCase()) ?? false;
-    const matchesSearchFile =
-      note?.Note_File.toLowerCase().includes(search.toLowerCase()) ?? false;
-    if (filter === "upcoming" && noteDate < today) return false;
-    if (filter === "past" && noteDate >= today) return false;
-    return matchesSearchDesc || matchesSearchFile;
-  });
+  // --- Filter and Sort Logic ---
+  const filteredNotes = notes
+    .filter((note) => {
+      // 1. Search Logic
+      const matchesSearch =
+        note?.Description?.toLowerCase().includes(search.toLowerCase()) ||
+        note?.Note_File?.toLowerCase().includes(search.toLowerCase());
+
+      // 2. Degree Filter Logic
+      const matchesDegree = selectedDegree
+        ? note?.Degree === selectedDegree
+        : true;
+
+      // 3. Subject Filter Logic
+      const matchesSubject = selectedSubject
+        ? note?.Subject === selectedSubject
+        : true;
+
+      return matchesSearch && matchesDegree && matchesSubject;
+    })
+    .sort((a, b) => {
+      // 4. Sorting Logic (Based on Added_On date)
+      const dateA = new Date(a.Added_On);
+      const dateB = new Date(b.Added_On);
+
+      if (filter === "newest_to_oldest") {
+        return dateB - dateA; // Most recent first
+      } else if (filter === "oldest_to_newest") {
+        return dateA - dateB; // Oldest first
+      }
+      return 0; // Default order
+    });
 
   // --- Handlers ---
   const handleReportClick = (e, noteId) => {
@@ -81,7 +107,6 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
 
   const handleDownload = (filePath) => {
     console.log("Download:", filePath);
-    // Add real download logic here
   };
 
   const handleEdit = (noteId) => {
@@ -130,12 +155,12 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
       </div>
 
       {status === "loading" && <Loading text="loading notes" />}
-      {status === "failed" && <p>Error: {error}</p>}
+      {status === "failed" && <p className="text-red-500">Error: {error}</p>}
 
       {/* Empty State */}
-      {status === "succeeded" && notes.length === 0 && (
+      {status === "succeeded" && filteredNotes.length === 0 && (
         <div className="text-center py-12 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-300">
-          <p>No notes found. Upload one to get started!</p>
+          <p>No notes found matching your criteria. Try adjusting your filters!</p>
         </div>
       )}
 
@@ -215,7 +240,7 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
                 index={index}
                 style={STYLE_VARIANTS[index % STYLE_VARIANTS.length]}
                 isAuth={isAuth}
-                currentUserId={MOCK_CURRENT_USER_ID} // Pass the mock ID
+                currentUserId={MOCK_CURRENT_USER_ID}
                 onReport={handleReportClick}
                 onDownload={handleDownload}
                 onEdit={handleEdit}
