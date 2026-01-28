@@ -56,7 +56,10 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
   const [addNotes, setAddNotes] = useState(false);
 
   // MOCK USER ID for ownership check (In real app, get from Redux)
-  const MOCK_CURRENT_USER_ID = 104;
+  let MOCK_CURRENT_USER_ID = 0;
+  if (isAuth) {
+    MOCK_CURRENT_USER_ID = 104;
+  }
 
   const filteredNotes = notes.filter((note) => {
     const noteDate = new Date(note.Added_On);
