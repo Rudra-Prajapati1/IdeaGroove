@@ -16,9 +16,11 @@ import { selectIsAuthenticated } from "../redux/slice/authSlice";
 import Controls from "../components/Controls";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
+import { toast } from "react-hot-toast";
 
 const Events = () => {
   const navigate = useNavigate();
+
   const isAuth = useSelector(selectIsAuthenticated);
 
   const dispatch = useDispatch();

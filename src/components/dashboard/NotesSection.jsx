@@ -55,9 +55,12 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [addNotes, setAddNotes] = useState(false);
 
-  // MOCK USER ID for ownership check
-  const MOCK_CURRENT_USER_ID = 104;
 
+  // MOCK USER ID for ownership check (In real app, get from Redux)
+  let MOCK_CURRENT_USER_ID = 0;
+  if (isAuth) {
+    MOCK_CURRENT_USER_ID = 104;
+  }
   // --- Filter and Sort Logic ---
   const filteredNotes = notes
     .filter((note) => {

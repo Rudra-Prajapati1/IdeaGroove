@@ -8,8 +8,11 @@ import {
   Edit2, // Import Edit Icon
   Trash2,
 } from "lucide-react";
+import { useSelector } from "react-redux";
+import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 
 const EventCard = ({ event }) => {
+  const isAuth = useSelector(selectIsAuthenticated);
   const navigate = useNavigate();
 
   const handleReportClick = (e) => {
@@ -24,7 +27,10 @@ const EventCard = ({ event }) => {
     .toUpperCase();
   const day = dateObj.getDate();
 
-  const MOCK_CURRENT_USER_ID = 104;
+  let MOCK_CURRENT_USER_ID = 0;
+  if (isAuth) {
+    MOCK_CURRENT_USER_ID = 104;
+  }
 
   // NOTE: Ensure data types match (e.g., if Added_By is string "1", convert types)
   const isOwner = event.Added_By === MOCK_CURRENT_USER_ID;
