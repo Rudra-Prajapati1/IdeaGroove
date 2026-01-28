@@ -55,18 +55,11 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [addNotes, setAddNotes] = useState(false);
 
-<<<<<<< HEAD
   // MOCK USER ID for ownership check (In real app, get from Redux)
   let MOCK_CURRENT_USER_ID = 0;
   if (isAuth) {
     MOCK_CURRENT_USER_ID = 104;
   }
-=======
-  // MOCK USER ID for ownership check
-  const MOCK_CURRENT_USER_ID = 104;
->>>>>>> d677a43bec9df0c0f83c1deb3184e5942d73e8da
-
-  // --- Filter and Sort Logic ---
   const filteredNotes = notes
     .filter((note) => {
       // 1. Search Logic
@@ -160,7 +153,9 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
       {/* Empty State */}
       {status === "succeeded" && filteredNotes.length === 0 && (
         <div className="text-center py-12 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-300">
-          <p>No notes found matching your criteria. Try adjusting your filters!</p>
+          <p>
+            No notes found matching your criteria. Try adjusting your filters!
+          </p>
         </div>
       )}
 
