@@ -63,21 +63,21 @@ const Footer = () => {
             </ul>
           </div>
 
-         <div>
-          <Link to="/termsCondition">
-            <h6 className="border-2 lg:py-2 px-4 rounded-xl w-fit mx-auto hover:bg-white hover:text-primary transition-all duration-300 cursor-pointer">
-              TERMS & CONDITIONS
-            </h6>
-          </Link>
-        </div>
+          <div>
+            <Link to="/termsCondition">
+              <h6 className="border-2 lg:py-2 px-4 rounded-xl w-fit mx-auto hover:bg-white hover:text-primary transition-all duration-300 cursor-pointer">
+                TERMS & CONDITIONS
+              </h6>
+            </Link>
+          </div>
 
-        <div>
-          <Link to="/privacyPolicies">
-            <h6 className="border-2 lg:py-2 px-4 rounded-xl w-fit mx-auto hover:bg-white hover:text-primary transition-all duration-300 cursor-pointer">
-              Privcay Policies
-            </h6>
-          </Link>
-        </div>
+          <div>
+            <Link to="/privacyPolicies">
+              <h6 className="border-2 lg:py-2 px-4 rounded-xl w-fit mx-auto hover:bg-white hover:text-primary transition-all duration-300 cursor-pointer">
+                PRIVACY POLICIES
+              </h6>
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

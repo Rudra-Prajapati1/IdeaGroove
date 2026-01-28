@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import group_temp_image from "/images/group_temp_image.jpg";
+import { Info, Search, Users } from "lucide-react";
 
-const ViewMembers = ({ group }) => {
+const ViewMembers = ({ group, setIsModalOpen, isOwner }) => {
+  const [searchTerm, setSearchTerm] = useState("");
   const members = [
     { id: 1, name: "Alex Rivera", role: "GROUP ADMIN", isAdmin: true },
     { id: 2, name: "Jordan Smith", role: "Member", isAdmin: false },
@@ -11,17 +13,22 @@ const ViewMembers = ({ group }) => {
     { id: 6, name: "Riley Harper", role: "Member", isAdmin: false },
   ];
 
+  // Filter members based on search
+  const filteredMembers = members.filter((m) =>
+    m.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 max-h-[80vh] flex flex-col font-inter">
         {/* Modal Header: Image + Basic Info */}
         <div className="bg-white p-8 text-[#0D2E0E] relative">
-          <button
+          {/* <button
             onClick={() => setIsModalOpen(false)}
             className="absolute top-6 right-6 text-white/70 hover:text-white transition-colors"
           >
             <X className="w-6 h-6" />
-          </button>
+          </button> */}
 
           <div className="flex items-center gap-5">
             <img
@@ -129,7 +136,7 @@ const ViewMembers = ({ group }) => {
             Close
           </button>
           {!isOwner && (
-            <button className="flex-[2] bg-primary text-white py-3 rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 hover:bg-[#153416] transition-all active:scale-95">
+            <button className="flex-2 bg-primary text-white py-3 rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 hover:bg-[#153416] transition-all active:scale-95">
               Join This Group
             </button>
           )}

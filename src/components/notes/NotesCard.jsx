@@ -68,7 +68,7 @@ const NotesCard = ({
       {/* --- BODY --- */}
       <div className="p-5 flex flex-col flex-1">
         {/* Title */}
-        <h3 className="text-lg font-bold text-slate-800 mb-2 leading-tight">
+        <h3 className="text-lg font-bold text-slate-800 mb-2 leading-tight truncate">
           {note.Note_File || note.title || "Untitled Note"}
         </h3>
 
