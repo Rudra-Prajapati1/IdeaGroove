@@ -17,6 +17,15 @@ const Login = () => {
     setAdminData((prev) => ({ ...prev, [field]: value }));
   };
 
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user?.role === "admin") {
+      // Redirect to dashboard, or the page they were trying to access
+      const origin = location.state?.from?.pathname || "/admin/dashboard";
+      navigate(origin, { replace: true });
+    }
+  }, [navigate, location]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -30,22 +39,19 @@ const Login = () => {
       const { data } = await axios.post(
         "http://localhost:8080/api/admin/login",
         adminData,
-        {
-          withCredentials: true,
-        },
+        { withCredentials: true },
       );
-
-      // console.log(data);
 
       if (data.success) {
         toast.success(data.message || "Login Successful!");
 
-        // ✅ SAVE ADMIN DATA
         localStorage.setItem(
           "user",
           JSON.stringify({
             role: "admin",
             username: data.admin?.username || adminData.username,
+            // Add token if your backend provides it for stateless requests
+            token: data.token || null,
           }),
         );
 
@@ -64,13 +70,6 @@ const Login = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user?.role === "admin" && location.state?.from === "protected") {
-      navigate("/admin/dashboard", { replace: true });
-    }
-  }, []);
 
   return (
     <section className="bg-primary min-h-screen flex flex-col gap-4 justify-center items-center">

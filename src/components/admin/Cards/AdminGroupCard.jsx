@@ -1,16 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Ban,
   CheckCircle,
   Calendar,
   ShieldCheck,
   MessageSquare,
-  Users, 
+  Users,
 } from "lucide-react";
-import ViewMembers from "../../groups/ViewMembers";
 import { selectIsAuthenticated } from "../../../redux/slice/authSlice";
+import { useSelector } from "react-redux";
+import AdminViewMembers from "../AdminViewMember";
 
-const AdminGroupCard = ({ group, onModerate, onViewMembers }) => {
+const AdminGroupCard = ({ group, onModerate }) => {
   const isActive = group.status === "active";
   const isAuth = useSelector(selectIsAuthenticated);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,7 +27,9 @@ const AdminGroupCard = ({ group, onModerate, onViewMembers }) => {
           <div className="flex items-center gap-2">
             <div
               className={`p-2 rounded-lg ${
-                isActive ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
+                isActive
+                  ? "bg-emerald-50 text-emerald-600"
+                  : "bg-red-50 text-red-600"
               }`}
             >
               <MessageSquare size={20} />
@@ -87,12 +90,13 @@ const AdminGroupCard = ({ group, onModerate, onViewMembers }) => {
         </div>
 
         <button
-            disabled={!isAuth}
-            onClick={() => setIsModalOpen(true)}
-            className={`${isAuth ? "cursor-pointer" : "cursor-not-allowed"} flex-1 border border-primary text-primary rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors text-sm`}
-          >
-            View <Users className="w-4 h-4" />
-          </button>
+          disabled={!isAuth}
+          onClick={() => setIsModalOpen(true)}
+          className={`${isAuth ? "cursor-pointer" : "cursor-not-allowed"} w-4/10 m-auto mt-5 mb-3 py-2 flex-1 border border-primary text-primary rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors text-sm`}
+        >
+          View Members
+          <Users className="w-4 h-4" />
+        </button>
 
         {/* Actions (Block/Unblock) */}
         <div className="mt-3 grid grid-cols-2 gap-3">
@@ -120,12 +124,8 @@ const AdminGroupCard = ({ group, onModerate, onViewMembers }) => {
           </button>
         </div>
       </div>
-       {isModalOpen && (
-        <ViewMembers
-          group={group}
-          setIsModalOpen={setIsModalOpen}
-          isOwner={isOwner}
-        />
+      {isModalOpen && (
+        <AdminViewMembers group={group} setIsModalOpen={setIsModalOpen} />
       )}
     </div>
   );

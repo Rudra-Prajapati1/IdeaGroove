@@ -1,6 +1,7 @@
 import {
   Calendar,
   LayoutDashboardIcon,
+  LogOut,
   MessageCircleQuestion,
   MessageSquare,
   NotebookPen,
@@ -20,5 +21,11 @@ export const sidebarLinks = [
     title: "Complaints",
     icon: MessageCircleQuestion,
     to: "/admin/complaints",
+  },
+  {
+    id: 8,
+    title: "Logout",
+    icon: LogOut,
+    to: "#",
   },
 ];
