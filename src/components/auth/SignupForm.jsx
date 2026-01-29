@@ -24,8 +24,10 @@ const FloatingError = ({ message, show }) => {
   return (
     <div className="mt-1 animate-slideDown">
       <div className="bg-red-50 border border-red-200 rounded-lg px-2 py-1 flex items-start gap-2 max-w-xs">
-        <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-[1px]" />
-        <span className="text-xs text-red-600 leading-tight">{message}</span>
+        <AlertCircle className="w-3 h-3 text-red-500 shrink-0 mt-[1px]" />
+        <span className="text-[0.7rem] text-red-600 leading-tight">
+          {message}
+        </span>
       </div>
     </div>
   );
@@ -92,7 +94,6 @@ const SearchableDropdown = ({
 
       {isOpen && (
         <div className="absolute top-[110%] left-0 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-60 overflow-hidden flex flex-col">
-          {/* Search Input */}
           <div className="p-2 border-b border-gray-100 flex items-center gap-2 sticky top-0 bg-white z-10">
             <Search className="w-4 h-4 text-gray-400" />
             <input
@@ -105,7 +106,6 @@ const SearchableDropdown = ({
             />
           </div>
 
-          {/* Options List */}
           <div className="overflow-y-auto flex-1">
             {loading ? (
               <div className="p-3 text-sm text-gray-400 text-center">
@@ -137,7 +137,6 @@ const SearchableDropdown = ({
   );
 };
 
-// --- MAIN SIGNUP COMPONENT ---
 const SignupForm = ({ onLogin }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -500,7 +499,7 @@ const SignupForm = ({ onLogin }) => {
   };
 
   return (
-    <div className="w-full py-2 flex items-start pt-20 mt-10 justify-center">
+    <div className="w-full py-2 flex items-start pt-20 mt-5 justify-center">
       <style>{`
         @keyframes slideDown {
           from {
@@ -524,7 +523,7 @@ const SignupForm = ({ onLogin }) => {
           <SectionWrapper title="Personal Details">
             <div>
               <div className="flex gap-12 items-center">
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
                   <div className="relative">
                     <Input
                       label="Username"
@@ -760,7 +759,7 @@ const SignupForm = ({ onLogin }) => {
           </SectionWrapper>
         )}
 
-        <div className="flex gap-4 mt-4">
+        <div className="flex gap-4">
           {step !== "personal" && (
             <button
               type="button"

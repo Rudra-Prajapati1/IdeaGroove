@@ -98,7 +98,7 @@ const AdminEvents = () => {
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const filterOptions = ["Active", "Blocked"];
+  const filterOptions = ["Active", "Past"];
 
   const handleModerateRequest = (type, eventId) => {
     setSelectedAction(type);
@@ -115,7 +115,6 @@ const AdminEvents = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate API logic
     setTimeout(() => {
       setEvents((prev) =>
         prev.map((ev) =>
@@ -142,6 +141,7 @@ const AdminEvents = () => {
         subtitle="Filter events by degree, subject, or search terms"
         searchValue={searchTerm}
         onSearch={setSearchTerm}
+        onDegreeFilter={filterOptions}
       />
 
       <StatsRow stats={eventsStats} />
