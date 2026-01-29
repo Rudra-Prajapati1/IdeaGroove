@@ -19,7 +19,7 @@ import ViewMembers from "./ViewMembers";
 import ComplaintButton from "../ComplaintButton";
 import toast from "react-hot-toast";
 
-const GroupCard = ({ group }) => {
+const GroupCard = ({ group, onEdit }) => {
   const isAuth = useSelector(selectIsAuthenticated);
   const navigate = useNavigate();
 
@@ -106,10 +106,18 @@ const GroupCard = ({ group }) => {
 
           {isOwner ? (
             <>
-              <button className="px-3 bg-blue-50 text-blue-600 rounded-lg border border-blue-100">
+              <button
+                className="px-3 bg-blue-50 text-blue-600 rounded-lg border border-blue-100"
+                onClick={onEdit}
+              >
                 <Edit2 className="w-4 h-4" />
               </button>
-              <button className="px-3 bg-red-50 text-red-600 rounded-lg border border-red-100" onCLick={()=>{toast.success("Group Deleted Successfully!")}}>
+              <button
+                className="px-3 bg-red-50 text-red-600 rounded-lg border border-red-100"
+                onClick={() => {
+                  toast.success("Group Deleted Successfully!");
+                }}
+              >
                 <Trash2 className="w-4 h-4" />
               </button>
             </>

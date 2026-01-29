@@ -25,6 +25,7 @@ const Groups = () => {
   const groups = useSelector(selectGroupChatRooms);
   const groupsStatus = useSelector(selectChatRoomStatus);
   const groupsError = useSelector(selectChatRoomError);
+  const [editingGroup, setEditingGroup] = useState(null);
 
   const filteredGroups = groups
     .filter((group) => {
@@ -54,8 +55,16 @@ const Groups = () => {
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
       <PageHeader title="Groups" />
 
-      {addGroup && <AddGroupOverlay onClose={() => setAddGroup(false)} />}
-      <div className="mx-auto px-6 relative z-30 mt-35 ">
+      {(addGroup || editingGroup) && (
+        <AddGroupOverlay
+          onClose={() => {
+            setAddGroup(false);
+            setEditingGroup(null);
+          }}
+          initialData={editingGroup} // This will be null if addGroup is true
+        />
+      )}
+      <div className="mx-auto px-6 relative z-40 mt-35 ">
         <div className="max-w-6xl mx-auto px-4 -mt-25 flex justify-between items-center">
           <Controls
             search={search}
@@ -91,7 +100,11 @@ const Groups = () => {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {filteredGroups.map((group) => (
-                      <GroupCard key={group.G_ID} group={group} />
+                      <GroupCard
+                        key={group.G_ID}
+                        group={group}
+                        onEdit={() => setEditingGroup(group)}
+                      />
                     ))}
                   </div>
                 )}

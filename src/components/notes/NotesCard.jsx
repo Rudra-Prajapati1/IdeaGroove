@@ -92,6 +92,9 @@ const NotesCard = ({
               if (!isAuth) {
                 toast.error("Please login to download the notes");
                 return;
+              } else {
+                toast.success("Notes Download Successfully");
+                return;
               }
 
               onDownload(note.File_Path);
@@ -117,7 +120,9 @@ const NotesCard = ({
                 <Edit2 className="w-4 h-4" />
               </button>
               <button
-                onClick={() => onDelete(note.N_ID)}
+                onClick={() => {
+                  toast.success("Event Deleted Successfully!");
+                }}
                 className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
                 title="Delete Note"
               >

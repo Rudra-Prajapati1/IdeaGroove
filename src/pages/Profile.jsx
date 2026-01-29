@@ -7,20 +7,41 @@ import {
   GraduationCap,
   Calendar,
   Camera,
-  Trash2, // Added for Delete
-  AlertTriangle, // Added for Warning
+  Trash2,
+  AlertTriangle,
   X,
+  Check,
+  RotateCcw,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import defaultProfilePic from "/DarkLogo.png";
+import toast from "react-hot-toast";
 
 const ProfileInformation = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
-  // State for the Delete Confirmation Modal
+  // --- STATES ---
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({});
+
+  // Sync formData with Redux user data
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        Name: user.Name || "",
+        Username: user.Username || "",
+        Email: user.Email || "",
+        Roll_No: user.Roll_No || "",
+        College: user.College || "St. Xavier's College, Ahmedabad",
+        Degree: user.Degree || "BCA",
+        Year: user.Year || "",
+        Hobbies: user.Hobbies || [],
+      });
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -30,53 +51,58 @@ const ProfileInformation = () => {
 
   if (!user) return null;
 
+  // --- HANDLERS ---
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = () => {
+    // Logic for backend API call goes here
+    toast.success("Profile Updated Successfully!");
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    // Revert to original user data
+    setFormData({
+      Name: user.Name,
+      Username: user.Username,
+      Email: user.Email,
+      Roll_No: user.Roll_No,
+      College: user.College,
+      Degree: user.Degree,
+      Year: user.Year,
+      Hobbies: user.Hobbies,
+    });
+    setIsEditing(false);
+    toast.error("Changes Discarded");
+  };
+
   const handleDeleteAccount = () => {
-    // Logic to dispatch delete action to your backend/redux would go here
-    console.log("Account Deleting...");
+    toast.success("Profile Deleted Successfully!");
     setIsModalOpen(false);
-    // navigate("/auth");
   };
 
   const formatBatchYear = (yearId) => {
     if (!yearId || yearId.toString().length !== 4) return yearId || "N/A";
-
     const yearStr = yearId.toString();
     const startYear = `20${yearStr.substring(0, 2)}`;
     const endYear = `20${yearStr.substring(2, 4)}`;
-
     return `${startYear}-${endYear}`;
   };
 
   const infoFields = [
-    {
-      label: "EMAIL ADDRESS",
-      value: user?.Email || "N/A",
-      icon: <Mail size={16} />,
-    },
-    {
-      label: "ROLL NUMBER",
-      value: user?.Roll_No || "N/A",
-      icon: <Hash size={16} />,
-    },
+    { label: "EMAIL ADDRESS", key: "Email", icon: <Mail size={16} /> },
+    { label: "ROLL NUMBER", key: "Roll_No", icon: <Hash size={16} /> },
     {
       label: "COLLEGE NAME",
-      value: user?.College || "St. Xavier's College, Ahmedabad",
+      key: "College",
       icon: <GraduationCap size={16} />,
       fullWidth: true,
     },
-    {
-      label: "DEGREE",
-      value: user?.Degree || "B.Tech Computer Science",
-      icon: <GraduationCap size={16} />,
-    },
-    {
-      label: "COLLEGE YEAR",
-      value: formatBatchYear(user?.Year),
-      icon: <Calendar size={16} />,
-    },
+    { label: "DEGREE", key: "Degree", icon: <GraduationCap size={16} /> },
+    { label: "COLLEGE YEAR", key: "Year", icon: <Calendar size={16} /> },
   ];
-
-  const hobbies = user?.Hobbies || [];
 
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
@@ -103,7 +129,7 @@ const ProfileInformation = () => {
       </div>
 
       {/* Main Profile Card */}
-      <div className="max-w-4xl mx-auto bg-white relative z-40 rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden">
+      <div className="max-w-4xl mx-auto bg-white relative z-20 rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden">
         <div className="px-10 py-8 flex justify-between items-center border-b border-gray-50">
           <div className="flex items-center gap-3 text-[#1A3C20]">
             <User size={20} strokeWidth={2.5} />
@@ -111,14 +137,31 @@ const ProfileInformation = () => {
               Personal Information
             </h2>
           </div>
-          <button className="p-2.5 bg-[#f0f9f1] text-[#1A3C20] rounded-full hover:bg-[#1A3C20] hover:text-white transition-all shadow-sm">
-            <Pencil size={18} />
-          </button>
+          <div className="flex gap-2">
+            {isEditing && (
+              <button
+                onClick={handleCancel}
+                className="p-2.5 bg-red-50 text-red-600 rounded-full hover:bg-red-500 hover:text-white transition-all shadow-sm"
+              >
+                <RotateCcw size={18} />
+              </button>
+            )}
+            <button
+              onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
+              className={`p-2.5 rounded-full transition-all shadow-sm ${
+                isEditing
+                  ? "bg-green-600 text-white"
+                  : "bg-[#f0f9f1] text-[#1A3C20]"
+              } hover:scale-110`}
+            >
+              {isEditing ? <Check size={18} /> : <Pencil size={18} />}
+            </button>
+          </div>
         </div>
 
         <div className="px-10 py-10 flex flex-col md:flex-row gap-12">
           {/* Avatar Section */}
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center min-w-[180px]">
             <div className="relative group">
               <div className="w-44 h-44 rounded-4xl bg-[#FFAB8F] overflow-hidden border-[6px] border-[#e8f5e9] shadow-inner">
                 <img
@@ -131,13 +174,36 @@ const ProfileInformation = () => {
                 <Camera size={16} />
               </button>
             </div>
-            <div className="mt-6 text-center">
-              <h3 className="text-2xl font-black text-[#1A3C20]">
-                {user?.Name || "Alex Johnson"}
-              </h3>
-              <p className="text-gray-400 font-medium text-sm mt-1">
-                {user?.Username || "alexj"}
-              </p>
+            <div className="mt-6 text-center w-full">
+              {isEditing ? (
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="text"
+                    value={formData.Name}
+                    onChange={(e) => handleInputChange("Name", e.target.value)}
+                    className="text-center w-full bg-slate-50 border border-slate-200 rounded-lg py-1 text-lg font-bold text-[#1A3C20] outline-none focus:border-green-500"
+                    placeholder="Name"
+                  />
+                  <input
+                    type="text"
+                    value={formData.Username}
+                    onChange={(e) =>
+                      handleInputChange("Username", e.target.value)
+                    }
+                    className="text-center w-full bg-transparent text-gray-400 font-medium text-sm outline-none"
+                    placeholder="Username"
+                  />
+                </div>
+              ) : (
+                <>
+                  <h3 className="text-2xl font-black text-[#1A3C20] capitalize">
+                    {formData.Name || "Alex Johnson"}
+                  </h3>
+                  <p className="text-gray-400 font-medium text-sm mt-1">
+                    @{formData.Username || "alexj"}
+                  </p>
+                </>
+              )}
             </div>
           </div>
 
@@ -154,7 +220,22 @@ const ProfileInformation = () => {
                   </label>
                   <div className="flex items-center gap-3 bg-[#f8faf9] border border-gray-100 rounded-2xl px-5 py-4 text-[#4A5568]">
                     <span className="text-[#1A3C20]/40">{field.icon}</span>
-                    <span className="text-sm font-semibold">{field.value}</span>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={formData[field.key]}
+                        onChange={(e) =>
+                          handleInputChange(field.key, e.target.value)
+                        }
+                        className="w-full bg-transparent outline-none text-sm font-semibold text-[#1A3C20]"
+                      />
+                    ) : (
+                      <span className="text-sm font-semibold">
+                        {field.key === "Year"
+                          ? formatBatchYear(formData[field.key])
+                          : formData[field.key]}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -164,7 +245,7 @@ const ProfileInformation = () => {
                   Hobbies & Interests
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {hobbies.map((hobby, idx) => (
+                  {formData.Hobbies?.map((hobby, idx) => (
                     <span
                       key={idx}
                       className="px-5 py-2 bg-[#e8f5e9] text-[#1A3C20] text-xs font-bold rounded-full border border-[#1A3C20]/5 hover:bg-[#1A3C20] hover:text-white transition-colors"
@@ -177,15 +258,17 @@ const ProfileInformation = () => {
             </div>
 
             {/* Danger Zone */}
-            <div className="mt-12 pt-8 border-t border-gray-100">
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="flex items-center gap-2 text-red-500 hover:text-red-700 font-bold text-sm transition-colors px-2 py-1"
-              >
-                <Trash2 size={16} />
-                Delete My Account
-              </button>
-            </div>
+            {!isEditing && (
+              <div className="mt-12 pt-8 border-t border-gray-100">
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex items-center gap-2 text-red-500 hover:text-red-700 font-bold text-sm transition-colors px-2 py-1"
+                >
+                  <Trash2 size={16} />
+                  Delete My Account
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -200,7 +283,6 @@ const ProfileInformation = () => {
             >
               <X size={20} />
             </button>
-
             <div className="flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
                 <AlertTriangle size={32} />
@@ -209,10 +291,9 @@ const ProfileInformation = () => {
                 Are you sure?
               </h3>
               <p className="text-gray-500 text-sm mb-8 leading-relaxed">
-                This action is permanent and cannot be undone. All your
-                progress, posts, and profile data will be deleted forever.
+                This action is permanent and cannot be undone. All your progress
+                and profile data will be deleted forever.
               </p>
-
               <div className="flex flex-col w-full gap-3">
                 <button
                   onClick={handleDeleteAccount}
