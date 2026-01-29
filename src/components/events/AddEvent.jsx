@@ -111,7 +111,7 @@ const AddEventOverlay = ({ onClose, onUpload }) => {
 
     setTimeout(() => {
       setLoading(false);
-      toast.success("Event posted successfully 🎉");
+      toast.success("Event posted successfully");
       onUpload ? onUpload(submissionData) : console.log("Uploaded:", formData);
       onClose();
     }, 1500);
@@ -271,6 +271,7 @@ const AddEventOverlay = ({ onClose, onUpload }) => {
         </div>
       </div>
     </div>,
+    document.body,
   );
 };
 

@@ -69,7 +69,7 @@ const AskQuestionModal = ({ onClose, onSubmit }) => {
 
     setTimeout(() => {
       setLoading(false);
-      toast.success("Question posted successfully 🎉");
+      toast.success("Question posted successfully");
       onSubmit(payload);
       onClose();
     }, 1500);
