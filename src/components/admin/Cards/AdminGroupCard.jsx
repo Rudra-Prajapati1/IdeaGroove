@@ -5,12 +5,15 @@ import {
   Calendar,
   ShieldCheck,
   MessageSquare,
-  Users, // Added for View Members
+  Users, 
 } from "lucide-react";
+import ViewMembers from "../../groups/ViewMembers";
+import { selectIsAuthenticated } from "../../../redux/slice/authSlice";
 
 const AdminGroupCard = ({ group, onModerate, onViewMembers }) => {
   const isActive = group.status === "active";
-
+  const isAuth = useSelector(selectIsAuthenticated);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <div
       className={`bg-white rounded-2xl border-2 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group flex flex-col ${
@@ -83,13 +86,13 @@ const AdminGroupCard = ({ group, onModerate, onViewMembers }) => {
           </div>
         </div>
 
-        {/* View Members Button (Full Width) */}
         <button
-          onClick={() => onViewMembers(group)}
-          className="mt-4 flex items-center justify-center gap-2 w-full py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition-colors border border-slate-200"
-        >
-          <Users size={14} /> View Members
-        </button>
+            disabled={!isAuth}
+            onClick={() => setIsModalOpen(true)}
+            className={`${isAuth ? "cursor-pointer" : "cursor-not-allowed"} flex-1 border border-primary text-primary rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors text-sm`}
+          >
+            View <Users className="w-4 h-4" />
+          </button>
 
         {/* Actions (Block/Unblock) */}
         <div className="mt-3 grid grid-cols-2 gap-3">
@@ -117,6 +120,13 @@ const AdminGroupCard = ({ group, onModerate, onViewMembers }) => {
           </button>
         </div>
       </div>
+       {isModalOpen && (
+        <ViewMembers
+          group={group}
+          setIsModalOpen={setIsModalOpen}
+          isOwner={isOwner}
+        />
+      )}
     </div>
   );
 };
