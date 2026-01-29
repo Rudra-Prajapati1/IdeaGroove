@@ -17,6 +17,7 @@ import Controls from "../components/Controls";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
 import { toast } from "react-hot-toast";
+import ActionButton from "../components/ActionButton";
 
 const Events = () => {
   const navigate = useNavigate();
@@ -71,14 +72,13 @@ const Events = () => {
               Past: "past",
             }}
           />
-          <button
+          <ActionButton
+            label="Upload Events"
+            icon={UploadIcon}
             disabled={!isAuth}
-            onClick={() => setAddEvent(!addEvent)}
-            className={`${!isAuth && "cursor-not-allowed"} flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm`}
-          >
-            <UploadIcon className="w-4 h-4" />
-            Upload Events
-          </button>
+            disabledMessage="Please login to upload an event"
+            onClick={() => setAddEvent(true)}
+          />
         </div>
 
         {/* Status Messages */}

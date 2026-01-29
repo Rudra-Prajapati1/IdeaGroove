@@ -7,6 +7,11 @@ import {
   Edit2,
   Trash2,
 } from "lucide-react";
+import ComplaintButton from "../ComplaintButton";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { selectIsAuthenticated } from "../../redux/slice/authSlice";
+import toast from "react-hot-toast";
 
 const NotesCard = ({
   note,
@@ -18,13 +23,11 @@ const NotesCard = ({
   onEdit,
   onDelete,
 }) => {
+  const navigate = useNavigate();
   const NoteIcon = style.icon;
 
-  // Check ownership using the passed currentUserId
-  // Ensure types match (e.g., both numbers or strings)
-  const isOwner = Number(note.Added_By) === Number(currentUserId);
+  const isOwner = isAuth && Number(note.Added_By) === Number(currentUserId);
 
-  // Date Formatting Helper
   const formattedDate = note.Added_On
     ? new Date(note.Added_On).toLocaleDateString("en-IN", {
         day: "2-digit",
@@ -39,40 +42,31 @@ const NotesCard = ({
       <div
         className={`${style.color} h-32 relative p-4 transition-colors duration-300`}
       >
-        {/* Report Button */}
-        {!isOwner && (
+        {!isAuth && !isOwner && (
           <div className="absolute top-4 left-4 z-10">
-            <button
-              onClick={(e) => onReport(e, note.N_ID)}
-              className="p-2 bg-red-400 hover:bg-red-500 text-white backdrop-blur-md rounded-full transition-all duration-300"
-              title="Report note"
-            >
-              <AlertTriangle className="w-4 h-4" />
-            </button>
+            <ComplaintButton
+              onClick={() => navigate(`/submit/notes/${note.N_ID}`)}
+              element="notes"
+            />
           </div>
         )}
 
-        {/* Subject Badge */}
         <div className="absolute top-4 right-4 bg-black/20 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 z-10">
           <span className="text-[10px] font-bold text-white tracking-wide uppercase">
             {note.Subject || "General"}
           </span>
         </div>
 
-        {/* Watermark Icon */}
         <div className="w-full h-full flex items-center justify-center">
           <NoteIcon className="w-16 h-16 text-white opacity-25 group-hover:scale-110 transition-transform duration-500" />
         </div>
       </div>
 
-      {/* --- BODY --- */}
       <div className="p-5 flex flex-col flex-1">
-        {/* Title */}
         <h3 className="text-lg font-bold text-slate-800 mb-2 leading-tight truncate">
           {note.Note_File || note.title || "Untitled Note"}
         </h3>
 
-        {/* Metadata: Added By & Added On */}
         <div className="flex flex-wrap gap-y-1 gap-x-4 mb-3 text-xs text-slate-500 border-b border-slate-100 pb-3">
           <div className="flex items-center gap-1.5">
             <User className="w-3.5 h-3.5 text-slate-400" />
@@ -86,17 +80,23 @@ const NotesCard = ({
           </div>
         </div>
 
-        {/* Description */}
         <p className="text-slate-500 text-sm line-clamp-3 mb-4 flex-1">
           {note.Description || "No description provided."}
         </p>
 
-        {/* --- FOOTER --- */}
         <div className="flex items-center gap-2 mt-auto pt-4 border-t border-slate-50">
-          {/* Download Button */}
           <button
-            onClick={() => onDownload(note.File_Path)}
-            disabled={!isAuth}
+            onClick={(e) => {
+              e.stopPropagation();
+
+              if (!isAuth) {
+                toast.error("Please login to download the notes");
+                return;
+              }
+
+              onDownload(note.File_Path);
+            }}
+            // disabled={!isAuth}
             className={`${
               isAuth
                 ? "hover:bg-slate-800 cursor-pointer"
@@ -107,8 +107,7 @@ const NotesCard = ({
             Download
           </button>
 
-          {/* Edit & Delete Buttons (Visible to Owner) */}
-          {isOwner && (
+          {isAuth && isOwner && (
             <div className="flex gap-2">
               <button
                 onClick={() => onEdit(note.N_ID)}

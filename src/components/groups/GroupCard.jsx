@@ -16,17 +16,14 @@ import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 import { useNavigate } from "react-router-dom";
 import ViewMembers from "./ViewMembers";
+import ComplaintButton from "../ComplaintButton";
+import toast from "react-hot-toast";
 
 const GroupCard = ({ group }) => {
   const isAuth = useSelector(selectIsAuthenticated);
   const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleReportClick = (e) => {
-    e.stopPropagation();
-    navigate(`/submitComplaint/group/${group.G_ID}`);
-  };
 
   const getBadgeColor = (category) => {
     const colors = {
@@ -46,9 +43,16 @@ const GroupCard = ({ group }) => {
   }
   const isOwner = group.Created_By === MOCK_CURRENT_USER_ID;
 
+  const formattedDate = group.Created_On
+    ? new Date(group.Created_On).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "Recently created";
+
   return (
     <>
-      {/* --- MAIN CARD --- */}
       <div className="relative bg-white border border-gray-100 shadow-md rounded-2xl p-6 w-full max-w-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
         <div className="absolute top-4 right-4 flex items-center gap-3">
           <span
@@ -57,12 +61,10 @@ const GroupCard = ({ group }) => {
             {group.Based_On}
           </span>
           {!isOwner && (
-            <button
-              onClick={handleReportClick}
-              className="relative p-2 bg-red-400 hover:bg-red-500 text-white rounded-full transition-all"
-            >
-              <AlertTriangle className="w-4 h-4" />
-            </button>
+            <ComplaintButton
+              onClick={() => navigate(`/submitComplaint/group/${group.G_ID}`)}
+              element="group"
+            />
           )}
         </div>
 
@@ -78,12 +80,20 @@ const GroupCard = ({ group }) => {
           <h3 className="font-bold font-poppins text-xl text-gray-900 mb-1">
             {group.Room_Name}
           </h3>
-          <div className="flex items-center gap-1.5 text-gray-400 text-sm mb-3">
-            <Users className="w-4 h-4" />
-            <span className="font-medium">
-              {group.Member_Count || "0"} Members
-            </span>
+          <div className="space-y-1 mb-3">
+            <div className="flex items-center gap-1.5 text-gray-400 text-sm">
+              <Users className="w-4 h-4" />
+              <span className="font-medium">
+                {group.Member_Count || "0"} Members
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-gray-400 text-xs">
+              <Info className="w-3.5 h-3.5" />
+              <span>Created on {formattedDate}</span>
+            </div>
           </div>
+
           <p className="text-gray-500 text-sm leading-relaxed line-clamp-2 min-h-10">
             {group.Description ||
               "Exploring data structures and creative collaborations..."}
@@ -92,9 +102,9 @@ const GroupCard = ({ group }) => {
 
         <div className="flex gap-3 h-10">
           <button
-            disabled={!isAuth}
+            // disabled={!isAuth}
             onClick={() => setIsModalOpen(true)}
-            className={`${isAuth ? "cursor-pointer" : "cursor-not-allowed"} flex-1 border border-primary text-primary rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors text-sm`}
+            className={`flex-1 border cursor-pointer border-primary text-primary rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors text-sm`}
           >
             View <Eye className="w-4 h-4" />
           </button>
@@ -110,7 +120,17 @@ const GroupCard = ({ group }) => {
             </>
           ) : (
             <button
-              disabled={!isAuth}
+              onClick={(e) => {
+                e.stopPropagation();
+
+                if (!isAuth) {
+                  toast.error("Please login to join the group");
+                  return;
+                }
+
+                toast.success("You have successfully joined the group");
+                navigate("/chats");
+              }}
               className={`${isAuth ? "cursor-pointer" : "cursor-not-allowed"} flex-1 bg-primary text-white rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-[#153416] transition-colors text-sm`}
             >
               Join <UserPlus className="w-4 h-4" />
@@ -119,7 +139,6 @@ const GroupCard = ({ group }) => {
         </div>
       </div>
 
-      {/* --- EXPANDED VIEW MODAL --- */}
       {isModalOpen && (
         <ViewMembers
           group={group}

@@ -17,6 +17,7 @@ const Notes = () => {
   const notes = useSelector(selectAllNotes);
   const notesStatus = useSelector(selectNotesStatus);
   const notesError = useSelector(selectNotesError);
+  console.table(notes);
 
   useEffect(() => {
     if (notesStatus === "idle") {
@@ -28,7 +29,7 @@ const Notes = () => {
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
       <PageHeader title="Notes" />
 
-      <div className="mx-auto px-6 relative z-30 mt-35">
+      <div className="mx-auto px-6 relative z-30 mt-10">
         <NotesSection notes={notes} status={notesStatus} error={notesError} />
       </div>
     </div>

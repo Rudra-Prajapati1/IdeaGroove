@@ -1,12 +1,8 @@
 import React, { useState } from "react";
-import {
-  MessageSquare,
-  Send,
-  Edit2,
-  Trash2,
-  AlertTriangle,
-} from "lucide-react";
+import { MessageSquare, Send, Edit2, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import ComplaintButton from "../ComplaintButton";
+import toast from "react-hot-toast";
 
 const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
   const navigate = useNavigate();
@@ -17,19 +13,21 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
   // Safe check for undefined post
   if (!post) return null;
 
-  // 1. Check Ownership (using 'author' which matches your mock data)
   const isOwner = post.id === currentUser;
+
+  const askedDate = post.askedOn
+    ? new Date(post.askedOn).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
 
   const handleToggle = () => setIsExpanded(!isExpanded);
 
   const handleSubmitAnswer = () => {
     console.log(`Answer to Post ${post.id}:`, answerText);
     setAnswerText("");
-  };
-
-  const handleReportClick = (e) => {
-    e.stopPropagation();
-    navigate(`/submitComplaint/qna/${post.id}`);
   };
 
   // 2. Safe Access Helpers
@@ -53,11 +51,10 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
               {authorName}
             </span>
             <span className="text-xs text-slate-400">
-              • {post.time || "Just now"}
+              • Asked on {askedDate || "Just now"}
             </span>
           </div>
 
-          {/* Actions: Subject Badge + Edit/Delete */}
           <div className="flex items-center gap-3">
             {post.subject && (
               <span className="px-2 py-1 bg-green-50 text-green-700 text-[10px] font-bold uppercase rounded-md border border-green-100">
@@ -83,22 +80,17 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
                 </button>
               </div>
             ) : (
-              <button
-                onClick={handleReportClick}
-                className="p-2 bg-red-400 hover:bg-red-500 text-white backdrop-blur-md rounded-full transition-all duration-300"
-                title="Report QnA"
-              >
-                <AlertTriangle className="w-4 h-4" />
-              </button>
+              <ComplaintButton
+                onClick={() => navigate(`/submitComplaint/qna/${post.id}`)}
+                element="question"
+              />
             )}
           </div>
         </div>
 
-        {/* Title & Excerpt */}
         <h3 className="text-lg font-bold text-slate-800 mb-2">{post.title}</h3>
         <p className="text-slate-600 text-sm mb-4">{post.excerpt}</p>
 
-        {/* Footer: Answer Count & Toggle */}
         <div className="flex items-center justify-between pt-4 border-t border-slate-50">
           <div className="flex gap-4">
             <div className="flex items-center gap-1 text-slate-500 text-xs">
@@ -106,8 +98,17 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
             </div>
           </div>
           <button
-            disabled={!isAuth}
-            onClick={handleToggle}
+            // disabled={!isAuth}
+            onClick={(e) => {
+              e.stopPropagation();
+
+              if (!isAuth) {
+                toast.error("Please login to view the answers");
+                return;
+              }
+
+              handleToggle();
+            }}
             className={`${!isAuth && "cursor-not-allowed"} text-green-600 text-sm font-semibold hover:underline`}
           >
             {isExpanded ? "Hide Answers" : "View Answers"}
