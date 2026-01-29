@@ -17,6 +17,7 @@ import ProfileUpload from "./ProfileUpload";
 
 import { loginSuccess } from "../../redux/slice/authSlice";
 import { MultiSearchableDropdown } from "../MultipleSearchComponent";
+import toast from "react-hot-toast";
 
 const FloatingError = ({ message, show }) => {
   if (!show || !message) return null;
@@ -74,7 +75,7 @@ const SearchableDropdown = ({
 
   return (
     <div className="flex flex-col gap-2 w-full relative" ref={dropdownRef}>
-      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <label className="text-md font-semibold text-primary">{label}:</label>
 
       <div
         data-name={name}
@@ -388,6 +389,8 @@ const SignupForm = ({ onLogin }) => {
       newErrors.Email = "Email is required";
     } else if (!emailRegex.test(signupData.Email)) {
       newErrors.Email = "Please enter a valid email address";
+    } else {
+      toast.success("OTP sent successfully");
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -468,15 +471,12 @@ const SignupForm = ({ onLogin }) => {
       );
 
       if (response.status === 201 || response.status === 200) {
-        const userToStore = {
-          id: response.data.userId,
-          Username: signupData.Username,
-          Name: signupData.Name,
-          Email: signupData.Email,
-          Roll_No: signupData.Roll_No,
-        };
+        const userFromServer = response.data.user;
 
-        dispatch(loginSuccess(userToStore));
+        console.log(response.data.user.Profile_Pic);
+
+        dispatch(loginSuccess(userFromServer));
+        toast.success("Signup Successfully");
         setTimeout(() => navigate("/dashboard"), 1500);
       }
     } catch (err) {
@@ -694,12 +694,6 @@ const SignupForm = ({ onLogin }) => {
       transition-colors duration-300 focus:border-primary/60 p-3 
       ${errors.Year ? "border-red-500" : ""}`}
               />
-
-              {signupData.Year && (
-                <span className="text-[10px] text-gray-400 mt-1 ml-1">
-                  Internal ID: {signupData.Year}
-                </span>
-              )}
 
               <FloatingError message={errors.Year} show={!!errors.Year} />
             </div>

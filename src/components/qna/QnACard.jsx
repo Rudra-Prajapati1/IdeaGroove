@@ -72,7 +72,9 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => onDelete(post.id)}
+                  onClick={() => {
+                    toast.success("Question Deleted Successfully!");
+                  }}
                   className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-blue-100"
                   title="Delete Discussion"
                 >

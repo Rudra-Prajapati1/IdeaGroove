@@ -4,10 +4,10 @@ import { useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
 import { createPortal } from "react-dom";
 
-const AddEventOverlay = ({ onClose, onUpload }) => {
+const AddEventOverlay = ({ onClose, onUpload, initialData }) => {
   const { user } = useSelector((state) => state.auth);
   const fileInputRef = useRef(null);
-
+  const isEditMode = !!initialData;
   const [formData, setFormData] = useState({
     Description: "",
     Event_Date: "",
@@ -115,9 +115,14 @@ const AddEventOverlay = ({ onClose, onUpload }) => {
     submissionData.append("Added_On", new Date().toISOString());
     submissionData.append("Is_Active", 1);
 
+    if (isEditMode) {
+      submissionData.append("E_ID", initialData.E_ID);
+    }
     setTimeout(() => {
       setLoading(false);
-      toast.success("Event posted successfully 🎉");
+      toast.success(
+        isEditMode ? "Event updated successfully" : "Event posted successfully",
+      );
       onUpload ? onUpload(submissionData) : console.log("Uploaded:", formData);
       onClose();
     }, 1500);
@@ -135,7 +140,7 @@ const AddEventOverlay = ({ onClose, onUpload }) => {
         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 sticky top-0 z-10">
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-green-600" />
-            Create New Event
+            {isEditMode ? "Edit Event Details" : "Create New Event"}
           </h2>
           <button
             onClick={onClose}
@@ -268,11 +273,9 @@ const AddEventOverlay = ({ onClose, onUpload }) => {
             className="flex-1 px-4 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex justify-center items-center gap-2 shadow-lg shadow-green-900/10"
           >
             {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Publishing...
-              </>
+              <>{isEditMode ? "Updating..." : "Publishing..."}</>
             ) : (
-              "Publish Event"
+              <>{isEditMode ? "Save Changes" : "Publish Event"}</>
             )}
           </button>
         </div>

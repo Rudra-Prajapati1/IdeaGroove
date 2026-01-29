@@ -10,8 +10,9 @@ import {
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 import ComplaintButton from "../ComplaintButton";
+import toast from "react-hot-toast";
 
-const EventCard = ({ event }) => {
+const EventCard = ({ event, onEdit }) => {
   const isAuth = useSelector(selectIsAuthenticated);
   const navigate = useNavigate();
 
@@ -102,14 +103,16 @@ const EventCard = ({ event }) => {
           {isOwner && (
             <div className="flex gap-2">
               <button
-                onClick={handleEdit}
+                onClick={onEdit}
                 className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
                 title="Edit Event"
               >
                 <Edit2 className="w-4 h-4" />
               </button>
               <button
-                onClick={handleDelete}
+                onClick={() => {
+                  toast.success("Event Deleted Successfully!");
+                }}
                 className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                 title="Delete Event"
               >

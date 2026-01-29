@@ -203,9 +203,6 @@ const ActivitySection = () => {
     }
   }, [groupsStatus, dispatch]);
 
-  console.log(filteredGroups);
-  console.log(groups);
-
   const questions = useSelector(selectAllQuestions);
   const questionsStatus = useSelector(selectQuestionsStatus);
   const answerStatus = useSelector(selectAnswersStatus);

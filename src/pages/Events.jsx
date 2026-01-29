@@ -28,7 +28,7 @@ const Events = () => {
   const [addEvent, setAddEvent] = useState(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
-
+  const [editingEvent, setEditingEvent] = useState(null);
   const events = useSelector(selectAllEvents);
   const status = useSelector(selectEventsStatus);
   const error = useSelector(selectEventsError);
@@ -56,7 +56,20 @@ const Events = () => {
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
       <PageHeader title="Events" />
+
+      {(addEvent || editingEvent) && (
+        <AddEventOverlay
+          onClose={() => {
+            setAddEvent(false);
+            setEditingEvent(null);
+          }}
+          initialData={editingEvent} // Pass the event being edited
+        />
+      )}
+      {/* Controls Section (Search & Filter) */}
+
       {addEvent && <AddEventOverlay onClose={() => setAddEvent(false)} />}
+
 
       <div className="max-w-6xl  mx-auto px-6 relative z-30 mt-10">
         <div className="flex justify-between items-center">
@@ -103,7 +116,11 @@ const Events = () => {
           {status === "succeeded" && filteredEvents.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredEvents.map((event) => (
-                <EventCard key={event.E_ID} event={event} />
+                <EventCard
+                  key={event.E_ID}
+                  event={event}
+                  onEdit={() => setEditingEvent(event)}
+                />
               ))}
             </div>
           )}
