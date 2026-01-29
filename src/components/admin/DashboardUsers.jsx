@@ -12,10 +12,11 @@ const DashboardUsers = ({
     return users.filter((user) => {
       const s = searchTerm.toLowerCase();
       const matchesSearch =
-        user.name.toLowerCase().includes(s) ||
-        user.email.toLowerCase().includes(s) ||
-        user.username.toLowerCase().includes(s) ||
-        user.rollNo.toLowerCase().includes(s);
+        !s ||
+        user.name?.toLowerCase().includes(s) ||
+        user.email?.toLowerCase().includes(s) ||
+        user.username?.toLowerCase().includes(s) ||
+        user.rollNo?.toLowerCase().includes(s);
 
       const matchesDegree =
         filterDegree === "all" || user.degree === filterDegree;
@@ -40,11 +41,7 @@ const DashboardUsers = ({
         <div className="flex flex-col gap-6">
           {filteredUsers.length > 0 ? (
             filteredUsers.map((user) => (
-              <UserCard
-                key={user.id}
-                user={user}
-                onModerate={onModerate} // Pass trigger function down
-              />
+              <UserCard key={user.id} user={user} onModerate={onModerate} />
             ))
           ) : (
             <div className="py-20 text-center flex flex-col items-center gap-2">
