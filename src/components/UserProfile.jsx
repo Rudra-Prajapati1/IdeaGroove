@@ -45,7 +45,7 @@ const UserProfile = () => {
         {users.map((user) => (
           <div
             key={user.S_ID}
-            className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center transition-all hover:shadow-md hover:-translate-y-1"
+            className="bg-white rounded-4xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center transition-all hover:shadow-md hover:-translate-y-1"
           >
             <div className="relative mb-4">
               <div className="w-20 h-20 rounded-full overflow-hidden bg-slate-100 border-2 border-white shadow-sm flex items-center justify-center">
@@ -56,7 +56,7 @@ const UserProfile = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-2xl font-bold text-primary">
+                  <span className="text-2xl font-bold text-primary capitalize">
                     {user.Name[0]}
                   </span>
                 )}
@@ -66,7 +66,7 @@ const UserProfile = () => {
               ></span>
             </div>
 
-            <h2 className="text-lg font-bold text-slate-800 mb-1">
+            <h2 className="text-lg font-bold text-slate-800 mb-1 capitalize">
               {user.Name}
             </h2>
             <p className="text-xs font-bold text-[#2D4F33] mb-4 uppercase tracking-wide">
@@ -75,7 +75,7 @@ const UserProfile = () => {
 
             {/* Link to the Dynamic Profile Dashboard */}
             <Link
-              to={`/profile/${user.S_ID}`}
+              to={`/dashboard/${user.S_ID}`}
               className="w-full bg-[#1A3C20] hover:bg-[#2D4F33] text-white py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm font-bold transition-colors shadow-lg"
             >
               <UserPlus size={16} />

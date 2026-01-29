@@ -1,8 +1,9 @@
 import React from "react";
 import { useSelector } from "react-redux";
 
-const HeroSection = () => {
-  const { user } = useSelector((state) => state.auth);
+const HeroSection = ({ user, isPublic = false }) => {
+  const displayName = user?.Name || "Explorer";
+  const userInitial = displayName.charAt(0);
 
   return (
     <section className="relative bg-linear-to-br from-[#1B431C] via-[#235324] to-[#153416] min-h-[500px] flex flex-col justify-center overflow-hidden">
@@ -14,16 +15,18 @@ const HeroSection = () => {
         {/* Text Content */}
         <div className="text-white flex-1 text-center md:text-left">
           <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 text-green-200 text-sm font-medium mb-6 backdrop-blur-sm border border-white/10">
-            Personal Dashboard
+            {isPublic ? "Public Profile" : "Personal Dashboard"}
           </span>
           <h1 className="capitalize text-5xl lg:text-7xl font-extrabold mb-6 leading-tight tracking-tight">
-            <span className="text-5xl"> Hi, </span>
-            <span className="text-green-300">{user?.Name || "Explorer"}</span>
+            <span className="text-5xl">{isPublic ? "Meet," : "Hi,"}</span>
+            <span className="text-green-300"> {displayName}</span>
           </h1>
 
           <div className="space-y-2">
             <p className="text-xl lg:text-2xl font-light opacity-90 leading-relaxed">
-              Welcome to your collective space.
+              {isPublic
+                ? "Explore their contributions."
+                : "Welcome to your collective space."}
             </p>
             <p className="text-lg lg:text-xl font-light opacity-80 italic">
               This is your hub to share and grow.
@@ -44,7 +47,7 @@ const HeroSection = () => {
             ) : (
               <div>
                 <p className="w-48 h-48 lg:w-60 lg:h-60 rounded-full bg-green-500 flex items-center justify-center text-white text-7xl lg:text-8xl font-bold uppercase shadow-xl transition-all duration-500 hover:scale-105">
-                  {user?.Name?.charAt(0)}
+                  {userInitial}
                 </p>
               </div>
             )}

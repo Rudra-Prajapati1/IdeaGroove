@@ -25,6 +25,7 @@ const UserRoutes = (
     <Route path="notes" element={<Notes />} />
     <Route path="qna" element={<QnA />} />
     <Route path="dashboard" element={<Dashboard />} />
+    <Route path="dashboard/:id" element={<Dashboard />} />
     <Route path="auth" element={<Auth />} />
     <Route path="profile" element={<ProfileInformation />} />
     <Route path="complaintDashboard" element={<ComplaintDashboard />} />

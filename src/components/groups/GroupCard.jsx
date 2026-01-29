@@ -55,11 +55,6 @@ const GroupCard = ({ group }) => {
     <>
       <div className="relative bg-white border border-gray-100 shadow-md rounded-2xl p-6 w-full max-w-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
         <div className="absolute top-4 right-4 flex items-center gap-3">
-          <span
-            className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${getBadgeColor(group.Based_On)}`}
-          >
-            {group.Based_On}
-          </span>
           {!isOwner && (
             <ComplaintButton
               onClick={() => navigate(`/submitComplaint/group/${group.G_ID}`)}
@@ -84,7 +79,7 @@ const GroupCard = ({ group }) => {
             <div className="flex items-center gap-1.5 text-gray-400 text-sm">
               <Users className="w-4 h-4" />
               <span className="font-medium">
-                {group.Member_Count || "0"} Members
+                {group.Member_Count || "12"} Members
               </span>
             </div>
 

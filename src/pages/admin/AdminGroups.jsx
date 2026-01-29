@@ -86,7 +86,7 @@ export const groupsStats = [
   {
     title: "Inactive Groups",
     value: "38",
-    infoText: "No recent activity",
+    infoText: "Blocked & Deleted",
     color: "red",
     type: "blocked",
   },
