@@ -11,13 +11,12 @@ import {
   AlertTriangle, // Added for Warning
   X,
 } from "lucide-react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import defaultProfilePic from "/DarkLogo.png";
 
 const ProfileInformation = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   // State for the Delete Confirmation Modal
@@ -36,6 +35,16 @@ const ProfileInformation = () => {
     console.log("Account Deleting...");
     setIsModalOpen(false);
     // navigate("/auth");
+  };
+
+  const formatBatchYear = (yearId) => {
+    if (!yearId || yearId.toString().length !== 4) return yearId || "N/A";
+
+    const yearStr = yearId.toString();
+    const startYear = `20${yearStr.substring(0, 2)}`;
+    const endYear = `20${yearStr.substring(2, 4)}`;
+
+    return `${startYear}-${endYear}`;
   };
 
   const infoFields = [
@@ -62,7 +71,7 @@ const ProfileInformation = () => {
     },
     {
       label: "COLLEGE YEAR",
-      value: user?.Year || 2026,
+      value: formatBatchYear(user?.Year),
       icon: <Calendar size={16} />,
     },
   ];

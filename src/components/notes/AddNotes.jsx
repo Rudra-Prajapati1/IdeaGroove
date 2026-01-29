@@ -128,7 +128,7 @@ const AddNotes = ({ onClose, onUpload }) => {
 
     setTimeout(() => {
       setLoading(false);
-      toast.success("Notes uploaded successfully 📄");
+      toast.success("Notes uploaded successfully");
       onUpload(submissionData);
       onClose();
     }, 1500);

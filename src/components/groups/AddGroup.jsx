@@ -58,7 +58,7 @@ const AddGroupOverlay = ({ onClose, onUpload }) => {
 
     setTimeout(() => {
       setLoading(false);
-      toast.success("Group created successfully 🎉");
+      toast.success("Group created successfully");
       onUpload?.(submissionData);
       onClose();
     }, 1500);
