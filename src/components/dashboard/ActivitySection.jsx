@@ -175,7 +175,6 @@ const ActivitySection = () => {
 
   const filteredGroups = groups
     .filter((group) => {
-      // Assuming 'Admin_ID' or 'author' is the key for the group creator
       const isOwnerGroup = group.Created_By === MOCK_CURRENT_USER_ID;
       if (!isOwnerGroup) return false;
 
@@ -234,7 +233,6 @@ const ActivitySection = () => {
     }
   }, [notesStatus, dispatch]);
 
-  // QnA Filter (Filtering the questions array before passing it)
   const ownedQuestions = MOCK_DISCUSSIONS.filter(
     (q) => q.id === MOCK_CURRENT_USER_ID_QUESTION,
   );

@@ -5,6 +5,7 @@ import AskQuestionModal from "../qna/AskQuestion";
 import QnACard from "../qna/QnACard"; // ✅ Import the new component
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice";
+import ActionButton from "../ActionButton";
 
 const DiscussionForum = ({ MOCK_DISCUSSIONS, DEGREE_SUBJECTS }) => {
   const isAuth = useSelector(selectIsAuthenticated);
@@ -32,7 +33,6 @@ const DiscussionForum = ({ MOCK_DISCUSSIONS, DEGREE_SUBJECTS }) => {
     }
   };
 
-  // Filter Logic
   const filteredDiscussions = MOCK_DISCUSSIONS.filter((post) => {
     if (selectedDegree && post.degree !== selectedDegree) return false;
     if (selectedSubject && post.subject !== selectedSubject) return false;
@@ -42,6 +42,19 @@ const DiscussionForum = ({ MOCK_DISCUSSIONS, DEGREE_SUBJECTS }) => {
       post.excerpt.toLowerCase().includes(search.toLowerCase());
 
     return matchesSearch;
+  }).sort((a, b) => {
+    const dateA = new Date(a.askedOn);
+    const dateB = new Date(b.askedOn);
+
+    if (filter === "newest_to_oldest") {
+      return dateB - dateA;
+    }
+
+    if (filter === "oldest_to_newest") {
+      return dateA - dateB;
+    }
+
+    return 0; // "all"
   });
 
   return (
@@ -69,14 +82,13 @@ const DiscussionForum = ({ MOCK_DISCUSSIONS, DEGREE_SUBJECTS }) => {
               "Oldest to Newest": "oldest_to_newest",
             }}
           />
-          <button
+          <ActionButton
+            label="Ask Question"
+            icon={Plus}
             disabled={!isAuth}
+            disabledMessage="Please login to ask a question"
             onClick={() => setShowAskModal(true)}
-            className={`${!isAuth && "cursor-not-allowed"} flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm`}
-          >
-            <Plus className="w-4 h-4" />
-            Ask Question
-          </button>
+          />
         </div>
       </div>
 

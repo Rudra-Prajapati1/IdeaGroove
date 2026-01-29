@@ -19,17 +19,10 @@ const ViewMembers = ({ group, setIsModalOpen, isOwner }) => {
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 max-h-[80vh] flex flex-col font-inter">
         {/* Modal Header: Image + Basic Info */}
         <div className="bg-white p-8 text-[#0D2E0E] relative">
-          {/* <button
-            onClick={() => setIsModalOpen(false)}
-            className="absolute top-6 right-6 text-white/70 hover:text-white transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button> */}
-
           <div className="flex items-center gap-5">
             <img
               src={group_temp_image}

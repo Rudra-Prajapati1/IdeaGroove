@@ -13,6 +13,7 @@ import { ArrowLeft, LucideGroup } from "lucide-react";
 import Controls from "../components/Controls";
 import { selectIsAuthenticated } from "../redux/slice/authSlice";
 import PageHeader from "../components/PageHeader";
+import ActionButton from "../components/ActionButton";
 
 const Groups = () => {
   const isAuth = useSelector(selectIsAuthenticated);
@@ -25,18 +26,24 @@ const Groups = () => {
   const groupsStatus = useSelector(selectChatRoomStatus);
   const groupsError = useSelector(selectChatRoomError);
 
-  const filteredGroups = groups.filter((group) => {
-    const groupDate = new Date(group.Created_On);
-    const today = new Date();
+  const filteredGroups = groups
+    .filter((group) => {
+      return group?.Room_Name?.toLowerCase().includes(search.toLowerCase());
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.Created_On);
+      const dateB = new Date(b.Created_On);
 
-    const matchesSearch =
-      group?.Room_Name.toLowerCase().includes(search.toLowerCase()) ?? false;
+      if (filter === "newest_to_oldest") {
+        return dateB - dateA;
+      }
 
-    if (filter === "upcoming" && groupDate < today) return false;
-    if (filter === "past" && groupDate >= today) return false;
+      if (filter === "oldest_to_newest") {
+        return dateA - dateB;
+      }
 
-    return matchesSearch;
-  });
+      return 0; // "all"
+    });
 
   useEffect(() => {
     if (groupsStatus === "idle") {
@@ -62,14 +69,13 @@ const Groups = () => {
               "Oldest to Newest": "oldest_to_newest",
             }}
           />
-          <button
+          <ActionButton
+            label="Create Group"
+            icon={LucideGroup}
             disabled={!isAuth}
-            onClick={() => setAddGroup(!addGroup)}
-            className={`${!isAuth ? "cursor-not-allowed" : "cursor-pointer"} flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm`}
-          >
-            <LucideGroup className="w-4 h-4" />
-            Create Group
-          </button>
+            disabledMessage="Please login to create a group"
+            onClick={() => setAddGroup(true)}
+          />
         </div>
         <div className="max-w-7xl m-auto mt-12 px-12 py-12 rounded-2xl">
           <div>

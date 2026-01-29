@@ -2,7 +2,6 @@ import React from "react";
 import event_temp_image from "/images/events_temp_image.jpg";
 import { useNavigate } from "react-router-dom";
 import {
-  AlertTriangle,
   Clock,
   MapPin,
   Edit2, // Import Edit Icon
@@ -10,15 +9,16 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice";
+import ComplaintButton from "../ComplaintButton";
 
 const EventCard = ({ event }) => {
   const isAuth = useSelector(selectIsAuthenticated);
   const navigate = useNavigate();
 
-  const handleReportClick = (e) => {
-    e.stopPropagation();
-    navigate(`/submitComplaint/event/${event.E_ID}`);
-  };
+  // const handleReportClick = (e) => {
+  //   e.stopPropagation();
+  //   navigate(`/submitComplaint/event/${event.E_ID}`);
+  // };
 
   // Date formatting for the Badge
   const dateObj = new Date(event.Event_Date);
@@ -32,13 +32,11 @@ const EventCard = ({ event }) => {
     MOCK_CURRENT_USER_ID = 104;
   }
 
-  // NOTE: Ensure data types match (e.g., if Added_By is string "1", convert types)
   const isOwner = event.Added_By === MOCK_CURRENT_USER_ID;
 
   const handleEdit = (e) => {
     e.stopPropagation();
     console.log("Edit Event:", event.E_ID);
-    // navigate(`/admin/events/edit/${event.E_ID}`);
   };
 
   const handleDelete = (e) => {
@@ -51,7 +49,6 @@ const EventCard = ({ event }) => {
 
   return (
     <div className="group bg-white rounded-3xl overflow-hidden flex flex-col w-full max-w-[20rem] mx-auto transition-all duration-300 shadow-md hover:shadow-xl border border-gray-300">
-      {/* 1. Image Section with Floating Date Badge */}
       <div className="relative h-64 w-full overflow-hidden">
         <img
           src={event_temp_image}
@@ -59,8 +56,7 @@ const EventCard = ({ event }) => {
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
 
-        {/* Date Badge */}
-        <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-xl p-2 min-w-[3.5rem] flex flex-col items-center shadow-md border border-white/20">
+        <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-xl p-2 min-w-14 flex flex-col items-center shadow-md border border-white/20">
           <span className="text-[10px] font-bold text-green-600 tracking-wider leading-none">
             {month}
           </span>
@@ -70,18 +66,16 @@ const EventCard = ({ event }) => {
         </div>
 
         {!isOwner && (
-          <button
-            onClick={handleReportClick}
-            className="absolute top-4 right-4 p-2 bg-red-400 hover:bg-red-500 text-white backdrop-blur-md rounded-full transition-all duration-300"
-            title="Report Event"
-          >
-            <AlertTriangle className="w-4 h-4" />
-          </button>
+          <ComplaintButton
+            onClick={() => navigate(`/submitComplaint/event/${event.E_ID}`)}
+            className="absolute top-4 right-4"
+            element="event"
+          />
         )}
       </div>
 
       {/* 2. Content Section */}
-      <div className="p-5 flex flex-col justify-between flex-grow">
+      <div className="p-5 flex flex-col justify-between grow">
         <div>
           <h2 className="text-xl font-bold text-gray-900 line-clamp-2 mb-4 font-poppins">
             {event.Description || "Description not available"}
