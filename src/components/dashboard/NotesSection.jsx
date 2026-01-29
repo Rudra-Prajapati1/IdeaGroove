@@ -18,8 +18,6 @@ import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 import ActionButton from "../ActionButton";
 import AddNotes from "../notes/AddNotes";
 
-/* ---------------- MOCK DATA ---------------- */
-
 const DEGREE_SUBJECTS = {
   "Computer Science": ["DBMS", "React", "Java", "Web Development"],
   Engineering: [
@@ -113,7 +111,6 @@ const NotesSection = () => {
           onClose={() => setShowAddNotes(false)}
           onUpload={(formData) => {
             console.log("Notes upload payload:", formData);
-            // later → dispatch(uploadNotes(formData))
           }}
         />
       )}
@@ -135,7 +132,7 @@ const NotesSection = () => {
           <ActionButton
             label="Upload Notes"
             icon={Upload}
-            disabled={!isAuth}
+            // disabled={!isAuth}
             disabledMessage="Please login to upload notes"
             onClick={() => setShowAddNotes(true)}
           />

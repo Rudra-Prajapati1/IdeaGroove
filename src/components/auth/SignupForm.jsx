@@ -23,8 +23,8 @@ const FloatingError = ({ message, show }) => {
 
   return (
     <div className="mt-1 animate-slideDown">
-      <div className="bg-red-50 border border-red-200 rounded-lg px-2 py-1 flex items-start gap-2 max-w-xs">
-        <AlertCircle className="w-3 h-3 text-red-500 shrink-0 mt-[1px]" />
+      <div className="rounded-lg px-2 py-1 flex items-start gap-2 max-w-xs">
+        <AlertCircle className="w-3 h-3 text-red-500 shrink-0 mt-px" />
         <span className="text-[0.7rem] text-red-600 leading-tight">
           {message}
         </span>
@@ -199,7 +199,6 @@ const SignupForm = ({ onLogin }) => {
     },
   ];
 
-  // --- FETCH COLLEGES & DEGREES ---
   useEffect(() => {
     const fetchResources = async () => {
       try {
@@ -523,7 +522,7 @@ const SignupForm = ({ onLogin }) => {
           <SectionWrapper title="Personal Details">
             <div>
               <div className="flex gap-12 items-center">
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col ">
                   <div className="relative">
                     <Input
                       label="Username"
@@ -567,7 +566,7 @@ const SignupForm = ({ onLogin }) => {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-6 mt-4">
+              <div className="grid grid-cols-2 gap-6 mt-2">
                 <div className="relative">
                   <Input
                     label="Roll No"
@@ -600,7 +599,7 @@ const SignupForm = ({ onLogin }) => {
                   />
                 </div>
               </div>
-              <div className="flex gap-6 mt-4">
+              <div className="flex gap-6 mt-2">
                 {passwordFields.map((field) => (
                   <div
                     key={field.id}
@@ -636,11 +635,11 @@ const SignupForm = ({ onLogin }) => {
                           )}
                         </span>
                       </div>
+                      <FloatingError
+                        message={errors[field.id]}
+                        show={!!errors[field.id]}
+                      />
                     </label>
-                    <FloatingError
-                      message={errors[field.id]}
-                      show={!!errors[field.id]}
-                    />
                   </div>
                 ))}
               </div>
