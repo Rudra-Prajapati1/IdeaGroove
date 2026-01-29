@@ -16,7 +16,7 @@ const AdminEventCard = ({ event, onModerate }) => {
         />
         <div className="absolute top-3 right-3 flex gap-2">
           <span className="bg-black/50 backdrop-blur-md text-white text-[9px] px-2 py-1 rounded font-mono">
-            E_ID: {event.id} {/* Unique event ID */}
+            E_ID: {event.id}
           </span>
           <span
             className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider text-white shadow-sm backdrop-blur-md ${

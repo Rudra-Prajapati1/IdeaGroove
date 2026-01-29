@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { X, Send, Ban, CheckCircle, AlertCircle } from "lucide-react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
@@ -97,6 +97,7 @@ const AdminEvents = () => {
   const [targetId, setTargetId] = useState(null);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
+  const [eventFilter, setEventFilter] = useState("all");
 
   const filterOptions = ["Active", "Past"];
 
@@ -134,6 +135,27 @@ const AdminEvents = () => {
     }, 1000);
   };
 
+  const filteredEvents = useMemo(() => {
+    const search = searchTerm.trim().toLowerCase();
+
+    return events.filter((event) => {
+      const matchesSearch =
+        !search ||
+        event.Description.toLowerCase().includes(search) ||
+        event.Added_By_Name.toLowerCase().includes(search);
+
+      let matchesFilter = true;
+
+      if (eventFilter === "Active") {
+        matchesFilter = event.status === "active";
+      } else if (eventFilter === "Past") {
+        matchesFilter = event.status === "blocked";
+      }
+
+      return matchesSearch && matchesFilter;
+    });
+  }, [events, searchTerm, eventFilter]);
+
   return (
     <section className="flex flex-col gap-6 relative min-h-screen">
       <AdminPageHeader
@@ -141,14 +163,15 @@ const AdminEvents = () => {
         subtitle="Filter events by degree, subject, or search terms"
         searchValue={searchTerm}
         onSearch={setSearchTerm}
-        onDegreeFilter={filterOptions}
+        degreeOptions={filterOptions}
+        onDegreeFilter={setEventFilter}
+        firstTitle="All Events"
       />
 
       <StatsRow stats={eventsStats} />
 
       <AdminEventsGrid
-        events={events}
-        searchTerm={searchTerm}
+        events={filteredEvents}
         onModerate={handleModerateRequest}
       />
 
