@@ -80,7 +80,10 @@ const Navbar = () => {
   }, []);
 
   const filteredNavLinks = navLinks.filter((link) => {
-    if (link.title === "Chats" && !isAuthenticated) {
+    if (
+      (link.title === "Chats" || link.title === "Complaints") &&
+      !isAuthenticated
+    ) {
       return false;
     }
     return true;

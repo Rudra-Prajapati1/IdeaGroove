@@ -40,7 +40,10 @@ const GroupCard = ({ group }) => {
     return colors[category] || "bg-gray-100 text-gray-700";
   };
 
-  const MOCK_CURRENT_USER_ID = 104;
+  let MOCK_CURRENT_USER_ID = 0;
+  if (isAuth) {
+    MOCK_CURRENT_USER_ID = 104;
+  }
   const isOwner = group.Created_By === MOCK_CURRENT_USER_ID;
 
   return (
