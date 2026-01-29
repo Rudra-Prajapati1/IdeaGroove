@@ -2,8 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Eye, EyeClosed, ChevronDown, X, Search } from "lucide-react";
-import toast from "react-hot-toast";
+import {
+  Eye,
+  EyeClosed,
+  ChevronDown,
+  X,
+  Search,
+  AlertCircle,
+} from "lucide-react";
 
 import SectionWrapper from "./SectionWrapper";
 import Input from "./Input";
@@ -12,6 +18,20 @@ import Select from "./Select";
 
 import { loginSuccess } from "../../redux/slice/authSlice";
 import { MultiSearchableDropdown } from "../MultipleSearchComponent";
+
+// Floating Error Message Component
+const FloatingError = ({ message, show }) => {
+  if (!show || !message) return null;
+
+  return (
+    <div className="absolute left-0 top-full mt-1 z-50 animate-slideDown">
+      <div className="bg-red-50 border border-red-200 rounded-lg px-2 py-1 shadow-lg flex items-start gap-2 max-w-xs">
+        <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+        <span className="text-xs text-red-600 leading-tight">{message}</span>
+      </div>
+    </div>
+  );
+};
 
 const SearchableDropdown = ({
   label,
@@ -22,6 +42,8 @@ const SearchableDropdown = ({
   idKey,
   labelKey,
   loading,
+  error,
+  name,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -50,21 +72,25 @@ const SearchableDropdown = ({
     ? options.find((opt) => opt[idKey] === value)
     : null;
 
-  // Add this inside your SignupForm component or above it
-
   return (
     <div className="flex flex-col gap-2 w-full relative" ref={dropdownRef}>
       <label className="text-sm font-medium text-gray-700">{label}</label>
 
       <div
-        className="w-full border-2 border-gray-300 rounded-xl p-3 cursor-pointer flex justify-between items-center bg-white hover:border-green-600 transition-colors"
+        data-name={name}
+        className={`w-full border-2 rounded-xl p-3 cursor-pointer flex justify-between items-center bg-white hover:border-green-600 transition-colors ${
+          error ? "border-red-500" : "border-gray-300"
+        }`}
         onClick={() => setIsOpen(!isOpen)}
+        tabIndex={0}
       >
         <span className={selectedItem ? "text-black" : "text-gray-400"}>
           {selectedItem ? selectedItem[labelKey] : placeholder}
         </span>
         <ChevronDown className="w-4 h-4 text-gray-500" />
       </div>
+
+      <FloatingError message={error} show={!!error} />
 
       {isOpen && (
         <div className="absolute top-[110%] left-0 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-60 overflow-hidden flex flex-col">
@@ -93,7 +119,7 @@ const SearchableDropdown = ({
                   key={opt[idKey]}
                   className="p-3 text-sm hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
                   onClick={() => {
-                    onChange(opt[idKey]); // Return the ID (e.g., 101)
+                    onChange(opt[idKey]);
                     setIsOpen(false);
                     setSearchTerm("");
                   }}
@@ -124,24 +150,16 @@ const SignupForm = ({ onLogin }) => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      if (!toastShown.current) {
-        toast.success("Redirecting to dashboard...");
-        toastShown.current = true;
-      }
       navigate("/dashboard");
     }
   }, [isAuthenticated, navigate]);
 
   // --- STATE MANAGEMENT ---
-  const [step, setStep] = useState("personal"); // 'personal' or 'educational'
+  const [step, setStep] = useState("personal");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const ErrorMessage = ({ message }) =>
-    message ? (
-      <span className="text-red-500 text-xs mt-1 ml-1">{message}</span>
-    ) : null;
 
   // Data from Backend
   const [resources, setResources] = useState({
@@ -156,12 +174,12 @@ const SignupForm = ({ onLogin }) => {
     Name: "",
     Roll_No: "",
     Email: "",
-    College_ID: "", // ID from DB
-    Degree_ID: "", // ID from DB
+    College_ID: "",
+    Degree_ID: "",
     Year: "",
     Password: "",
     confirmPassword: "",
-    Profile_Pic: null, // (Backend logic for image upload needs separate handling, kept simple for now)
+    Profile_Pic: null,
     Hobbies: [],
   });
 
@@ -189,7 +207,6 @@ const SignupForm = ({ onLogin }) => {
     const fetchResources = async () => {
       try {
         const response = await axios.get("http://localhost:8080/api/search");
-        // Ensure your backend ResourceController returns { colleges: [], degrees: [], hobbies: [] }
         setResources({
           colleges: response.data.colleges || [],
           degrees: response.data.degrees || [],
@@ -198,7 +215,9 @@ const SignupForm = ({ onLogin }) => {
         setResourceLoading(false);
       } catch (err) {
         console.error("Resource Fetch Error:", err);
-        toast.error("Failed to load colleges. Please check connection.");
+        setErrors({
+          general: "Failed to load colleges. Please check connection.",
+        });
         setResourceLoading(false);
       }
     };
@@ -240,6 +259,18 @@ const SignupForm = ({ onLogin }) => {
     }
 
     setErrors(newErrors);
+
+    // Focus on first invalid field
+    if (Object.keys(newErrors).length > 0) {
+      const firstErrorField = Object.keys(newErrors)[0];
+      setTimeout(() => {
+        const element = document.querySelector(`[name="${firstErrorField}"]`);
+        if (element) {
+          element.focus();
+        }
+      }, 100);
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -247,21 +278,23 @@ const SignupForm = ({ onLogin }) => {
     const file = e.target.files[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      toast.error("Please upload a valid image");
+      setErrors({ Profile_Pic: "Please upload a valid image" });
       return;
     }
     setSignupData((prev) => ({ ...prev, Profile_Pic: file }));
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors.Profile_Pic;
+      return newErrors;
+    });
   };
-  // 1. Add this to your state management at the top of SignupForm
+
   const [displayBatch, setDisplayBatch] = useState("");
 
-  // 2. The Formatter & Validator Logic
   const handleBatchInputChange = (e) => {
-    // Remove all non-numeric characters
     let value = e.target.value.replace(/\D/g, "");
     let formattedValue = "";
 
-    // A. Block if the first digit isn't '2' (Forces 2000s)
     if (value.length > 0 && value[0] !== "2") {
       setErrors((prev) => ({
         ...prev,
@@ -270,7 +303,6 @@ const SignupForm = ({ onLogin }) => {
       return;
     }
 
-    // B. Auto-Hyphen Logic (YYYY-YYYY)
     if (value.length > 0) {
       formattedValue = value.substring(0, 4);
       if (value.length > 4) {
@@ -285,12 +317,10 @@ const SignupForm = ({ onLogin }) => {
 
     setDisplayBatch(formattedValue);
 
-    // C. Range Validation & Internal ID update
     if (formattedValue.length === 9) {
       const startYear = parseInt(formattedValue.substring(0, 4));
       const endYear = parseInt(formattedValue.substring(5, 9));
 
-      // Validate 2000-2099 range
       if (
         startYear < 2000 ||
         startYear > 2099 ||
@@ -301,11 +331,10 @@ const SignupForm = ({ onLogin }) => {
           ...prev,
           Year: "Years must be between 2000 and 2099",
         }));
-        handleData("Year", ""); // Reset DB value
+        handleData("Year", "");
         return;
       }
 
-      // Validate Chronology
       if (endYear <= startYear) {
         setErrors((prev) => ({
           ...prev,
@@ -315,134 +344,24 @@ const SignupForm = ({ onLogin }) => {
         return;
       }
 
-      // Success: Extract last two digits of each (e.g., 2023-2026 -> 2326)
       const internalID =
         formattedValue.substring(2, 4) + formattedValue.substring(7, 9);
       handleData("Year", internalID);
-      setErrors((prev) => ({ ...prev, Year: null })); // Clear errors
+      setErrors((prev) => ({ ...prev, Year: null }));
     } else {
-      handleData("Year", ""); // Keep DB value empty until input is complete
+      handleData("Year", "");
     }
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-
-  //   // 1. COMPREHENSIVE VALIDATION
-  //   // Check for Step 1 Fields
-  //   if (!signupData.Username || !signupData.Name || !signupData.Password) {
-  //     return toast.error("Please complete all personal details.");
-  //   }
-
-  //   // Check Password Security
-  //   if (signupData.Password.length < 6) {
-  //     return toast.error("Password must be at least 6 characters.");
-  //   }
-
-  //   // Check Password Match
-  //   if (signupData.Password !== signupData.confirmPassword) {
-  //     return toast.error("Passwords do not match!");
-  //   }
-
-  //   // Check for Step 2 Fields
-  //   if (
-  //     !signupData.College_ID ||
-  //     !signupData.Degree_ID ||
-  //     !signupData.Year ||
-  //     !signupData.Email
-  //   ) {
-  //     return toast.error("Please fill all educational details.");
-  //   }
-
-  //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  //   if (!emailRegex.test(signupData.Email)) {
-  //     return toast.error("Please enter a valid email address.");
-  //   }
-
-  //   const rollNoRegex = /^[a-zA-Z0-9\s-]+$/;
-  //   if (!rollNoRegex.test(signupData.Roll_No)) {
-  //     return toast.error(
-  //       "Roll No can only contain numbers, letters, hyphens (-), and spaces.",
-  //     );
-  //   }
-  //   if (
-  //     signupData.Year &&
-  //     parseInt(signupData.Year.substring(2, 4)) <=
-  //       parseInt(signupData.Year.substring(0, 2))
-  //   ) {
-  //     return toast.error("End year must be after start year!");
-  //   }
-
-  //   setLoading(true);
-
-  //   try {
-  //     // 2. CREATE FORM DATA (Required for File Uploads)
-  //     const formData = new FormData();
-
-  //     // Append text fields
-  //     formData.append("Username", signupData.Username);
-  //     formData.append("Name", signupData.Name);
-  //     formData.append("Roll_No", signupData.Roll_No);
-  //     formData.append("Email", signupData.Email);
-  //     formData.append("Password", signupData.Password);
-  //     formData.append("College_ID", signupData.College_ID);
-  //     formData.append("Degree_ID", signupData.Degree_ID);
-  //     formData.append("Year", signupData.Year);
-
-  //     // Append File (Key MUST be "image" because your Route uses upload.single("image"))
-  //     if (signupData.Profile_Pic) {
-  //       formData.append("image", signupData.Profile_Pic);
-  //     }
-
-  //     if (signupData.Hobbies.length > 0) {
-  //       formData.append("Hobbies", signupData.Hobbies.join(","));
-  //     }
-
-  //     const response = await axios.post(
-  //       "http://localhost:8080/api/auth/signup",
-  //       formData,
-  //       {
-  //         headers: { "Content-Type": "multipart/form-data" },
-  //       },
-  //     );
-
-  //     if (response.status === 201 || response.status === 200) {
-  //       // Construct User Object manually since backend only returns ID
-  //       const userToStore = {
-  //         id: response.data.userId,
-  //         Username: signupData.Username,
-  //         Name: signupData.Name,
-  //         Email: signupData.Email,
-  //         Roll_No: signupData.Roll_No,
-  //       };
-
-  //       dispatch(loginSuccess(userToStore));
-
-  //       toast.success("Signup Successful!");
-  //       setTimeout(() => navigate("/dashboard"), 1500);
-  //     }
-  //   } catch (err) {
-  //     console.error("Signup Error:", err);
-  //     const msg = err.response?.data?.error || "Registration Failed.";
-  //     toast.error(msg);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // 1. Add 'otp' to your step options: 'personal' | 'educational' | 'otp'
   const [otp, setOtp] = useState(["", "", "", ""]);
   const otpRefs = [useRef(), useRef(), useRef(), useRef()];
 
-  // 2. Handle OTP input logic (Auto-focus next box)
   const handleOtpChange = (index, value) => {
-    if (isNaN(value)) return; // Only numbers
+    if (isNaN(value)) return;
     const newOtp = [...otp];
-    newOtp[index] = value.substring(value.length - 1); // Keep only the last digit
+    newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
 
-    // Move to next box if value is entered
     if (value && index < 3) {
       otpRefs[index + 1].current.focus();
     }
@@ -451,15 +370,40 @@ const SignupForm = ({ onLogin }) => {
   const [tempToken, setTempToken] = useState("");
 
   const handleSendOtp = async () => {
-    // Add validation for Step 2 here before sending
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (
-      !signupData.College_ID ||
-      !signupData.Degree_ID ||
-      !signupData.Year ||
-      !emailRegex.test(signupData.Email)
-    ) {
-      return toast.error("Please ensure all educational details are correct.");
+    let newErrors = {};
+
+    if (!signupData.College_ID) {
+      newErrors.College_ID = "Please select a college";
+    }
+    if (!signupData.Degree_ID) {
+      newErrors.Degree_ID = "Please select a degree";
+    }
+    if (!signupData.Year) {
+      newErrors.Year = "Please enter your batch year";
+    }
+    if (!signupData.Email) {
+      newErrors.Email = "Email is required";
+    } else if (!emailRegex.test(signupData.Email)) {
+      newErrors.Email = "Please enter a valid email address";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      // Focus on first invalid field
+      setTimeout(() => {
+        const firstErrorField = Object.keys(newErrors)[0];
+        // Try to find input with name attribute
+        let element = document.querySelector(`[name="${firstErrorField}"]`);
+        // If not found, try to find dropdown with data-name attribute
+        if (!element) {
+          element = document.querySelector(`[data-name="${firstErrorField}"]`);
+        }
+        if (element) {
+          element.focus();
+        }
+      }, 100);
+      return;
     }
 
     setLoading(true);
@@ -468,10 +412,10 @@ const SignupForm = ({ onLogin }) => {
         email: signupData.Email,
       });
       setTempToken(res.data.token);
-      setStep("otp"); // <--- Add this to move to the OTP UI
-      toast.success("OTP sent successfully!");
+      setStep("otp");
+      setErrors({});
     } catch (err) {
-      toast.error(err.response?.data?.error || "Failed to send OTP");
+      setErrors({ Email: err.response?.data?.error || "Failed to send OTP" });
     } finally {
       setLoading(false);
     }
@@ -480,27 +424,22 @@ const SignupForm = ({ onLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 1. Final Safety Check for OTP length
     const fullOtp = otp.join("");
     if (fullOtp.length < 4) {
-      return toast.error("Please enter the complete 4-digit OTP.");
+      setErrors({ otp: "Please enter the complete 4-digit OTP" });
+      return;
     }
 
     setLoading(true);
 
     try {
-      // 2. PHASE 1: Verify the Stateless OTP
-      // We send the 4-digit code and the JWT token stored in tempToken
       await axios.post("http://localhost:8080/api/auth/verifyOTP", {
         otp: fullOtp,
         token: tempToken,
       });
 
-      // 3. PHASE 2: Prepare Multipart Form Data for Signup
-      // Since you have a Profile_Pic (File), we must use FormData
       const formData = new FormData();
 
-      // Systematic appending of all signup fields
       formData.append("Username", signupData.Username);
       formData.append("Name", signupData.Name);
       formData.append("Roll_No", signupData.Roll_No);
@@ -510,17 +449,14 @@ const SignupForm = ({ onLogin }) => {
       formData.append("Degree_ID", signupData.Degree_ID);
       formData.append("Year", signupData.Year);
 
-      // Handle the Profile Picture File specifically
       if (signupData.Profile_Pic) {
         formData.append("image", signupData.Profile_Pic);
       }
 
-      // Handle the Hobbies array by joining into a comma-separated string
       if (signupData.Hobbies.length > 0) {
         formData.append("Hobbies", signupData.Hobbies.join(","));
       }
 
-      // 4. PHASE 3: Execute the Signup Request
       const response = await axios.post(
         "http://localhost:8080/api/auth/signup",
         formData,
@@ -529,9 +465,7 @@ const SignupForm = ({ onLogin }) => {
         },
       );
 
-      // 5. Success Handling: Update Redux and Redirect
       if (response.status === 201 || response.status === 200) {
-        // Construct the user object for Redux storage
         const userToStore = {
           id: response.data.userId,
           Username: signupData.Username,
@@ -541,26 +475,21 @@ const SignupForm = ({ onLogin }) => {
         };
 
         dispatch(loginSuccess(userToStore));
-        toast.success("Registration Successful!");
-
-        // Brief delay before navigation for better UX
         setTimeout(() => navigate("/dashboard"), 1500);
       }
     } catch (err) {
-      // 6. Systematic Error Handling
       console.error("Submission Error:", err);
       const msg =
         err.response?.data?.error ||
         err.response?.data?.message ||
         "Action Failed.";
-      toast.error(msg);
+      setErrors({ otp: msg });
     } finally {
       setLoading(false);
     }
   };
 
   const handleKeyDown = (index, e) => {
-    // Move to previous box on backspace
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       otpRefs[index - 1].current.focus();
     }
@@ -568,6 +497,21 @@ const SignupForm = ({ onLogin }) => {
 
   return (
     <div className="w-full h-full flex items-center pt-20 justify-center">
+      <style>{`
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-slideDown {
+          animation: slideDown 0.2s ease-out;
+        }
+      `}</style>
       <form
         onSubmit={handleSubmit}
         className="flex flex-col gap-4 w-full font-inter items-center justify-between"
@@ -577,46 +521,61 @@ const SignupForm = ({ onLogin }) => {
             <div>
               <div className="flex gap-12 items-center">
                 <div className="flex flex-col gap-4">
-                  <div>
+                  <div className="relative">
                     <Input
                       label="Username"
+                      name="Username"
                       placeholder="Enter the username"
                       value={signupData.Username}
                       onChange={(v) => handleData("Username", v)}
                       className={errors.Username ? "border-red-500" : ""}
                     />
-                    <ErrorMessage message={errors.Username} />
+                    <FloatingError
+                      message={errors.Username}
+                      show={!!errors.Username}
+                    />
                   </div>
 
-                  <div>
+                  <div className="relative">
                     <Input
                       label="Name"
+                      name="Name"
                       placeholder="Enter the name"
                       value={signupData.Name}
                       onChange={(v) => handleData("Name", v)}
                       className={errors.Name ? "border-red-500" : ""}
                     />
-                    <ErrorMessage message={errors.Name} />
+                    <FloatingError message={errors.Name} show={!!errors.Name} />
                   </div>
                 </div>
 
-                <ProfileUpload
-                  file={signupData.Profile_Pic}
-                  onChange={handleImageChange}
-                />
+                <div className="relative">
+                  <ProfileUpload
+                    file={signupData.Profile_Pic}
+                    onChange={handleImageChange}
+                  />
+                  <FloatingError
+                    message={errors.Profile_Pic}
+                    show={!!errors.Profile_Pic}
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-6 mt-4">
-                <div>
+                <div className="relative">
                   <Input
                     label="Roll No"
+                    name="Roll_No"
                     placeholder="Enter the roll no"
                     value={signupData.Roll_No}
                     onChange={(v) => handleData("Roll_No", v)}
                     className={errors.Roll_No ? "border-red-500" : ""}
                   />
-                  <ErrorMessage message={errors.Roll_No} />
+                  <FloatingError
+                    message={errors.Roll_No}
+                    show={!!errors.Roll_No}
+                  />
                 </div>
-                <div className="w-full">
+                <div className="w-full relative">
                   <MultiSearchableDropdown
                     label="Hobbies"
                     placeholder="Select hobbies..."
@@ -628,12 +587,18 @@ const SignupForm = ({ onLogin }) => {
                     loading={resourceLoading}
                     className={errors.Hobbies ? "border-red-500" : ""}
                   />
-                  <ErrorMessage message={errors.Hobbies} />
+                  <FloatingError
+                    message={errors.Hobbies}
+                    show={!!errors.Hobbies}
+                  />
                 </div>
               </div>
               <div className="flex gap-6 mt-4">
                 {passwordFields.map((field) => (
-                  <div key={field.id} className="flex flex-col gap-1 w-1/2">
+                  <div
+                    key={field.id}
+                    className="flex flex-col gap-1 w-1/2 relative"
+                  >
                     <label className="text-md font-semibold text-primary">
                       {field.label}
 
@@ -641,6 +606,7 @@ const SignupForm = ({ onLogin }) => {
                         <div>
                           <input
                             type={field.showState ? "text" : "password"}
+                            name={field.id}
                             value={field.value}
                             placeholder={field.placeholder}
                             onChange={(e) =>
@@ -650,7 +616,6 @@ const SignupForm = ({ onLogin }) => {
                             className={`w-full text-sm border-2 border-gray-300 rounded-xl outline-none 
                      transition-colors duration-300 focus:border-primary/60 p-3 ${errors[field.id] ? "border-red-500" : ""}`}
                           />
-                          <ErrorMessage message={errors[field.id]} />
                         </div>
                         <span
                           className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer 
@@ -665,6 +630,10 @@ const SignupForm = ({ onLogin }) => {
                         </span>
                       </div>
                     </label>
+                    <FloatingError
+                      message={errors[field.id]}
+                      show={!!errors[field.id]}
+                    />
                   </div>
                 ))}
               </div>
@@ -674,25 +643,25 @@ const SignupForm = ({ onLogin }) => {
 
         {step === "educational" && (
           <SectionWrapper title="Educational Details">
-            <div>
+            <div className="relative">
               <SearchableDropdown
                 label="College"
+                name="College_ID"
                 placeholder="Search for your college..."
                 options={resources.colleges}
                 value={signupData.College_ID}
                 onChange={(val) => handleData("College_ID", val)}
-                idKey="College_ID" // The key in DB object for ID
-                labelKey="College_Name" // The key in DB object for display text
+                idKey="College_ID"
+                labelKey="College_Name"
                 loading={resourceLoading}
-                className={errors.College_ID ? "border-red-500" : ""}
+                error={errors.College_ID}
               />
-              <ErrorMessage message={errors.College_ID} />
             </div>
 
-            <div>
-              {/* SEARCHABLE DEGREE SELECT */}
+            <div className="relative">
               <SearchableDropdown
                 label="Degree"
+                name="Degree_ID"
                 placeholder="Search for your degree..."
                 options={resources.degrees}
                 value={signupData.Degree_ID}
@@ -700,20 +669,19 @@ const SignupForm = ({ onLogin }) => {
                 idKey="Degree_ID"
                 labelKey="Degree_Name"
                 loading={resourceLoading}
-                className={errors.Degree_ID ? "border-red-500" : ""}
+                error={errors.Degree_ID}
               />
-              <ErrorMessage message={errors.Degree_ID} />
             </div>
 
-            {/* --- Inside Educational Details Section --- */}
-            <div className="flex flex-col gap-1 w-full">
+            <div className="flex flex-col gap-1 w-full relative">
               <label className="text-md font-semibold text-primary">
                 Batch (Start Year - End Year)
               </label>
               <input
                 type="text"
+                name="Year"
                 placeholder="e.g. 2023-2027"
-                value={displayBatch} // Use the local formatted state
+                value={displayBatch}
                 onChange={handleBatchInputChange}
                 maxLength={9}
                 className={`w-full text-sm border-2 border-gray-300 rounded-xl outline-none 
@@ -721,33 +689,32 @@ const SignupForm = ({ onLogin }) => {
       ${errors.Year ? "border-red-500" : ""}`}
               />
 
-              {/* Helper text so user knows it's working */}
               {signupData.Year && (
                 <span className="text-[10px] text-gray-400 mt-1 ml-1">
                   Internal ID: {signupData.Year}
                 </span>
               )}
 
-              <ErrorMessage message={errors.Year} />
+              <FloatingError message={errors.Year} show={!!errors.Year} />
             </div>
-            <div>
+            <div className="relative">
               <Input
                 label="Email"
+                name="Email"
                 type="email"
                 placeholder="Enter the email"
                 value={signupData.Email}
                 onChange={(v) => handleData("Email", v)}
                 className={errors.Email ? "border-red-500" : ""}
               />
-              <ErrorMessage message={errors.Email} />
+              <FloatingError message={errors.Email} show={!!errors.Email} />
             </div>
           </SectionWrapper>
         )}
 
-        {/* --- OTP VERIFICATION STEP --- */}
         {step === "otp" && (
           <SectionWrapper title="OTP Verification">
-            <div className="flex flex-col items-center gap-6 py-4">
+            <div className="flex flex-col items-center gap-6 py-4 relative">
               <p className="text-sm text-gray-500 text-center">
                 We have sent a 4-digit code to <br />
                 <span className="font-bold text-primary">
@@ -765,10 +732,14 @@ const SignupForm = ({ onLogin }) => {
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
-                    className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-xl focus:border-primary outline-none transition-all"
+                    className={`w-14 h-14 text-center text-2xl font-bold border-2 rounded-xl focus:border-primary outline-none transition-all ${
+                      errors.otp ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
                 ))}
               </div>
+
+              <FloatingError message={errors.otp} show={!!errors.otp} />
 
               <button
                 type="button"
@@ -781,9 +752,7 @@ const SignupForm = ({ onLogin }) => {
           </SectionWrapper>
         )}
 
-        {/* --- UPDATED BUTTONS SECTION --- */}
         <div className="flex gap-4 mt-4">
-          {/* Back button logic */}
           {step !== "personal" && (
             <button
               type="button"
@@ -796,7 +765,6 @@ const SignupForm = ({ onLogin }) => {
             </button>
           )}
 
-          {/* Dynamic Action Button */}
           {step === "personal" ? (
             <button
               type="button"
