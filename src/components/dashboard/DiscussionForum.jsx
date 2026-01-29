@@ -8,7 +8,10 @@ import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 
 const DiscussionForum = ({ MOCK_DISCUSSIONS, DEGREE_SUBJECTS }) => {
   const isAuth = useSelector(selectIsAuthenticated);
-  const MOCK_CURRENT_USER_ID = 2;
+  let MOCK_CURRENT_USER_ID = 0;
+  if (isAuth) {
+    MOCK_CURRENT_USER_ID = 2;
+  }
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");

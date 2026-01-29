@@ -71,7 +71,7 @@ const Groups = () => {
             Create Group
           </button>
         </div>
-        <div className="max-w-7xl m-auto mt-12 bg-white px-12 py-12 rounded-2xl">
+        <div className="max-w-7xl m-auto mt-12 px-12 py-12 rounded-2xl">
           <div>
             {groupsStatus === "loading" && <p>Loading Groups...</p>}
             {groupsStatus === "failed" && <p>Error: {groupsError}</p>}
