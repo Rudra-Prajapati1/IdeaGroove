@@ -57,12 +57,12 @@ const AdminGroupCard = ({ group, onModerate }) => {
           <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">
             {group.Based_On}
           </span>
-          <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded uppercase">
+          {/* <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded uppercase">
             {group.Room_Type}
           </span>
           <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded uppercase">
             {group.Degree}
-          </span>
+          </span> */}
         </div>
 
         {/* Metadata */}

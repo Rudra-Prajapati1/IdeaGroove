@@ -89,7 +89,7 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
         </div>
 
         <h3 className="text-lg font-bold text-slate-800 mb-2">{post.title}</h3>
-        <p className="text-slate-600 text-sm mb-4">{post.excerpt}</p>
+        {/* <p className="text-slate-600 text-sm mb-4">{post.excerpt}</p> */}
 
         <div className="flex items-center justify-between pt-4 border-t border-slate-50">
           <div className="flex gap-4">

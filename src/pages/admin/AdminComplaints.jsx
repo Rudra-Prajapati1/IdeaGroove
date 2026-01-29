@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
 import AdminComplaintsGrid from "../../components/admin/AdminComplaintsGrid";
-import EmailConfirmationModal from "../../components/admin/EmailConfirmationModal";
 import toast from "react-hot-toast";
+import ComplaintEmail from "../../components/admin/ComplaintEmail";
 
 export const complaintsStats = [
   { title: "Total Complaints", value: "1,284", color: "green", type: "total" },
-  { title: "Pending", value: "42", color: "yellow", type: "pending" },
-  { title: "Resolved", value: "1,242", color: "red", type: "blocked" },
+  { title: "Resolved", value: "42", color: "yellow", type: "pending" },
+  { title: "Pending", value: "1,242", color: "red", type: "blocked" },
 ];
 
 const initialComplaintsData = [
@@ -234,14 +234,12 @@ const AdminComplaints = () => {
         onStatusRequest={handleStatusRequest}
       />
 
-      <EmailConfirmationModal
+      <ComplaintEmail
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleStatusUpdate}
         actionType="update"
         targetType="Complaint Status"
-        reason={reason}
-        setReason={setReason}
         loading={loading}
       >
         <select
@@ -253,7 +251,7 @@ const AdminComplaints = () => {
           <option value="In-Progress">In-Progress</option>
           <option value="Resolved">Resolved</option>
         </select>
-      </EmailConfirmationModal>
+      </ComplaintEmail>
     </section>
   );
 };
