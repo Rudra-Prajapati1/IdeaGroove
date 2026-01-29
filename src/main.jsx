@@ -13,6 +13,9 @@ createRoot(document.getElementById("root")).render(
       <Toaster
         position="top-right"
         reverseOrder={false}
+        containerStyle={{
+          zIndex: 100000,
+        }}
         toastOptions={{
           duration: 3000,
           style: {
@@ -27,5 +30,5 @@ createRoot(document.getElementById("root")).render(
         <App />
       </BrowserRouter>
     </Provider>
-  </StrictMode>
+  </StrictMode>,
 );

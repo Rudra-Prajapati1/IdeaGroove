@@ -132,7 +132,7 @@ const NotesSection = () => {
           <ActionButton
             label="Upload Notes"
             icon={Upload}
-            disabled={!isAuth}
+            // disabled={!isAuth}
             disabledMessage="Please login to upload notes"
             onClick={() => setShowAddNotes(true)}
           />
