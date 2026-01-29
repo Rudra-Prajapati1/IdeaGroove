@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { X, Users, MessageSquare, Loader2, Info, Hash } from "lucide-react";
 import { useSelector } from "react-redux";
+import toast from "react-hot-toast";
 
 // This would typically come from a separate 'hobbies' slice or API
 const HOBBY_OPTIONS = [
@@ -23,30 +24,42 @@ const AddGroupOverlay = ({ onClose, onUpload }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === "Room_Name" && value.length > 150) {
+      toast.error("Group name cannot exceed 150 characters");
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.Room_Name || !formData.Based_on) return;
+
+    if (!formData.Room_Name.trim()) {
+      toast.error("Group name is required");
+      return;
+    }
+
+    if (!formData.Based_on) {
+      toast.error("Please select an interest");
+      return;
+    }
 
     setLoading(true);
 
-    // Schema mapping for chat_room_tbl
     const submissionData = {
-      Room_Type: "group", // Hardcoded as requested
-      Room_Name: formData.Room_Name, // VARCHAR(150)
-      Based_on: parseInt(formData.Based_on), // INT foreign key
-      Created_By: user?.id || 1, // FK to student_tbl
-      Is_Active: 1, // Default TRUE
+      Room_Type: "group",
+      Room_Name: formData.Room_Name.trim(),
+      Based_on: parseInt(formData.Based_on),
+      Created_By: user?.id || 1,
+      Is_Active: 1,
     };
 
-    // Simulate API Call
     setTimeout(() => {
       setLoading(false);
-      onUpload
-        ? onUpload(submissionData)
-        : console.log("Group Created:", submissionData);
+      toast.success("Group created successfully 🎉");
+      onUpload?.(submissionData);
       onClose();
     }, 1500);
   };
@@ -93,6 +106,17 @@ const AddGroupOverlay = ({ onClose, onUpload }) => {
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all text-sm bg-white"
               />
+              <div className="mt-1 text-xs text-right">
+                <span
+                  className={
+                    formData.Room_Name.length >= 140
+                      ? "text-red-500 font-medium"
+                      : "text-slate-400"
+                  }
+                >
+                  {formData.Room_Name.length} / 150
+                </span>
+              </div>
             </div>
 
             {/* Hobby/Based_on Field */}

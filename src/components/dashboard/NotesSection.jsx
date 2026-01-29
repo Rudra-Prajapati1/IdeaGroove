@@ -16,6 +16,7 @@ import NotesCard from "../notes/NotesCard";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 import ActionButton from "../ActionButton";
+import AddNotes from "../notes/AddNotes";
 
 /* ---------------- MOCK DATA ---------------- */
 

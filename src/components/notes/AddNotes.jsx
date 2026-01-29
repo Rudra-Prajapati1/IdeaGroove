@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { X, UploadCloud, FileText, Loader2 } from "lucide-react";
 import { useSelector } from "react-redux"; // To get current user ID
+import { createPortal } from "react-dom";
+import { toast } from "react-hot-toast";
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_PDF_TYPE = "application/pdf";
+const MAX_DESCRIPTION_LENGTH = 255;
 
 // MOCK DATA (Replace with API fetch or props)
 const DEGREE_OPTIONS = [
@@ -37,62 +43,99 @@ const AddNotes = ({ onClose, onUpload }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Handle Text Inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === "Description" && value.length > MAX_DESCRIPTION_LENGTH) {
+      toast.error("Description cannot exceed 255 characters");
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Reset subject if degree changes
     if (name === "Degree_ID") {
       setFormData((prev) => ({ ...prev, Subject_ID: "" }));
     }
   };
 
-  // Handle File Selection
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setFormData((prev) => ({ ...prev, file: e.target.files[0] }));
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== ALLOWED_PDF_TYPE) {
+      toast.error("Only PDF files are allowed");
+      return;
     }
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("PDF size must be under 5MB");
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, file }));
   };
 
-  // Handle Drag & Drop
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFormData((prev) => ({ ...prev, file: e.dataTransfer.files[0] }));
+
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+
+    if (file.type !== ALLOWED_PDF_TYPE) {
+      toast.error("Only PDF files are allowed");
+      return;
     }
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("PDF size must be under 5MB");
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, file }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.Degree_ID || !formData.Subject_ID || !formData.file) return;
+
+    if (!formData.Degree_ID) {
+      toast.error("Please select a degree");
+      return;
+    }
+
+    if (!formData.Subject_ID) {
+      toast.error("Please select a subject");
+      return;
+    }
+
+    if (!formData.file) {
+      toast.error("Please upload a PDF file");
+      return;
+    }
 
     setLoading(true);
 
-    // Prepare FormData for File Upload
     const submissionData = new FormData();
-    submissionData.append("Note_File", formData.file); // The actual file
+    submissionData.append("Note_File", formData.file);
     submissionData.append("Degree_ID", formData.Degree_ID);
     submissionData.append("Subject_ID", formData.Subject_ID);
-    submissionData.append("Description", formData.Description);
-    submissionData.append("Added_By", user?.id || 1); // Fallback ID
+
+    // Description is OPTIONAL as per DD
+    submissionData.append("Description", formData.Description.trim() || null);
+
+    submissionData.append("Added_By", user?.id || 1);
     submissionData.append("Is_Active", 1);
 
-    // Optional: Send Title if your API expects it separately
-    // submissionData.append("Title", formData.title);
-
-    // Simulate upload delay
     setTimeout(() => {
       setLoading(false);
-      onUpload(submissionData); // Pass FormData back to parent
+      toast.success("Notes uploaded successfully 📄");
+      onUpload(submissionData);
       onClose();
     }, 1500);
   };
 
-  return (
-    // ✅ Z-INDEX FIX: z-[1000] to cover Navbar
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 font-poppins">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 font-poppins">
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[80vh]"
         onClick={(e) => e.stopPropagation()}
@@ -175,11 +218,24 @@ const AddNotes = ({ onClose, onUpload }) => {
               <textarea
                 name="Description"
                 rows={3}
+                maxLength={255}
                 placeholder="Brief description about the notes..."
                 value={formData.Description}
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all text-sm resize-none"
               />
+
+              <div className="mt-1 text-xs text-right">
+                <span
+                  className={
+                    formData.Description.length >= MAX_DESCRIPTION_LENGTH - 10
+                      ? "text-red-500 font-medium"
+                      : "text-slate-400"
+                  }
+                >
+                  {formData.Description.length} / {MAX_DESCRIPTION_LENGTH}
+                </span>
+              </div>
             </div>
 
             {/* Drag & Drop File Upload */}
@@ -203,7 +259,7 @@ const AddNotes = ({ onClose, onUpload }) => {
                   type="file"
                   onChange={handleFileChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  accept=".pdf,.doc,.docx,.ppt,.pptx"
+                  accept="application/pdf"
                   required
                 />
 
@@ -264,7 +320,8 @@ const AddNotes = ({ onClose, onUpload }) => {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

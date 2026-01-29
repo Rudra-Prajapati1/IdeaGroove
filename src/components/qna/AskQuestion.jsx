@@ -9,6 +9,7 @@ import {
   FileText,
 } from "lucide-react";
 import { useSelector } from "react-redux";
+import toast from "react-hot-toast";
 
 // --- Mock Data ---
 const DEGREE_OPTIONS = [
@@ -38,7 +39,6 @@ const AskQuestionModal = ({ onClose, onSubmit }) => {
     Question: "",
     Degree_ID: "",
     Subject_ID: "",
-    Description: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -69,6 +69,7 @@ const AskQuestionModal = ({ onClose, onSubmit }) => {
 
     setTimeout(() => {
       setLoading(false);
+      toast.success("Question posted successfully 🎉");
       onSubmit(payload);
       onClose();
     }, 1500);
