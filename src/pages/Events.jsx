@@ -56,6 +56,7 @@ const Events = () => {
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
       <PageHeader title="Events" />
+
       {(addEvent || editingEvent) && (
         <AddEventOverlay
           onClose={() => {
@@ -66,6 +67,10 @@ const Events = () => {
         />
       )}
       {/* Controls Section (Search & Filter) */}
+
+      {addEvent && <AddEventOverlay onClose={() => setAddEvent(false)} />}
+
+
       <div className="max-w-6xl  mx-auto px-6 relative z-30 mt-10">
         <div className="flex justify-between items-center">
           <Controls
