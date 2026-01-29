@@ -60,6 +60,7 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
   if (isAuth) {
     MOCK_CURRENT_USER_ID = 104;
   }
+
   const filteredNotes = notes
     .filter((note) => {
       // 1. Search Logic
@@ -67,14 +68,14 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
         note?.Description?.toLowerCase().includes(search.toLowerCase()) ||
         note?.Note_File?.toLowerCase().includes(search.toLowerCase());
 
-      // 2. Degree Filter Logic
+      // 2. Degree Filter Logic (Normalizing case for safety)
       const matchesDegree = selectedDegree
-        ? note?.Degree === selectedDegree
+        ? note?.Degree?.toLowerCase() === selectedDegree.toLowerCase()
         : true;
 
-      // 3. Subject Filter Logic
+      // 3. Subject Filter Logic (Normalizing case for safety)
       const matchesSubject = selectedSubject
-        ? note?.Subject === selectedSubject
+        ? note?.Subject?.toLowerCase() === selectedSubject.toLowerCase()
         : true;
 
       return matchesSearch && matchesDegree && matchesSubject;
@@ -85,11 +86,11 @@ const NotesSection = ({ notes = [], status = "succeeded", error = null }) => {
       const dateB = new Date(b.Added_On);
 
       if (filter === "newest_to_oldest") {
-        return dateB - dateA; // Most recent first
+        return dateB - dateA;
       } else if (filter === "oldest_to_newest") {
-        return dateA - dateB; // Oldest first
+        return dateA - dateB;
       }
-      return 0; // Default order
+      return 0;
     });
 
   // --- Handlers ---
