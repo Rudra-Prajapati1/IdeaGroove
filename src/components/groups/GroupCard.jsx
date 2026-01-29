@@ -109,7 +109,7 @@ const GroupCard = ({ group }) => {
               <button className="px-3 bg-blue-50 text-blue-600 rounded-lg border border-blue-100">
                 <Edit2 className="w-4 h-4" />
               </button>
-              <button className="px-3 bg-red-50 text-red-600 rounded-lg border border-red-100">
+              <button className="px-3 bg-red-50 text-red-600 rounded-lg border border-red-100" onCLick={()=>{toast.success("Group Deleted Successfully!")}}>
                 <Trash2 className="w-4 h-4" />
               </button>
             </>

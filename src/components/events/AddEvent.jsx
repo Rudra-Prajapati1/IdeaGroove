@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { X, Calendar, ImagePlus, Loader2, Info } from "lucide-react";
 import { useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 
 const AddEventOverlay = ({ onClose, onUpload }) => {
   const { user } = useSelector((state) => state.auth);
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     Description: "",
@@ -55,7 +56,12 @@ const AddEventOverlay = ({ onClose, onUpload }) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
 
-      if (!validateFile(file)) return;
+      if (!validateFile(file)) {
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        return;
+      }
 
       setFormData((prev) => ({ ...prev, Poster_File: file }));
     }
@@ -165,6 +171,7 @@ const AddEventOverlay = ({ onClose, onUpload }) => {
               >
                 <input
                   type="file"
+                  ref={fileInputRef}
                   onChange={handleFileChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   accept="image/*"

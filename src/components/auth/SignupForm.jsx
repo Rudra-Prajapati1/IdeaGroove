@@ -14,19 +14,17 @@ import {
 import SectionWrapper from "./SectionWrapper";
 import Input from "./Input";
 import ProfileUpload from "./ProfileUpload";
-import Select from "./Select";
 
 import { loginSuccess } from "../../redux/slice/authSlice";
 import { MultiSearchableDropdown } from "../MultipleSearchComponent";
 
-// Floating Error Message Component
 const FloatingError = ({ message, show }) => {
   if (!show || !message) return null;
 
   return (
-    <div className="absolute left-0 top-full mt-1 z-50 animate-slideDown">
-      <div className="bg-red-50 border border-red-200 rounded-lg px-2 py-1 shadow-lg flex items-start gap-2 max-w-xs">
-        <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+    <div className="mt-1 animate-slideDown">
+      <div className="bg-red-50 border border-red-200 rounded-lg px-2 py-1 flex items-start gap-2 max-w-xs">
+        <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-[1px]" />
         <span className="text-xs text-red-600 leading-tight">{message}</span>
       </div>
     </div>
@@ -264,8 +262,14 @@ const SignupForm = ({ onLogin }) => {
     if (Object.keys(newErrors).length > 0) {
       const firstErrorField = Object.keys(newErrors)[0];
       setTimeout(() => {
-        const element = document.querySelector(`[name="${firstErrorField}"]`);
-        if (element) {
+        let element = document.querySelector(`[name="${firstErrorField}"]`);
+
+        // for custom components like dropdowns
+        if (!element) {
+          element = document.querySelector(`[data-name="${firstErrorField}"]`);
+        }
+
+        if (element && document.activeElement !== element) {
           element.focus();
         }
       }, 100);
@@ -496,7 +500,7 @@ const SignupForm = ({ onLogin }) => {
   };
 
   return (
-    <div className="w-full h-full flex items-center pt-20 justify-center">
+    <div className="w-full py-2 flex items-start pt-20 mt-10 justify-center">
       <style>{`
         @keyframes slideDown {
           from {
@@ -528,7 +532,9 @@ const SignupForm = ({ onLogin }) => {
                       placeholder="Enter the username"
                       value={signupData.Username}
                       onChange={(v) => handleData("Username", v)}
-                      className={errors.Username ? "border-red-500" : ""}
+                      className={
+                        errors.Username ? "border-red-500" : "border-gray-300"
+                      }
                     />
                     <FloatingError
                       message={errors.Username}
@@ -543,7 +549,9 @@ const SignupForm = ({ onLogin }) => {
                       placeholder="Enter the name"
                       value={signupData.Name}
                       onChange={(v) => handleData("Name", v)}
-                      className={errors.Name ? "border-red-500" : ""}
+                      className={
+                        errors.Name ? "border-red-500" : "border-gray-300"
+                      }
                     />
                     <FloatingError message={errors.Name} show={!!errors.Name} />
                   </div>
