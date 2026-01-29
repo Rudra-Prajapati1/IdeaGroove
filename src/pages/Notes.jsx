@@ -17,7 +17,6 @@ const Notes = () => {
   const notes = useSelector(selectAllNotes);
   const notesStatus = useSelector(selectNotesStatus);
   const notesError = useSelector(selectNotesError);
-  console.table(notes);
 
   useEffect(() => {
     if (notesStatus === "idle") {

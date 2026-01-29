@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { X, Calendar, ImagePlus, Loader2, Info } from "lucide-react";
 import { useSelector } from "react-redux";
+import { toast } from "react-hot-toast";
+import { createPortal } from "react-dom";
 
 const AddEventOverlay = ({ onClose, onUpload }) => {
-  const { user } = useSelector((state) => state.auth); // Get User ID from auth slice
+  const { user } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
     Description: "",
@@ -14,57 +16,116 @@ const AddEventOverlay = ({ onClose, onUpload }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const ALLOWED_TYPES = [
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "image/svg+xml",
+  ];
+  const MAX_SIZE = 5 * 1024 * 1024;
+  const MAX_DESCRIPTION_LENGTH = 255;
+  const TODAY = new Date().toISOString().split("T")[0];
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === "Description" && value.length > MAX_DESCRIPTION_LENGTH) {
+      toast.error("Maximum 255 characters allowed");
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const validateFile = (file) => {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast.error("Only PNG, JPG, SVG or WEBP images are allowed");
+      return false;
+    }
+
+    if (file.size > MAX_SIZE) {
+      toast.error("Poster size must be under 5MB");
+      return false;
+    }
+
+    return true;
   };
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setFormData((prev) => ({ ...prev, Poster_File: e.target.files[0] }));
+      const file = e.target.files[0];
+
+      if (!validateFile(file)) return;
+
+      setFormData((prev) => ({ ...prev, Poster_File: file }));
     }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+
+      if (!validateFile(file)) return;
+
       setFormData((prev) => ({
         ...prev,
-        Poster_File: e.dataTransfer.files[0],
+        Poster_File: file,
       }));
     }
   };
 
+  /* ---------- SUBMIT VALIDATION ---------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.Poster_File || !formData.Event_Date) return;
+
+    if (!formData.Poster_File) {
+      toast.error("Event poster is required");
+      return;
+    }
+
+    if (!formData.Event_Date) {
+      toast.error("Event date is required");
+      return;
+    }
+
+    if (formData.Event_Date < TODAY) {
+      toast.error("Event date cannot be in the past");
+      return;
+    }
 
     setLoading(true);
 
     const submissionData = new FormData();
     submissionData.append("Poster_File", formData.Poster_File);
-    submissionData.append("Description", formData.Description);
+
+    // ✅ Send NULL / empty safely
+    submissionData.append("Description", formData.Description.trim() || null);
+
     submissionData.append("Event_Date", formData.Event_Date);
-    submissionData.append("Added_By", user?.id || 1); // ID from DB Schema
+    submissionData.append("Added_By", user?.id || 1);
     submissionData.append("Added_On", new Date().toISOString());
     submissionData.append("Is_Active", 1);
 
-    // Simulate API Call
     setTimeout(() => {
       setLoading(false);
+      toast.success("Event posted successfully 🎉");
       onUpload ? onUpload(submissionData) : console.log("Uploaded:", formData);
       onClose();
     }, 1500);
   };
 
-  return (
+  /* ---------- UI (UNCHANGED) ---------- */
+
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 font-poppins">
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header - Matching AddNotes Style */}
+        {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 sticky top-0 z-10">
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-green-600" />
@@ -78,14 +139,14 @@ const AddEventOverlay = ({ onClose, onUpload }) => {
           </button>
         </div>
 
-        {/* Scrollable Body */}
+        {/* Body */}
         <div className="overflow-y-auto p-6">
           <form
             id="add-event-form"
             onSubmit={handleSubmit}
             className="space-y-5"
           >
-            {/* Poster Upload Area */}
+            {/* Poster Upload */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Event Poster <span className="text-red-500">*</span>
@@ -130,7 +191,7 @@ const AddEventOverlay = ({ onClose, onUpload }) => {
                       Click to upload or drag and drop poster
                     </p>
                     <p className="text-xs text-slate-400 mt-1">
-                      PNG, JPG or WEBP (Max 5MB)
+                      PNG, JPG, SVG or WEBP (Max 5MB)
                     </p>
                   </>
                 )}
@@ -140,17 +201,31 @@ const AddEventOverlay = ({ onClose, onUpload }) => {
             {/* Description */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">
-                Event Description <span className="text-red-500">*</span>
+                Event Description{" "}
+                <span className="text-slate-400 font-normal">(Optional)</span>
               </label>
               <textarea
                 name="Description"
                 rows={4}
-                required
+                maxLength={255}
                 placeholder="Details about the event (venue, time, etc.)..."
                 value={formData.Description}
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all text-sm resize-none"
               />
+
+              {/* ✅ Character Counter */}
+              <div className="mt-1 text-xs text-right">
+                <span
+                  className={
+                    formData.Description.length >= MAX_DESCRIPTION_LENGTH - 10
+                      ? "text-red-500 font-medium"
+                      : "text-slate-400"
+                  }
+                >
+                  {formData.Description.length} / {MAX_DESCRIPTION_LENGTH}
+                </span>
+              </div>
             </div>
 
             {/* Event Date */}
@@ -158,21 +233,19 @@ const AddEventOverlay = ({ onClose, onUpload }) => {
               <label className="block text-sm font-semibold text-slate-700 mb-1">
                 Date of the Event <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  name="Event_Date"
-                  required
-                  value={formData.Event_Date}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all text-sm bg-white"
-                />
-              </div>
+              <input
+                type="date"
+                name="Event_Date"
+                required
+                value={formData.Event_Date}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all text-sm bg-white"
+              />
             </div>
           </form>
         </div>
 
-        {/* Footer Actions */}
+        {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3 sticky bottom-0 z-10">
           <button
             type="button"
@@ -197,7 +270,7 @@ const AddEventOverlay = ({ onClose, onUpload }) => {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
   );
 };
 
