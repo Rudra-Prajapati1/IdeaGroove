@@ -13,4 +13,5 @@ export const socialLinks = [
     icon: Instagram,
     href: "https://www.instagram.com/theideagroove",
   },
+
 ];
