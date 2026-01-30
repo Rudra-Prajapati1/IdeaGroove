@@ -70,6 +70,7 @@ const Events = () => {
 
       {addEvent && <AddEventOverlay onClose={() => setAddEvent(false)} />}
 
+      {addEvent && <AddEventOverlay onClose={() => setAddEvent(false)} />}
 
       <div className="max-w-6xl  mx-auto px-6 relative z-30 mt-10">
         <div className="flex justify-between items-center">

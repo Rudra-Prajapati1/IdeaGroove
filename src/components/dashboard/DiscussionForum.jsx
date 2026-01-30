@@ -19,13 +19,14 @@ const DiscussionForum = ({ MOCK_DISCUSSIONS, DEGREE_SUBJECTS }) => {
   const [selectedDegree, setSelectedDegree] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
   const [showAskModal, setShowAskModal] = useState(false);
+  const [editing, setEditing] = useState(null);
 
   // Handlers
   const handleQuestionSubmit = (data) => console.log("New Question:", data);
 
-  const handleEditPost = (postId) => {
-    console.log("Edit Post ID:", postId);
-  };
+  // const handleEditPost = (postId) => {
+  //   console.log("Edit Post ID:", postId);
+  // };
 
   const handleDeletePost = (postId) => {
     if (window.confirm("Delete this discussion?")) {
@@ -59,9 +60,13 @@ const DiscussionForum = ({ MOCK_DISCUSSIONS, DEGREE_SUBJECTS }) => {
 
   return (
     <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
-      {showAskModal && (
+      {(showAskModal || editing) && (
         <AskQuestionModal
-          onClose={() => setShowAskModal(false)}
+          onClose={() => {
+            setShowAskModal(false);
+            setEditing(null);
+          }}
+          editing={editing}
           onSubmit={handleQuestionSubmit}
         />
       )}
@@ -174,7 +179,7 @@ const DiscussionForum = ({ MOCK_DISCUSSIONS, DEGREE_SUBJECTS }) => {
                 post={post}
                 isAuth={isAuth}
                 currentUser={MOCK_CURRENT_USER_ID} // Pass Mock User Name
-                onEdit={handleEditPost}
+                onEdit={() => setEditing(post)}
                 onDelete={handleDeletePost}
               />
             ))

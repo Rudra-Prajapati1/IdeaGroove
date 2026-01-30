@@ -32,7 +32,7 @@ const SUBJECT_OPTIONS = {
   4: [{ id: 401, name: "Marketing" }],
 };
 
-const AskQuestionModal = ({ onClose, onSubmit }) => {
+const AskQuestionModal = ({ onClose, onSubmit, editing }) => {
   const { user } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
@@ -90,7 +90,7 @@ const AskQuestionModal = ({ onClose, onSubmit }) => {
         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 sticky top-0 z-100">
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <MessageSquare className="w-5 h-5 text-green-600" />
-            Ask a Question
+            {editing ? "Edit the Question" : "Ask a Question"}
           </h2>
           <button
             onClick={onClose}

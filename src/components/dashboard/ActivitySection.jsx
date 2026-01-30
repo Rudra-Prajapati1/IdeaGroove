@@ -233,9 +233,8 @@ const ActivitySection = () => {
   const ownedQuestions = MOCK_DISCUSSIONS.filter(
     (q) => q.id === MOCK_CURRENT_USER_ID_QUESTION,
   );
-
-  // Notes Filter (Filtering the notes array before passing it)
   const ownedNotes = notes.filter((n) => n.Added_By === MOCK_CURRENT_USER_ID);
+  // console.log(ownedNotes);
 
   return (
     <section>
@@ -267,7 +266,7 @@ const ActivitySection = () => {
 
       {/* Events */}
       {option === "Events" && (
-        <div className="w-10/12 m-auto bg-white px-12 py-12 rounded-2xl">
+        <div className="w-10/12 m-auto bg-[#fffbeb] px-12 py-12 rounded-2xl">
           <div>
             {eventsStatus === "loading" && <p>Loading Events...</p>}
             {eventsStatus === "failed" && <p>Error loading Events</p>}
@@ -322,7 +321,7 @@ const ActivitySection = () => {
 
       {/* Groups */}
       {option === "Groups" && (
-        <div className="w-10/12 m-auto bg-white px-12 py-12 rounded-2xl">
+        <div className="w-10/12 m-auto bg-[#fffbeb] px-12 py-12 rounded-2xl">
           <div>
             {groupsStatus === "loading" && <p>Loading Groups...</p>}
             {groupsStatus === "failed" && <p>Error: {groupsError}</p>}

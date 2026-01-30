@@ -29,7 +29,7 @@ const SUBJECT_OPTIONS = {
   4: [{ id: 401, name: "Marketing" }],
 };
 
-const AddNotes = ({ onClose, onUpload }) => {
+const AddNotes = ({ onClose, onUpload, editing }) => {
   const { user } = useSelector((state) => state.auth); // Get User ID
 
   const [formData, setFormData] = useState({
@@ -144,7 +144,7 @@ const AddNotes = ({ onClose, onUpload }) => {
         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 sticky top-0 z-10">
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <UploadCloud className="w-5 h-5 text-green-600" />
-            Upload New Notes
+            {editing ? "Edit the Notes" : "Upload New Notes"}
           </h2>
           <button
             onClick={onClose}

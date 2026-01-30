@@ -113,7 +113,8 @@ const NotesCard = ({
           {isAuth && isOwner && (
             <div className="flex gap-2">
               <button
-                onClick={() => onEdit(note.N_ID)}
+                // onClick={() => onEdit(note.N_ID)}
+                onClick={onEdit}
                 className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
                 title="Edit Note"
               >
