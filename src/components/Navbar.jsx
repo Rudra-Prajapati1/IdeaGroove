@@ -90,7 +90,7 @@ const Navbar = () => {
   });
 
   return (
-    <header className="fixed top-5 left-1/2 -translate-x-1/2 w-[80%] lg:w-[40%] z-40">
+    <header className="fixed top-5 left-1/2 -translate-x-1/2 w-[80%] lg:w-[40%] z-50">
       <nav
         ref={navRef}
         className={`

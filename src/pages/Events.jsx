@@ -56,11 +56,7 @@ const Events = () => {
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
       <PageHeader title="Events" />
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 
->>>>>>> da766a9d9055d7679040729debe85a7914e57e72
       {(addEvent || editingEvent) && (
         <AddEventOverlay
           onClose={() => {
@@ -71,17 +67,11 @@ const Events = () => {
         />
       )}
       {/* Controls Section (Search & Filter) */}
-<<<<<<< HEAD
-=======
-      {addEvent && <AddEventOverlay onClose={() => setAddEvent(false)} />}
-
->>>>>>> 363b14ca11566c8a57c7d429d6a808de8e332993
-=======
 
       {addEvent && <AddEventOverlay onClose={() => setAddEvent(false)} />}
 
+      {addEvent && <AddEventOverlay onClose={() => setAddEvent(false)} />}
 
->>>>>>> da766a9d9055d7679040729debe85a7914e57e72
       <div className="max-w-6xl  mx-auto px-6 relative z-30 mt-10">
         <div className="flex justify-between items-center">
           <Controls
