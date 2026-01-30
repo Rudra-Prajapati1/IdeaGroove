@@ -65,7 +65,8 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
             {isOwner ? (
               <div className="flex items-center gap-1 ml-2">
                 <button
-                  onClick={() => onEdit(post.id)}
+                  // onClick={() => onEdit(post.id)}
+                  onClick={onEdit}
                   className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
                   title="Edit Discussion"
                 >

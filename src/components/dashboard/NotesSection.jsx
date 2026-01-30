@@ -85,6 +85,7 @@ const NotesSection = () => {
   const [selectedDegree, setSelectedDegree] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
   const [showAddNotes, setShowAddNotes] = useState(false);
+  const [editing, setEditing] = useState(null);
 
   const filteredNotes = MOCK_NOTES.filter((note) => {
     if (selectedDegree && note.degree !== selectedDegree) return false;
@@ -106,9 +107,13 @@ const NotesSection = () => {
 
   return (
     <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
-      {showAddNotes && (
+      {(showAddNotes || editing) && (
         <AddNotes
-          onClose={() => setShowAddNotes(false)}
+          onClose={() => {
+            setShowAddNotes(false);
+            setEditing(null);
+          }}
+          editing={editing}
           onUpload={(formData) => {
             console.log("Notes upload payload:", formData);
           }}
@@ -226,6 +231,7 @@ const NotesSection = () => {
                   style={STYLE_VARIANTS[index % STYLE_VARIANTS.length]}
                   isAuth={isAuth}
                   currentUserId={104}
+                  onEdit={() => setEditing(note)}
                 />
               ))}
             </div>

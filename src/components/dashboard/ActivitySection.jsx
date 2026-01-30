@@ -233,9 +233,8 @@ const ActivitySection = () => {
   const ownedQuestions = MOCK_DISCUSSIONS.filter(
     (q) => q.id === MOCK_CURRENT_USER_ID_QUESTION,
   );
-
-  // Notes Filter (Filtering the notes array before passing it)
   const ownedNotes = notes.filter((n) => n.Added_By === MOCK_CURRENT_USER_ID);
+  // console.log(ownedNotes);
 
   return (
     <section>
