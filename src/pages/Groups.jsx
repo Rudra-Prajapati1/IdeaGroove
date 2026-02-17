@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import FilledTitle from "../components/FilledTitle";
+import FilledTitle from "../components/common/FilledTitle";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchChatRooms,
@@ -7,13 +7,13 @@ import {
   selectChatRoomStatus,
   selectGroupChatRooms,
 } from "../redux/slice/chatRoomsSlice";
-import GroupCard from "../components/groups/GroupCard";
+import GroupCard from "@/components/cards/GroupCard";
 import AddGroupOverlay from "../components/groups/AddGroup";
 import { ArrowLeft, LucideGroup } from "lucide-react";
-import Controls from "../components/Controls";
+import Controls from "../components/common/Controls";
 import { selectIsAuthenticated } from "../redux/slice/authSlice";
-import PageHeader from "../components/PageHeader";
-import ActionButton from "../components/ActionButton";
+import PageHeader from "../components/common/PageHeader";
+import ActionButton from "../components/common/ActionButton";
 
 const Groups = () => {
   const isAuth = useSelector(selectIsAuthenticated);

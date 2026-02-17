@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import NotesCard from "../notes/NotesCard"; // Ensure this path is correct
-import FilledTitle from "../FilledTitle";
+import NotesCard from "../cards/NotesCard"; // Ensure this path is correct
+import FilledTitle from "../common/FilledTitle";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchNotes,
@@ -9,8 +9,8 @@ import {
   selectNotesStatus,
 } from "../../redux/slice/notesSlice";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice"; // Import Auth selector
-import ShowMoreButton from "../ShowMoreButton";
-import Loading from "../Loading";
+import ShowMoreButton from "../common/ShowMoreButton";
+import Loading from "../common/Loading";
 import {
   Code2,
   FlaskConical,

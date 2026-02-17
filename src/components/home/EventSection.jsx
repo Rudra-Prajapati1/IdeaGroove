@@ -1,15 +1,15 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import EventCard from "../events/EventCard";
+import EventCard from "../cards/EventCard";
 import {
   fetchEvents,
   selectEventsError,
   selectEventsStatus,
   selectRandomEvents,
 } from "../../redux/slice/eventsSlice";
-import ShowMoreButton from "../ShowMoreButton";
-import FilledTitle from "../FilledTitle";
-import Loading from "../Loading";
+import ShowMoreButton from "../common/ShowMoreButton";
+import FilledTitle from "../common/FilledTitle";
+import Loading from "../common/Loading";
 
 const EventSection = () => {
   const dispatch = useDispatch();

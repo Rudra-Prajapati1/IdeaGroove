@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import AdminQnACard from "./Cards/AdminQnACard";
+import AdminQnACard from "../cards/AdminQnACard";
 
 const AdminQnAGrid = ({
   qnas,

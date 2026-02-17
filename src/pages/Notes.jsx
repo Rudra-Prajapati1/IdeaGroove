@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import DiscussionForum from "../components/dashboard/DiscussionForum";
-import FilledTitle from "../components/FilledTitle";
+import FilledTitle from "../components/common/FilledTitle";
 import NotesSection from "../components/dashboard/NotesSection";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -10,7 +10,7 @@ import {
   selectNotesStatus,
 } from "../redux/slice/notesSlice";
 import { ArrowLeft } from "lucide-react";
-import PageHeader from "../components/PageHeader";
+import PageHeader from "../components/common/PageHeader";
 
 const Notes = () => {
   const dispatch = useDispatch();

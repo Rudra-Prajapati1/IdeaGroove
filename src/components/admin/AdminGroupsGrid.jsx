@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import AdminGroupCard from "./Cards/AdminGroupCard";
+import AdminGroupCard from "../cards/AdminGroupCard";
 
 const AdminGroupsGrid = ({
   groups,

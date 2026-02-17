@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import UserCard from "./Cards/AdminUserCard";
+import UserCard from "../cards/AdminUserCard";
 
 const DashboardUsers = ({
   users,

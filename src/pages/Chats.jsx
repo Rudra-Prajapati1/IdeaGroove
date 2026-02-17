@@ -3,7 +3,7 @@ import ChatsSidebar from "../components/chats/ChatsSidebar";
 import ChatHeader from "../components/chats/ChatHeader";
 import ChatBody from "../components/chats/ChatBody";
 import ChatInput from "../components/chats/ChatInput";
-import PageHeader from "../components/PageHeader";
+import PageHeader from "../components/common/PageHeader";
 
 const Chats = () => {
   const [activeRoom, setActiveRoom] = useState(null);

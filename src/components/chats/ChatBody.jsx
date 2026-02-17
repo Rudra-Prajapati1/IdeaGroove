@@ -5,7 +5,7 @@ import {
   selectChatsByRoomId,
   selectChatsStatus,
 } from "../../redux/slice/chatsSlice";
-import Loading from "../Loading";
+import Loading from "../common/Loading";
 import { CheckCheck } from "lucide-react";
 
 /* 🔥 TEMPORARY STATIC USER MAP (REMOVE LATER) */

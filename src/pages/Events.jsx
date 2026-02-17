@@ -8,16 +8,16 @@ import {
 } from "../redux/slice/eventsSlice";
 
 // Components
-import EventCard from "../components/events/EventCard";
-import Loading from "../components/Loading";
+import EventCard from "../components/cards/EventCard";
+import Loading from "../components/common/Loading";
 import { ArrowLeft, UploadIcon } from "lucide-react";
 import AddEventOverlay from "../components/events/AddEvent";
 import { selectIsAuthenticated } from "../redux/slice/authSlice";
-import Controls from "../components/Controls";
+import Controls from "../components/common/Controls";
 import { useNavigate } from "react-router-dom";
-import PageHeader from "../components/PageHeader";
+import PageHeader from "../components/common/PageHeader";
 import { toast } from "react-hot-toast";
-import ActionButton from "../components/ActionButton";
+import ActionButton from "../components/common/ActionButton";
 
 const Events = () => {
   const navigate = useNavigate();

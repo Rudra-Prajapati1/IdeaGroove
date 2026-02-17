@@ -7,9 +7,9 @@ import {
   MessageSquare,
   Users,
 } from "lucide-react";
-import { selectIsAuthenticated } from "../../../redux/slice/authSlice";
+import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 import { useSelector } from "react-redux";
-import AdminViewMembers from "../AdminViewMember";
+import AdminViewMembers from "../admin/AdminViewMember";
 
 const AdminGroupCard = ({ group, onModerate }) => {
   const isActive = group.status === "active";

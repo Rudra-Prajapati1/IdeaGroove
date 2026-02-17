@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import GroupCard from "../groups/GroupCard";
+import GroupCard from "@/components/cards/GroupCard";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchChatRooms,
@@ -7,9 +7,9 @@ import {
   selectChatRoomStatus,
   selectRandomGroupChatRooms,
 } from "../../redux/slice/chatRoomsSlice";
-import FilledTitle from "../FilledTitle";
-import ShowMoreButton from "../ShowMoreButton";
-import Loading from "../Loading";
+import FilledTitle from "../common/FilledTitle";
+import ShowMoreButton from "../common/ShowMoreButton";
+import Loading from "../common/Loading";
 
 const GroupSection = () => {
   const dispatch = useDispatch();
