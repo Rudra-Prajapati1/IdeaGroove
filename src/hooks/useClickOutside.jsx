@@ -1,9 +1,8 @@
 import { useEffect } from "react";
 
-export const useClickOutside = (ref, callback) => {
+const useClickOutside = (ref, callback) => {
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // If the ref exists and the clicked element is NOT inside the ref
       if (ref.current && !ref.current.contains(event.target)) {
         callback();
       }
@@ -16,5 +15,7 @@ export const useClickOutside = (ref, callback) => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("touchstart", handleClickOutside);
     };
-  }, [ref, callback]);
+  }, [callback]);
 };
+
+export default useClickOutside;

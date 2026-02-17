@@ -1,8 +1,8 @@
 import React from "react";
 import DiscussionForum from "../components/dashboard/DiscussionForum";
-import FilledTitle from "../components/FilledTitle";
+import FilledTitle from "../components/common/FilledTitle";
 import { ArrowLeft } from "lucide-react";
-import PageHeader from "../components/PageHeader";
+import PageHeader from "../components/common/PageHeader";
 
 // --- Configuration Data ---
 const DEGREE_SUBJECTS = {

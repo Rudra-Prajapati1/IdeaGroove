@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import QnACard from "../qna/QnACard";
-import FilledTitle from "../FilledTitle";
+import QnACard from "../cards/QnACard";
+import FilledTitle from "../common/FilledTitle";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchQuestions,
@@ -12,8 +12,8 @@ import {
   selectAnswersStatus,
 } from "../../redux/slice/answerSlice";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice";
-import ShowMoreButton from "../ShowMoreButton";
-import Loading from "../Loading";
+import ShowMoreButton from "../common/ShowMoreButton";
+import Loading from "../common/Loading";
 
 // --- Mock Data (As provided) ---
 const MOCK_DISCUSSIONS = [

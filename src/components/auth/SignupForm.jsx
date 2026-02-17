@@ -16,7 +16,7 @@ import Input from "./Input";
 import ProfileUpload from "./ProfileUpload";
 
 import { loginSuccess } from "../../redux/slice/authSlice";
-import { MultiSearchableDropdown } from "../MultipleSearchComponent";
+import { MultiSearchableDropdown } from "../common/MultipleSearchComponent";
 import toast from "react-hot-toast";
 
 const FloatingError = ({ message, show }) => {

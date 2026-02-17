@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Filter, Plus, BookOpen, GraduationCap } from "lucide-react";
-import Controls from "../Controls";
+import Controls from "../common/Controls";
 import AskQuestionModal from "../qna/AskQuestion";
-import QnACard from "../qna/QnACard"; // ✅ Import the new component
+import QnACard from "../cards/QnACard"; // ✅ Import the new component
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice";
-import ActionButton from "../ActionButton";
+import ActionButton from "../common/ActionButton";
 
 const DiscussionForum = ({ MOCK_DISCUSSIONS, DEGREE_SUBJECTS }) => {
   const isAuth = useSelector(selectIsAuthenticated);

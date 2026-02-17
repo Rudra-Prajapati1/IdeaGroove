@@ -1,4 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
+
 import eventsReducer from "./slice/eventsSlice";
 import chatRoomsReducer from "./slice/chatRoomsSlice";
 import chatRoomMembersReducer from "./slice/chatRoomMembersSlice";
@@ -19,4 +20,5 @@ export default configureStore({
     answers: answerReducer,
     auth: authReducer,
   },
+  devTools: import.meta.env.DEV,
 });

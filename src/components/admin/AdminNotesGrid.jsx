@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import AdminNoteCard from "./Cards/AdminNoteCard";
+import AdminNoteCard from "../cards/AdminNoteCard";
 
 const AdminNotesGrid = ({
   notes,

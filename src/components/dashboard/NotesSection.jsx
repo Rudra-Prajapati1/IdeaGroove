@@ -11,11 +11,11 @@ import {
   Sigma,
   BrainCircuit,
 } from "lucide-react";
-import Controls from "../Controls";
-import NotesCard from "../notes/NotesCard";
+import Controls from "../common/Controls";
+import NotesCard from "../cards/NotesCard";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice";
-import ActionButton from "../ActionButton";
+import ActionButton from "../common/ActionButton";
 import AddNotes from "../notes/AddNotes";
 
 const DEGREE_SUBJECTS = {

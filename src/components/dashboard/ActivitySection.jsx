@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import EventCard from "../events/EventCard";
-import GroupCard from "../groups/GroupCard";
+import EventCard from "@/components/cards/EventCard";
+import GroupCard from "@/components/cards/GroupCard";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchEvents,
@@ -13,8 +13,8 @@ import {
   selectChatRoomStatus,
   selectGroupChatRooms,
 } from "../../redux/slice/chatRoomsSlice";
-import FilledTitle from "../FilledTitle";
-import QnACard from "../qna/QnACard";
+import FilledTitle from "../common/FilledTitle";
+import QnACard from "../cards/QnACard";
 import {
   fetchQuestions,
   selectAllQuestions,
@@ -31,7 +31,7 @@ import {
   selectNotesError,
   selectNotesStatus,
 } from "../../redux/slice/notesSlice";
-import NotesCard from "../notes/NotesCard";
+import NotesCard from "../cards/NotesCard";
 import {
   CalendarDays,
   LucideGroup,
@@ -44,7 +44,7 @@ import {
 import DiscussionForum from "./DiscussionForum";
 import NotesSection from "./NotesSection";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice";
-import Controls from "../Controls";
+import Controls from "../common/Controls";
 import AddEventOverlay from "../events/AddEvent";
 import AddGroupOverlay from "../groups/AddGroup";
 

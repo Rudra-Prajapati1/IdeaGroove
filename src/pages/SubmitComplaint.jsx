@@ -17,7 +17,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { selectIsAuthenticated } from "../redux/slice/authSlice";
-import PageHeader from "../components/PageHeader";
+import PageHeader from "../components/common/PageHeader";
 
 const SubmitComplaint = () => {
   const isAuth = useSelector(selectIsAuthenticated);

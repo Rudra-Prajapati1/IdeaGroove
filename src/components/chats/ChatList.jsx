@@ -11,7 +11,7 @@ import {
   selectChatRoomError,
   selectChatRoomStatus,
 } from "../../redux/slice/chatRoomsSlice";
-import Loading from "../Loading";
+import Loading from "../common/Loading";
 
 const LOGGED_IN_STUDENT_ID = 101;
 

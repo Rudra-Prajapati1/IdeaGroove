@@ -1,5 +1,5 @@
 import React from "react";
-import AdminEventCard from "./Cards/AdminEventCard";
+import AdminEventCard from "../cards/AdminEventCard";
 
 const AdminEventsGrid = ({ events, onModerate }) => {
   return (

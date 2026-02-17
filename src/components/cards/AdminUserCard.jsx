@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Shield, Calendar, Ban, CheckCircle, Hash, X } from "lucide-react";
-import StudentProfile from "../StudentProfile";
+import StudentProfile from "../admin/StudentProfile";
 
 const UserCard = ({ user, onModerate }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);

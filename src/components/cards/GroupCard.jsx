@@ -15,7 +15,7 @@ import {
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 import { useNavigate } from "react-router-dom";
-import ViewMembers from "./ViewMembers";
+import ViewMembers from "@/components/groups/ViewMembers";
 import ComplaintButton from "../ComplaintButton";
 import toast from "react-hot-toast";
 
