@@ -10,11 +10,11 @@ import Auth from "../pages/Auth";
 import ProfileInformation from "../pages/Profile";
 import ComplaintDashboard from "../pages/ComplaintDashboard";
 import SubmitComplaint from "../pages/SubmitComplaint";
-import Searchpage from "../pages/Searchpage";
+import SearchPage from "../pages/SearchPage";
 import NotFound from "../pages/NotFound";
 import ResetPassword from "../pages/ResetPassword";
-import TermCondition from "../pages/TermCondition";
-import PrivacyPolicies from "../pages/PrivayPolicy";
+import TermsAndConditions from "../pages/TermsAndConditions";
+import Policy from "../pages/Policy";
 
 const UserRoutes = (
   <>
@@ -28,14 +28,13 @@ const UserRoutes = (
     <Route path="dashboard/:id" element={<Dashboard />} />
     <Route path="auth" element={<Auth />} />
     <Route path="profile" element={<ProfileInformation />} />
-    <Route path="complaintDashboard" element={<ComplaintDashboard />} />
-    <Route path="submitComplaint/:type?/:id?" element={<SubmitComplaint />} />
-    <Route path="search" element={<Searchpage />} />
-    <Route path="/resetPassword/:id/:token" element={<ResetPassword />} />
-    <Route path="/termsCondition" element={<TermCondition />} />
-    <Route path="/privacyPolicies" element={<PrivacyPolicies />} />
+    <Route path="complaints" element={<ComplaintDashboard />} />
+    <Route path="submit-complaint/:type?/:id?" element={<SubmitComplaint />} />
+    <Route path="search" element={<SearchPage />} />
+    <Route path="reset-password/:id/:token" element={<ResetPassword />} />
+    <Route path="terms" element={<TermsAndConditions />} />
+    <Route path="privacy" element={<Policy />} />
     <Route path="*" element={<NotFound />} />
   </>
 );
-
 export default UserRoutes;

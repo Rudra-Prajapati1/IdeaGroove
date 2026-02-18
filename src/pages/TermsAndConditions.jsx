@@ -1,7 +1,8 @@
 import React from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-const TermCondition = () => {
+
+const TermsAndConditions = () => {
   const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
@@ -112,4 +113,4 @@ const TermCondition = () => {
     </div>
   );
 };
-export default TermCondition;
+export default TermsAndConditions;

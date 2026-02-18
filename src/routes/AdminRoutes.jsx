@@ -13,8 +13,8 @@ const AdminRoutes = (
     <Route index element={<AdminDash />} />
     <Route path="dashboard" element={<AdminDash />} />
 
-    <Route path="notes" element={<AdminNotes />} />
     <Route path="users" element={<AdminDashboard />} />
+    <Route path="notes" element={<AdminNotes />} />
     <Route path="events" element={<AdminEvents />} />
     <Route path="groups" element={<AdminGroups />} />
     <Route path="qna" element={<AdminQnA />} />

@@ -49,7 +49,6 @@ const authSlice = createSlice({
 export const { loginSuccess, logout, authError, setLoading } =
   authSlice.actions;
 
-// Selectors for easy use in components
 export const selectUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 

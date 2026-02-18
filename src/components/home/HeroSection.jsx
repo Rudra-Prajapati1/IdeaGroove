@@ -6,8 +6,8 @@ const HeroSection = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 80) setScrolled(true);
-      else setScrolled(false);
+      const shouldScroll = window.scrollY > 80;
+      setScrolled((prev) => (prev !== shouldScroll ? shouldScroll : prev));
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -19,7 +19,7 @@ const HeroSection = () => {
       <div className="flex flex-col gap-5 items-center py-50">
         <img
           alt="IdeaGroove Logo with a title text and arrows with a light bub and a stack of books"
-          src="./Logo.png"
+          src="/Logo.png"
           className={`border-4 border-secondary rounded-2xl h-40 w-50 md:h-50 md:w-60 xl:h-60 xl:w-70 transition-all duration-500 ${
             scrolled
               ? "translate-y-[-200px] opacity-0 scale-50"
@@ -29,11 +29,11 @@ const HeroSection = () => {
         <h1 className="font-poppins text-3xl text-white font-semibold lg:flex hidden">
           CONNECT ● COLLABORATE ● CONTRIBUTE
         </h1>
-        <h1 className="font-poppins text-xl text-center text-white font-semibold hidden max-md:flex flex-col">
+        <p className="font-poppins text-xl text-center text-white font-semibold hidden max-md:flex flex-col">
           <span>CONNECT</span>
           <span>COLLABORATE</span>
           <span>CONTRIBUTE</span>
-        </h1>
+        </p>
         <span className="absolute block w-full h-[200px] animate-bounce">
           <Lightbulb className="h-12 w-12 absolute left-5 lg:top-[50px] lg:left-20 rotate-[-25deg] text-secondary animate-wiggle" />
           <BookOpen className="h-10 w-10 lg:h-14 lg:w-14 absolute top-10 right-5 lg:right-50 rotate-45 text-secondary animate-wiggle" />

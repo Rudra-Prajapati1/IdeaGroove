@@ -6,6 +6,7 @@ import { logout } from "@/redux/slice/authSlice";
 import { UserCircle, LogOut, LayoutDashboard } from "lucide-react";
 import toast from "react-hot-toast";
 import useClickOutside from "@/hooks/useClickOutside.jsx";
+import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 
 const Navbar = () => {
   const location = useLocation();
@@ -15,7 +16,7 @@ const Navbar = () => {
   const navRef = useRef(null);
   const profileRef = useRef(null);
 
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
