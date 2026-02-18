@@ -2,7 +2,7 @@ import React from "react";
 import { ArrowLeft, Database, Eye, ShieldCheck, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const PrivacyPolicies = () => {
+const Policy = () => {
   const navigate = useNavigate();
 
   return (
@@ -39,19 +39,22 @@ const PrivacyPolicies = () => {
       <div className="max-w-4xl mx-auto px-6 relative z-30 mt-10">
         <div className="bg-white rounded-[2rem] shadow-xl p-8 md:p-12 border border-black/5">
           <div className="space-y-12 text-gray-700 leading-relaxed">
-            
             {/* 1. Information Collection */}
             <section className="flex flex-col md:flex-row gap-6">
               <div className="bg-[#FFFBEB] p-4 rounded-2xl h-fit w-fit">
                 <Database className="text-[#1A3C20]" size={28} />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-[#1A3C20] mb-3">1. Data Collection & Usage</h2>
+                <h2 className="text-2xl font-bold text-[#1A3C20] mb-3">
+                  1. Data Collection & Usage
+                </h2>
                 <p>
-                  We collect personal information that you provide directly to us through our web forms. 
-                  This may include your name, email address, and any feedback provided. We also 
-                  automatically collect certain technical data, such as IP addresses and browser types, 
-                  to ensure the stability and security of our platform.
+                  We collect personal information that you provide directly to
+                  us through our web forms. This may include your name, email
+                  address, and any feedback provided. We also automatically
+                  collect certain technical data, such as IP addresses and
+                  browser types, to ensure the stability and security of our
+                  platform.
                 </p>
               </div>
             </section>
@@ -62,12 +65,15 @@ const PrivacyPolicies = () => {
                 <Eye className="text-[#1A3C20]" size={28} />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-[#1A3C20] mb-3">2. Cookies and Analytics</h2>
+                <h2 className="text-2xl font-bold text-[#1A3C20] mb-3">
+                  2. Cookies and Analytics
+                </h2>
                 <p>
-                  Our website utilizes essential cookies to enhance user experience and analyze site 
-                  traffic. These cookies help us understand user behavior, allowing us to improve 
-                  navigation and content delivery. You can manage your cookie preferences through 
-                  your browser settings at any time.
+                  Our website utilizes essential cookies to enhance user
+                  experience and analyze site traffic. These cookies help us
+                  understand user behavior, allowing us to improve navigation
+                  and content delivery. You can manage your cookie preferences
+                  through your browser settings at any time.
                 </p>
               </div>
             </section>
@@ -78,12 +84,15 @@ const PrivacyPolicies = () => {
                 <Lock className="text-[#1A3C20]" size={28} />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-[#1A3C20] mb-3">3. Information Security</h2>
+                <h2 className="text-2xl font-bold text-[#1A3C20] mb-3">
+                  3. Information Security
+                </h2>
                 <p>
-                  We implement industry-standard administrative and technical security measures 
-                  designed to protect your personal information from unauthorized access, loss, 
-                  or disclosure. While we strive to protect your data, no method of transmission 
-                  over the internet is 100% secure.
+                  We implement industry-standard administrative and technical
+                  security measures designed to protect your personal
+                  information from unauthorized access, loss, or disclosure.
+                  While we strive to protect your data, no method of
+                  transmission over the internet is 100% secure.
                 </p>
               </div>
             </section>
@@ -94,16 +103,18 @@ const PrivacyPolicies = () => {
                 <ShieldCheck className="text-[#1A3C20]" size={28} />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-[#1A3C20] mb-3">4. Your Privacy Rights</h2>
+                <h2 className="text-2xl font-bold text-[#1A3C20] mb-3">
+                  4. Your Privacy Rights
+                </h2>
                 <p>
-                  Under applicable data protection laws, you have the right to access, correct, 
-                  or delete your personal information stored in our systems. If you wish to 
-                  exercise these rights or have concerns regarding your data, please contact 
-                  our project administration team.
+                  Under applicable data protection laws, you have the right to
+                  access, correct, or delete your personal information stored in
+                  our systems. If you wish to exercise these rights or have
+                  concerns regarding your data, please contact our project
+                  administration team.
                 </p>
               </div>
             </section>
-
           </div>
         </div>
       </div>
@@ -111,4 +122,4 @@ const PrivacyPolicies = () => {
   );
 };
 
-export default PrivacyPolicies;
+export default Policy;

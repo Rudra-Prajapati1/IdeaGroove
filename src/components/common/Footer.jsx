@@ -1,12 +1,15 @@
 import { NavLink } from "react-router-dom";
 import { navLinks } from "@/links/navLinks";
 import { socialLinks } from "@/links/socialLinks";
+import { useSelector } from "react-redux";
+import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 
 const Footer = () => {
+  const isLoggedIn = useSelector(selectIsAuthenticated);
+
   return (
     <footer className="px-6 sm:px-10 py-14 sm:py-20 bg-primary mt-20 rounded-t-[3rem] sm:rounded-t-[5rem] text-white border">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-20 md:gap-0 items-center">
-        {/* QUICK LINKS */}
         <section className="flex flex-col gap-6 font-dm-sans text-center">
           <div>
             <h3 className="border-2 lg:py-2 px-4 rounded-xl w-fit mx-auto">
@@ -44,7 +47,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* SOCIAL + POLICIES */}
         <section className="flex flex-col gap-6 font-dm-sans text-center">
           <div>
             <h3 className="border-2 lg:py-2 px-4 rounded-xl w-fit mx-auto">
@@ -71,12 +73,13 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div>
-            <h3 className="border-2 lg:py-2 px-4 rounded-xl w-fit mx-auto hover:bg-white hover:text-primary transition-all duration-300">
-              <NavLink to="/submitComplaint">FEEDBACKS & COMPLAINTS</NavLink>
-            </h3>
-          </div>
-
+          {isLoggedIn && (
+            <div>
+              <h3 className="border-2 lg:py-2 px-4 rounded-xl w-fit mx-auto hover:bg-white hover:text-primary transition-all duration-300">
+                <NavLink to="/submitComplaint">FEEDBACKS & COMPLAINTS</NavLink>
+              </h3>
+            </div>
+          )}
           <div>
             <h3 className="border-2 lg:py-2 px-4 rounded-xl w-fit mx-auto hover:bg-white hover:text-primary transition-all duration-300">
               <NavLink to="/privacyPolicies">PRIVACY POLICIES</NavLink>

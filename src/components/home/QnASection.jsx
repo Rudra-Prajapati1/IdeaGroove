@@ -66,7 +66,6 @@ const MOCK_DISCUSSIONS = [
 const QnASection = () => {
   const dispatch = useDispatch();
 
-  // Redux States
   const status = useSelector(selectQuestionsStatus);
   const answerStatus = useSelector(selectAnswersStatus);
   const error = useSelector(selectQuestionsError);
@@ -74,7 +73,6 @@ const QnASection = () => {
 
   const MOCK_CURRENT_USER_NAME = "Jessica S.";
 
-  // Use the Mock Data for display
   const displayQuestions = MOCK_DISCUSSIONS;
 
   useEffect(() => {

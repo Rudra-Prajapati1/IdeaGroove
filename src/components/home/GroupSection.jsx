@@ -29,9 +29,12 @@ const GroupSection = () => {
       <FilledTitle text="Groups" />
 
       {status === "loading" && <Loading text="loading groups" />}
-      {status === "failed" && <p>Error: {error}</p>}
+      {status === "failed" && (
+        <p className="text-red-500 mt-4">Error: {error}</p>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
         {status === "succeeded" &&
+          randomGroups?.length > 0 &&
           randomGroups.map((group) => (
             <GroupCard key={group.Room_ID} group={group} />
           ))}
