@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { X, Send, Ban, CheckCircle, AlertCircle } from "lucide-react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
@@ -6,79 +6,24 @@ import StatsRow from "../../components/admin/StatsRow";
 import DashboardUsers from "../../components/admin/DashboardUsers";
 import EmailConfirmationModal from "../../components/admin/EmailConfirmationModal";
 
-// Initial user data moved here to allow global state management
-const initialUsersData = [
-  {
-    id: 1,
-    name: "Rohan Sharma",
-    username: "rohan_s", // Mapping to Username (VARCHAR 25)
-    rollNo: "CS2024001", // Mapping to Roll_No (VARCHAR 15)
-    email: "rohan@gmail.com",
-    year: 3, // Mapping to Year (INT)
-    degree: "B.Tech", // Mapping to Degree_ID Reference
-    status: "active", // Mapping to is_Active (BOOLEAN)
-  },
-  {
-    id: 2,
-    name: "Aisha Khan",
-    username: "aisha_k",
-    rollNo: "CS2024002",
-    email: "aisha@gmail.com",
-    year: 2,
-    degree: "BCA",
-    status: "inactive",
-  },
-
-  {
-    id: 3,
-    name: "Kunal Verma",
-    username: "kunalVV",
-    rollNo: "BCA17326",
-    email: "kunal@gmail.com",
-    year: 2,
-    degree: "BCA",
-    status: "inactive",
-  },
-  {
-    id: 4,
-    name: "Neha Patel",
-    username: "nehapatel", // Mapping to Username (VARCHAR 25)
-    rollNo: "23BCA001", // Mapping to Roll_No (VARCHAR 15)
-    email: "patelneha@gmail.com",
-    year: 3, // Mapping to Year (INT)
-    degree: "BCA", // Mapping to Degree_ID Reference
-    status: "active", // Mapping to is_Active (BOOLEAN)
-  },
-  {
-    id: 5,
-    name: "Arjun Mehta",
-    username: "mehta_arjun",
-    rollNo: "CS2024010",
-    email: "mehta@gmail.com",
-    year: 2,
-    degree: "BCA",
-    status: "inactive",
-  },
-];
-
 export const dashboardUserStats = [
   {
     title: "Total Users",
-    value: "1,240",
+    value: "",
     infoText: "+5% this month",
     color: "green",
     type: "total",
   },
   {
     title: "Active Users",
-    value: "980",
+    value: "",
     infoText: "Currently active",
     color: "yellow",
     type: "pending",
   },
   {
     title: "Inactive Users",
-    value: "260",
+    value: "",
     infoText: "Needs attention",
     color: "red",
     type: "blocked",
@@ -86,10 +31,11 @@ export const dashboardUserStats = [
 ];
 
 const AdminDashboard = () => {
-  const [users, setUsers] = useState(initialUsersData);
+  const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [degreeFilter, setDegreeFilter] = useState("all");
   const [yearFilter, setYearFilter] = useState("all");
+  const [error, setError] = useState(null);
 
   const degreeOptions = ["B.Tech", "BCA", "MCA"];
   const yearOptions = ["1", "2", "3", "4"];
@@ -99,6 +45,33 @@ const AdminDashboard = () => {
   const [targetId, setTargetId] = useState(null);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/api/students/all");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch users");
+        }
+
+        const data = await response.json();
+        const activeCount = data.filter((u) => u.is_Active === 1).length;
+        const inactiveCount = data.filter((u) => u.is_Active !== 1).length;
+        dashboardUserStats[0].value = data.length;
+        dashboardUserStats[1].value = activeCount;
+        dashboardUserStats[2].value = inactiveCount;
+
+        setUsers(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const handleModerateRequest = (type, userId) => {
     setSelectedAction(type);
@@ -118,7 +91,7 @@ const AdminDashboard = () => {
     setTimeout(() => {
       setUsers((prev) =>
         prev.map((u) =>
-          u.id === targetId
+          u.S_ID === targetId
             ? {
                 ...u,
                 status: selectedAction === "block" ? "inactive" : "active",
