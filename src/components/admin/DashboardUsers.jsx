@@ -13,15 +13,15 @@ const DashboardUsers = ({
       const s = searchTerm.toLowerCase();
       const matchesSearch =
         !s ||
-        user.name?.toLowerCase().includes(s) ||
-        user.email?.toLowerCase().includes(s) ||
-        user.username?.toLowerCase().includes(s) ||
-        user.rollNo?.toLowerCase().includes(s);
+        user.Name?.toLowerCase().includes(s) ||
+        user.Email?.toLowerCase().includes(s) ||
+        user.Username?.toLowerCase().includes(s) ||
+        user.Roll_No?.toLowerCase().includes(s);
 
       const matchesDegree =
-        filterDegree === "all" || user.degree === filterDegree;
+        filterDegree === "all" || user.Degree.Degree_Name === filterDegree;
       const matchesYear =
-        filterYear === "all" || user.year.toString() === filterYear;
+        filterYear === "all" || user.Year.toString() === filterYear;
 
       return matchesSearch && matchesDegree && matchesYear;
     });
@@ -41,7 +41,7 @@ const DashboardUsers = ({
         <div className="flex flex-col gap-6">
           {filteredUsers.length > 0 ? (
             filteredUsers.map((user) => (
-              <UserCard key={user.id} user={user} onModerate={onModerate} />
+              <UserCard key={user.S_ID} user={user} onModerate={onModerate} />
             ))
           ) : (
             <div className="py-20 text-center flex flex-col items-center gap-2">
