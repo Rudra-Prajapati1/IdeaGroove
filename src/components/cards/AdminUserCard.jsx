@@ -210,7 +210,7 @@ const UserCard = ({ user, onModerate }) => {
         >
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
             <StudentProfile
-              user={user}
+              id={user?.S_ID}
               onClose={() => setIsProfileOpen(false)}
             />
           </div>
