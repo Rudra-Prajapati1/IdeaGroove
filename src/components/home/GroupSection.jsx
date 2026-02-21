@@ -2,10 +2,10 @@ import React, { useEffect } from "react";
 import GroupCard from "@/components/cards/GroupCard";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  fetchChatRooms,
-  selectChatRoomError,
-  selectChatRoomStatus,
-  selectRandomGroupChatRooms,
+  fetchPreviewGroups,
+  selectPreviewGroups,
+  selectPreviewGroupsStatus,
+  selectPreviewGroupsError,
 } from "../../redux/slice/chatRoomsSlice";
 import FilledTitle from "../common/FilledTitle";
 import ShowMoreButton from "../common/ShowMoreButton";
@@ -14,31 +14,39 @@ import Loading from "../common/Loading";
 const GroupSection = () => {
   const dispatch = useDispatch();
 
-  const randomGroups = useSelector(selectRandomGroupChatRooms);
-  const status = useSelector(selectChatRoomStatus);
-  const error = useSelector(selectChatRoomError);
+  const previewGroups = useSelector(selectPreviewGroups);
+  const previewStatus = useSelector(selectPreviewGroupsStatus);
+  const previewError = useSelector(selectPreviewGroupsError);
 
   useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchChatRooms());
+    if (previewStatus === "idle") {
+      dispatch(fetchPreviewGroups());
     }
-  }, [status, dispatch]);
+  }, [previewStatus, dispatch]);
 
   return (
     <section className="flex flex-col px-6 sm:px-10 py-8 items-center bg-[#FFFBEB]">
       <FilledTitle text="Groups" />
 
-      {status === "loading" && <Loading text="loading groups" />}
-      {status === "failed" && (
-        <p className="text-red-500 mt-4">Error: {error}</p>
+      {previewStatus === "loading" && <Loading text="Loading groups..." />}
+
+      {previewStatus === "failed" && (
+        <p className="text-red-500 mt-4">Error: {previewError}</p>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
-        {status === "succeeded" &&
-          randomGroups?.length > 0 &&
-          randomGroups.map((group) => (
-            <GroupCard key={group.Room_ID} group={group} />
-          ))}
-      </div>
+
+      {previewStatus === "succeeded" && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
+          {previewGroups?.length > 0 ? (
+            previewGroups.map((group) => (
+              <GroupCard key={group.Room_ID} group={group} />
+            ))
+          ) : (
+            <p className="col-span-full text-gray-500 text-center">
+              No groups available
+            </p>
+          )}
+        </div>
+      )}
 
       <ShowMoreButton text="View More Groups" path="/groups" />
     </section>

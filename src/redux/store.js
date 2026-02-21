@@ -5,19 +5,17 @@ import chatRoomsReducer from "./slice/chatRoomsSlice";
 import chatRoomMembersReducer from "./slice/chatRoomMembersSlice";
 import chatsReducer from "./slice/chatsSlice";
 import notesReducer from "./slice/notesSlice";
-import questionsReducer from "./slice/questionsSlice";
-import answerReducer from "./slice/answerSlice";
+import qnaReducer from "./slice/qnaSlice";
 import authReducer from "./slice/authSlice";
 
 export default configureStore({
   reducer: {
     events: eventsReducer,
-    chatRooms: chatRoomsReducer,
+    groups: chatRoomsReducer,
     chatRoomMembers: chatRoomMembersReducer,
     chats: chatsReducer,
     notes: notesReducer,
-    questions: questionsReducer,
-    answers: answerReducer,
+    qna: qnaReducer,
     auth: authReducer,
   },
   devTools: import.meta.env.DEV,

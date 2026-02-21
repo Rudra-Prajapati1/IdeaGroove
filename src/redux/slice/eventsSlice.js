@@ -26,12 +26,14 @@ const initialState = eventsAdapter.getInitialState({
   userError: null,
 });
 
+/* ================= ALL EVENTS ================= */
+
 export const fetchEvents = createAsyncThunk(
   "events/fetchEvents",
   async ({ page = 1, limit = 9 }, { rejectWithValue }) => {
     try {
       const { data } = await api.get(`/events?page=${page}&limit=${limit}`);
-      return data;
+      return data; // must return { data, total, page, totalPages }
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.error || "Failed to fetch events",
@@ -40,17 +42,21 @@ export const fetchEvents = createAsyncThunk(
   },
 );
 
+/* ================= PREVIEW EVENTS ================= */
+
 export const fetchPreviewEvents = createAsyncThunk(
   "events/fetchPreviewEvents",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await api.get(`/events?limit=3&page=1`);
+      const { data } = await api.get(`/events?page=1&limit=3`);
       return data;
     } catch (err) {
       return rejectWithValue("Failed to fetch preview events");
     }
   },
 );
+
+/* ================= USER EVENTS ================= */
 
 export const fetchUserEvents = createAsyncThunk(
   "events/fetchUserEvents",
@@ -73,7 +79,7 @@ const eventsSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      /* ALL EVENTS */
+      /* ===== ALL EVENTS ===== */
       .addCase(fetchEvents.pending, (state) => {
         state.status = "loading";
         state.error = null;
@@ -91,7 +97,7 @@ const eventsSlice = createSlice({
         state.error = action.payload;
       })
 
-      /* PREVIEW */
+      /* ===== PREVIEW ===== */
       .addCase(fetchPreviewEvents.pending, (state) => {
         state.previewStatus = "loading";
         state.previewError = null;
@@ -105,7 +111,7 @@ const eventsSlice = createSlice({
         state.previewError = action.payload;
       })
 
-      /* USER EVENTS */
+      /* ===== USER EVENTS ===== */
       .addCase(fetchUserEvents.pending, (state) => {
         state.userStatus = "loading";
         state.userError = null;
@@ -123,17 +129,26 @@ const eventsSlice = createSlice({
 
 export default eventsSlice.reducer;
 
+/* ================= SELECTORS ================= */
+
 export const { selectAll: selectAllEvents, selectById: selectEventById } =
   eventsAdapter.getSelectors((state) => state.events);
 
-export const selectUserEvents = (state) => state.events.userEvents;
 export const selectEventsStatus = (state) => state.events.status;
-export const selectUserEventsStatus = (state) => state.events.userStatus;
+export const selectEventsError = (state) => state.events.error;
+
 export const selectEventsPagination = (state) => ({
   page: state.events.page,
   totalPages: state.events.totalPages,
+  total: state.events.total,
 });
+
 export const selectPreviewEvents = (state) => state.events.previewEvents;
+
 export const selectPreviewStatus = (state) => state.events.previewStatus;
+
 export const selectPreviewError = (state) => state.events.previewError;
-export const selectEventsError = (state) => state.events.error;
+
+export const selectUserEvents = (state) => state.events.userEvents;
+
+export const selectUserEventsStatus = (state) => state.events.userStatus;

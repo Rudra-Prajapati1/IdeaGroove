@@ -6,6 +6,7 @@ import { selectIsAuthenticated, selectUser } from "../../redux/slice/authSlice";
 import ComplaintButton from "../ComplaintButton";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 const EventCard = ({ event, onEdit }) => {
   const isAuth = useSelector(selectIsAuthenticated);
@@ -111,28 +112,30 @@ const EventCard = ({ event, onEdit }) => {
         </div>
       </div>
 
-      {previewOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-          onClick={() => setPreviewOpen(false)}
-        >
-          <button
+      {previewOpen &&
+        createPortal(
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm"
             onClick={() => setPreviewOpen(false)}
-            className="absolute top-6 right-6 text-white bg-black/40 hover:bg-black/60 rounded-full p-2 transition"
           >
-            <X className="w-6 h-6" />
-          </button>
+            <button
+              onClick={() => setPreviewOpen(false)}
+              className="absolute top-6 right-6 text-white bg-black/40 hover:bg-black/60 rounded-full p-2 transition"
+            >
+              <X className="w-6 h-6" />
+            </button>
 
-          <img
-            src={event.Poster_File || event_temp_image}
-            alt={event.Description}
-            onClick={(e) => e.stopPropagation()}
-            className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
-          />
-        </div>
-      )}
+            <img
+              src={event.Poster_File || event_temp_image}
+              alt={event.Description}
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
+            />
+          </div>,
+          document.getElementById("modal-root"),
+        )}
     </>
   );
 };

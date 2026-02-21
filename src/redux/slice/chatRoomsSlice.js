@@ -1,90 +1,169 @@
 import {
   createAsyncThunk,
   createEntityAdapter,
-  createSelector,
   createSlice,
 } from "@reduxjs/toolkit";
 import api from "../../api/axios";
 
-const chatRoomsAdapter = createEntityAdapter({
-  selectId: (chatRoom) => chatRoom.Room_ID,
+const groupsAdapter = createEntityAdapter({
+  selectId: (group) => group.Room_ID,
+  sortComparer: (a, b) => new Date(b.Created_On) - new Date(a.Created_On),
 });
 
-const initialState = chatRoomsAdapter.getInitialState({
+const initialState = groupsAdapter.getInitialState({
   status: "idle",
   error: null,
+  page: 1,
+  totalPages: 1,
+  total: 0,
+
+  previewGroups: [],
+  previewStatus: "idle",
+  previewError: null,
+
+  userGroups: [],
+  userStatus: "idle",
+  userError: null,
 });
 
-export const fetchChatRooms = createAsyncThunk(
-  "chatRooms/fetchChatRooms",
-  async (_, { rejectWithValue }) => {
-    try {
-      const { data } = await api.get(
-        `/collections/${
-          import.meta.env.VITE_MOCKMAN_API_KEY
-        }/693eada4b6dbbbd14cf90b14/documents`
-      );
+/* ================= FETCH ALL GROUPS ================= */
 
-      return data.map((d) => d.data);
-    } catch (error) {
-      return rejectWithValue(error?.message || "Failed to fetch chat rooms");
+export const fetchGroups = createAsyncThunk(
+  "groups/fetchGroups",
+  async ({ page = 1, limit = 9 }, { rejectWithValue }) => {
+    try {
+      const { data } = await api.get(`/groups?page=${page}&limit=${limit}`);
+
+      return {
+        data: data.data,
+        page: data.pagination.page,
+        totalPages: data.pagination.totalPages,
+        total: data.pagination.total,
+      };
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to fetch groups",
+      );
     }
-  }
+  },
 );
 
-const chatRoomsSlice = createSlice({
-  name: "chatRooms",
+/* ================= PREVIEW ================= */
+
+export const fetchPreviewGroups = createAsyncThunk(
+  "groups/fetchPreviewGroups",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await api.get(`/groups?page=1&limit=3`);
+      return data.data;
+    } catch (err) {
+      return rejectWithValue("Failed to fetch preview groups");
+    }
+  },
+);
+
+/* ================= USER GROUPS ================= */
+
+export const fetchUserGroups = createAsyncThunk(
+  "groups/fetchUserGroups",
+  async ({ userId, page = 1, limit = 5 }, { rejectWithValue }) => {
+    try {
+      const { data } = await api.get(
+        `/groups/user/${userId}?page=${page}&limit=${limit}`,
+      );
+
+      return {
+        data: data.data,
+        page: data.pagination?.page || 1,
+        totalPages: data.pagination?.totalPages || 1,
+        total: data.pagination?.total || 0,
+      };
+    } catch (err) {
+      return rejectWithValue("Failed to fetch user groups");
+    }
+  },
+);
+
+const groupsSlice = createSlice({
+  name: "groups",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchChatRooms.pending, (state) => {
+
+      /* ===== ALL ===== */
+      .addCase(fetchGroups.pending, (state) => {
         state.status = "loading";
         state.error = null;
       })
-      .addCase(fetchChatRooms.fulfilled, (state, action) => {
+      .addCase(fetchGroups.fulfilled, (state, action) => {
         state.status = "succeeded";
-        chatRoomsAdapter.setAll(state, action.payload);
+        state.page = action.payload.page;
+        state.totalPages = action.payload.totalPages;
+        state.total = action.payload.total;
+
+        groupsAdapter.setAll(state, action.payload.data);
       })
-      .addCase(fetchChatRooms.rejected, (state, action) => {
+      .addCase(fetchGroups.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload || action.error.message;
+        state.error = action.payload;
+      })
+
+      /* ===== PREVIEW ===== */
+      .addCase(fetchPreviewGroups.pending, (state) => {
+        state.previewStatus = "loading";
+        state.previewError = null;
+      })
+      .addCase(fetchPreviewGroups.fulfilled, (state, action) => {
+        state.previewStatus = "succeeded";
+        state.previewGroups = action.payload;
+      })
+      .addCase(fetchPreviewGroups.rejected, (state, action) => {
+        state.previewStatus = "failed";
+        state.previewError = action.payload;
+      })
+
+      /* ===== USER ===== */
+      .addCase(fetchUserGroups.pending, (state) => {
+        state.userStatus = "loading";
+        state.userError = null;
+      })
+      .addCase(fetchUserGroups.fulfilled, (state, action) => {
+        state.userStatus = "succeeded";
+        state.userGroups = action.payload.data;
+      })
+      .addCase(fetchUserGroups.rejected, (state, action) => {
+        state.userStatus = "failed";
+        state.userError = action.payload;
       });
   },
 });
 
-export const {
-  selectAll: selectAllChatRooms,
-  selectById: selectChatRoomById,
-  selectIds: selectChatRoomIds,
-  selectEntities: selectChatRoomEntities,
-} = chatRoomsAdapter.getSelectors((state) => state.chatRooms);
+export default groupsSlice.reducer;
 
-export const selectGroupChatRooms = createSelector(
-  [selectAllChatRooms],
-  (chatRooms) => chatRooms.filter((room) => room.Room_Type === "group")
-);
+/* ================= SELECTORS ================= */
 
-export const selectRandomGroupChatRooms = createSelector(
-  [selectGroupChatRooms],
-  (groups) => {
-    const shuffled = [...groups];
+export const { selectAll: selectAllGroups, selectById: selectGroupById } =
+  groupsAdapter.getSelectors((state) => state.groups);
 
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
+export const selectGroupsStatus = (state) => state.groups.status;
 
-    return shuffled.slice(0, 3);
-  }
-);
+export const selectGroupsError = (state) => state.groups.error;
 
-export const selectDirectChatRooms = createSelector(
-  [selectAllChatRooms],
-  (chatRooms) => chatRooms.filter((room) => room.Room_Type === "direct")
-);
+export const selectGroupsPagination = (state) => ({
+  page: state.groups.page,
+  totalPages: state.groups.totalPages,
+  total: state.groups.total,
+});
 
-export const selectChatRoomStatus = (state) => state.chatRooms.status;
-export const selectChatRoomError = (state) => state.chatRooms.error;
+export const selectPreviewGroups = (state) => state.groups.previewGroups;
 
-export default chatRoomsSlice.reducer;
+export const selectPreviewGroupsStatus = (state) => state.groups.previewStatus;
+
+export const selectPreviewGroupsError = (state) => state.groups.previewError;
+
+export const selectUserGroups = (state) => state.groups.userGroups;
+
+export const selectUserGroupsStatus = (state) => state.groups.userStatus;
+
+export const selectUserGroupsError = (state) => state.groups.userError;
