@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { X, Send, Ban, CheckCircle, AlertCircle } from "lucide-react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
@@ -6,73 +6,73 @@ import StatsRow from "../../components/admin/StatsRow";
 import AdminNotesGrid from "../../components/admin/AdminNotesGrid";
 import EmailConfirmationModal from "../../components/admin/EmailConfirmationModal";
 
-// Moved initial data here to allow global state management
-const initialNotes = [
-  {
-    id: 1,
-    title: "Operating Systems Notes",
-    subject: "OS",
-    degree: "B.Tech",
-    description: "Complete notes covering process, memory, and scheduling.",
-    uploadedBy: "Rohan Sharma",
-    status: "active",
-  },
-  {
-    id: 2,
-    title: "DBMS Normalization",
-    subject: "DBMS",
-    degree: "B.Tech",
-    description: "Detailed explanation of 1NF, 2NF, 3NF with examples.",
-    uploadedBy: "Aisha Khan",
-    status: "blocked",
-  },
-  {
-    id: 3,
-    title: "Computer Networks Cheatsheet",
-    subject: "CN",
-    degree: "BCA",
-    description: "Quick revision notes for TCP/IP and OSI layers.",
-    uploadedBy: "Kunal Verma",
-    status: "active",
-  },
-  {
-    id: 4,
-    title: "React Hooks Summary",
-    subject: "Web Dev",
-    degree: "BCA",
-    description: "Short notes on useState, useEffect, useContext.",
-    uploadedBy: "Neha Patel",
-    status: "active",
-  },
-  {
-    id: 5,
-    title: "Machine Learning Basics",
-    subject: "AI",
-    degree: "BCA",
-    description: "Introductory ML concepts and algorithms.",
-    uploadedBy: "Arjun Mehta",
-    status: "blocked",
-  },
-];
+// // Moved initial data here to allow global state management
+// const initialNotes = [
+//   {
+//     id: 1,
+//     title: "Operating Systems Notes",
+//     subject: "OS",
+//     degree: "B.Tech",
+//     description: "Complete notes covering process, memory, and scheduling.",
+//     uploadedBy: "Rohan Sharma",
+//     status: "active",
+//   },
+//   {
+//     id: 2,
+//     title: "DBMS Normalization",
+//     subject: "DBMS",
+//     degree: "B.Tech",
+//     description: "Detailed explanation of 1NF, 2NF, 3NF with examples.",
+//     uploadedBy: "Aisha Khan",
+//     status: "blocked",
+//   },
+//   {
+//     id: 3,
+//     title: "Computer Networks Cheatsheet",
+//     subject: "CN",
+//     degree: "BCA",
+//     description: "Quick revision notes for TCP/IP and OSI layers.",
+//     uploadedBy: "Kunal Verma",
+//     status: "active",
+//   },
+//   {
+//     id: 4,
+//     title: "React Hooks Summary",
+//     subject: "Web Dev",
+//     degree: "BCA",
+//     description: "Short notes on useState, useEffect, useContext.",
+//     uploadedBy: "Neha Patel",
+//     status: "active",
+//   },
+//   {
+//     id: 5,
+//     title: "Machine Learning Basics",
+//     subject: "AI",
+//     degree: "BCA",
+//     description: "Introductory ML concepts and algorithms.",
+//     uploadedBy: "Arjun Mehta",
+//     status: "blocked",
+//   },
+// ];
 
 export const notesStats = [
   {
     title: "Total Notes Uploaded",
-    value: "12,450",
+    value: "",
     infoText: "+12% this month",
     color: "green",
     type: "total",
   },
   {
     title: "Active Notes",
-    value: "84",
+    value: "",
     infoText: "Currently Acitve",
     color: "yellow",
     type: "pending",
   },
   {
     title: "InActive Notes",
-    value: "312",
+    value: "",
     infoText: "Blocked & Deleted Notes",
     color: "red",
     type: "blocked",
@@ -80,10 +80,11 @@ export const notesStats = [
 ];
 
 const AdminNotes = () => {
-  const [notes, setNotes] = useState(initialNotes);
+  const [notes, setNotes] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [degreeFilter, setDegreeFilter] = useState("all");
   const [subjectFilter, setSubjectFilter] = useState("all");
+  const [error, setError] = useState(null);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAction, setSelectedAction] = useState(null);
@@ -92,6 +93,48 @@ const AdminNotes = () => {
   const [loading, setLoading] = useState(false);
   const degreeOptions = ["B.Tech", "BCA", "MCA", "M.Tech"];
   const subjectOptions = ["OS", "DBMS", "CN", "Web Dev", "AI"];
+  useEffect(() => {
+    const fetchNotes = async () => {
+      try {
+        setLoading(true);
+
+        const response = await fetch(
+          "http://localhost:8080/api/notes?page=1&limit=50",
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch notes");
+
+        const data = await response.json();
+
+        const formattedNotes = data.notes.map((n) => ({
+          id: n.N_ID,
+          title: n.Description,
+          degree: n.Degree_Name,
+          subject: n.Subject_Name,
+          uploadedBy: n.Author,
+          userId: n.Author_ID,
+          file: n.Note_File,
+          status: n.Is_Active === 1 ? "active" : "blocked",
+        }));
+
+        notesStats[0].value = data.total;
+        notesStats[1].value = formattedNotes.filter(
+          (n) => n.status === "active",
+        ).length;
+        notesStats[2].value = formattedNotes.filter(
+          (n) => n.status === "blocked",
+        ).length;
+
+        setNotes(formattedNotes);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotes();
+  }, []);
 
   const handleModerateRequest = (type, noteId) => {
     setSelectedAction(type);

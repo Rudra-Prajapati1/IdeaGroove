@@ -1,10 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Download, X, FileText, TrendingUp } from "lucide-react";
 
-const StudentProfile = ({ user, onClose }) => {
+const StudentProfile = ({ id, onClose }) => {
   const [filter, setFilter] = useState("none");
   const [activities, setActivities] = useState([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
+  const [profile, setProfile] = useState(null);
+
+  const [indicatorStyle, setIndicatorStyle] = useState({});
+  const tabRefs = useRef({});
+  const containerRef = useRef(null);
 
   // // Mock data for activities (extended to include all 5 types)
   // const activities = [
@@ -60,13 +65,31 @@ const StudentProfile = ({ user, onClose }) => {
   // ];
 
   useEffect(() => {
-    if (filter === "none" || !user?.S_ID) return;
+    if (!id) return;
+
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/students/profile/${id}`,
+        );
+        const data = await res.json();
+        setProfile(data);
+      } catch (err) {
+        console.error("Profile refresh error:", err);
+      }
+    };
+
+    fetchProfile();
+  }, [id]);
+
+  useEffect(() => {
+    if (filter === "none" || !id) return;
 
     const fetchActivities = async () => {
       try {
         setLoadingActivities(true);
         const res = await fetch(
-          `http://localhost:8080/api/students/${user.S_ID}/activities?type=${filter}`,
+          `http://localhost:8080/api/students/${id}/activities?type=${filter}`,
         );
         const data = await res.json();
         setActivities(data);
@@ -78,28 +101,37 @@ const StudentProfile = ({ user, onClose }) => {
     };
 
     fetchActivities();
-  }, [filter, user?.S_ID]);
+  }, [filter, id]);
 
   // const filteredActivities = activities.filter(
   //   (a) => filter === "none" || a.type === filter,
   // );
 
-  const totalCount =
-    user?.notes_count +
-      user?.questions_count +
-      user?.events_count +
-      user?.groups_count +
-      user?.complaints_count || 0;
+  useEffect(() => {
+    const activeTab = tabRefs.current[filter];
+    if (activeTab && containerRef.current) {
+      const containerLeft = containerRef.current.getBoundingClientRect().left;
+      const tabRect = activeTab.getBoundingClientRect();
+      setIndicatorStyle({
+        width: tabRect.width,
+        transform: `translateX(${tabRect.left - containerLeft}px)`,
+      });
+    }
+  }, [filter]);
 
-  const notesPercent = totalCount ? (user.notes_count / totalCount) * 100 : 0;
-  const questionsPercent = totalCount
-    ? (user.questions_count / totalCount) * 100
-    : 0;
-  const eventsPercent = totalCount ? (user.events_count / totalCount) * 100 : 0;
-  const groupsPercent = totalCount ? (user.groups_count / totalCount) * 100 : 0;
-  const complaintsPercent = totalCount
-    ? (user.complaints_count / totalCount) * 100
-    : 0;
+  const notes = profile?.notes_count ?? 0;
+  const questions = profile?.questions_count ?? 0;
+  const events = profile?.events_count ?? 0;
+  const groups = profile?.groups_count ?? 0;
+  const complaints = profile?.complaints_count ?? 0;
+
+  const totalCount = notes + questions + events + groups + complaints;
+
+  const notesPercent = totalCount ? (notes / totalCount) * 100 : 0;
+  const questionsPercent = totalCount ? (questions / totalCount) * 100 : 0;
+  const eventsPercent = totalCount ? (events / totalCount) * 100 : 0;
+  const groupsPercent = totalCount ? (groups / totalCount) * 100 : 0;
+  const complaintsPercent = totalCount ? (complaints / totalCount) * 100 : 0;
 
   return (
     <div className="bg-white w-full font-sans">
@@ -121,10 +153,12 @@ const StudentProfile = ({ user, onClose }) => {
         <div className="flex justify-between items-start mb-10">
           <div>
             <h2 className="text-4xl font-black text-[#0f3d1e] tracking-tight mb-1">
-              {user?.Name.charAt(0).toUpperCase() + user?.Name.slice(1)}
+              {profile?.Name
+                ? profile.Name.charAt(0).toUpperCase() + profile.Name.slice(1)
+                : ""}
             </h2>
             <p className="text-gray-500 font-semibold text-sm">
-              @{user?.Username}
+              @{profile?.Username}
             </p>
           </div>
         </div>
@@ -142,28 +176,32 @@ const StudentProfile = ({ user, onClose }) => {
                 College
               </p>
               <p className="text-sm font-bold text-gray-800">
-                School of Engineering
+                {profile?.College_Name}
               </p>
             </div>
             <div>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
                 Roll No
               </p>
-              <p className="text-sm font-bold text-gray-800">{user?.Roll_No}</p>
+              <p className="text-sm font-bold text-gray-800">
+                {profile?.Roll_No}
+              </p>
             </div>
             <div>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
                 Email Address
               </p>
-              <p className="text-sm font-bold text-gray-800">{user?.Email}</p>
+              <p className="text-sm font-bold text-gray-800">
+                {profile?.Email}
+              </p>
             </div>
             <div>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
                 Hobbies
               </p>
               <p className="text-sm font-bold text-gray-800">
-                {user?.hobbies?.length > 0
-                  ? user.hobbies.map((h) => h.Hobby_Name).join(", ")
+                {profile?.hobbies?.length > 0
+                  ? profile.hobbies.map((h) => h.Hobby_Name).join(", ")
                   : "No hobbies listed"}
               </p>
             </div>
@@ -173,10 +211,10 @@ const StudentProfile = ({ user, onClose }) => {
               </p>
               <div className="flex items-center gap-2.5">
                 <span
-                  className={`w-2.5 h-2.5 rounded-full ${user?.is_Active === 1 ? "bg-emerald-400" : "bg-red-400 shadow-sm"}`}
+                  className={`w-2.5 h-2.5 rounded-full ${profile?.is_Active === 1 ? "bg-emerald-400" : "bg-red-400 shadow-sm"}`}
                 ></span>
                 <p className="text-sm font-bold text-gray-800">
-                  {user?.is_Active === 1 ? "Active Member" : "Inactive"}
+                  {profile?.is_Active === 1 ? "Active Member" : "Inactive"}
                 </p>
               </div>
             </div>
@@ -281,10 +319,10 @@ const StudentProfile = ({ user, onClose }) => {
             <div className="grid grid-cols-2 gap-x-12 gap-y-6">
               <StatItem
                 label="Notes Shared"
-                value={user?.notes_count || 0}
+                value={profile?.notes_count || 0}
                 percent={
-                  user?.notes_count / totalCount > 0
-                    ? `${((user.notes_count / totalCount) * 100).toFixed(1)}%`
+                  profile?.notes_count / totalCount > 0
+                    ? `${((profile.notes_count / totalCount) * 100).toFixed(1)}%`
                     : "0%"
                 }
                 color="bg-[#0f3d1e]"
@@ -292,10 +330,10 @@ const StudentProfile = ({ user, onClose }) => {
               />
               <StatItem
                 label="Q&A Responses"
-                value={user?.questions_count || 0}
+                value={profile?.questions_count || 0}
                 percent={
-                  user?.questions_count / totalCount > 0
-                    ? `${((user.questions_count / totalCount) * 100).toFixed(1)}%`
+                  profile?.questions_count / totalCount > 0
+                    ? `${((profile.questions_count / totalCount) * 100).toFixed(1)}%`
                     : "0%"
                 }
                 color="bg-[#4caf50]"
@@ -303,10 +341,10 @@ const StudentProfile = ({ user, onClose }) => {
               />
               <StatItem
                 label="Events"
-                value={user?.events_count || 0}
+                value={profile?.events_count || 0}
                 percent={
-                  user?.events_count / totalCount > 0
-                    ? `${((user.events_count / totalCount) * 100).toFixed(1)}%`
+                  profile?.events_count / totalCount > 0
+                    ? `${((profile.events_count / totalCount) * 100).toFixed(1)}%`
                     : "0%"
                 }
                 color="bg-[#1b5e20]"
@@ -314,10 +352,10 @@ const StudentProfile = ({ user, onClose }) => {
               />
               <StatItem
                 label="Groups"
-                value={user?.groups_count || 0}
+                value={profile?.groups_count || 0}
                 percent={
-                  user?.groups_count / totalCount > 0
-                    ? `${((user.groups_count / totalCount) * 100).toFixed(1)}%`
+                  profile?.groups_count / totalCount > 0
+                    ? `${((profile.groups_count / totalCount) * 100).toFixed(1)}%`
                     : "0%"
                 }
                 color="bg-[#81c784]"
@@ -325,10 +363,10 @@ const StudentProfile = ({ user, onClose }) => {
               />
               <StatItem
                 label="Complaints"
-                value={user?.complaints_count || 0}
+                value={profile?.complaints_count || 0}
                 percent={
-                  user?.complaints_count / totalCount > 0
-                    ? `${((user.complaints_count / totalCount) * 100).toFixed(1)}%`
+                  profile?.complaints_count / totalCount > 0
+                    ? `${((profile.complaints_count / totalCount) * 100).toFixed(1)}%`
                     : "0%"
                 }
                 color="bg-[#c8e6c9]"
@@ -336,6 +374,31 @@ const StudentProfile = ({ user, onClose }) => {
               />
             </div>
           </div>
+        </div>
+
+        <div
+          ref={containerRef}
+          className="relative flex items-center gap-1 bg-gray-100 p-1 rounded-xl w-fit"
+        >
+          {/* Sliding indicator */}
+          <div
+            className="absolute top-1 bottom-1 left-0 bg-[#1B431C] rounded-lg shadow-sm transition-all duration-300 ease-in-out"
+            style={indicatorStyle}
+          />
+
+          {["Notes", "QnA", "Events", "Groups", "Complaints"].map(
+            (category) => (
+              <button
+                key={category}
+                ref={(el) => (tabRefs.current[category] = el)}
+                onClick={() => setFilter(category)}
+                className={`relative z-10 px-4 py-1.5 rounded-lg text-sm font-bold uppercase tracking-wide transition-colors duration-300
+            ${filter === category ? "text-white" : "text-gray-400 hover:text-gray-600"}`}
+              >
+                {category}
+              </button>
+            ),
+          )}
         </div>
 
         {/* Dynamic Activity List */}
@@ -351,7 +414,12 @@ const StudentProfile = ({ user, onClose }) => {
               </h3>
               <button
                 onClick={() => setFilter("none")}
-                className="text-[10px] bg-red-50 text-red-500 px-3 py-1 rounded-full font-black uppercase hover:bg-red-500 hover:text-white transition shadow-sm"
+                className="px-4 py-1.5 rounded-full
+             text-[11px] font-semibold uppercase tracking-wider
+             bg-red-100/70 backdrop-blur
+             text-red-600 border border-red-200
+             hover:bg-red-500 hover:text-white
+             transition-all duration-300 shadow-sm"
               >
                 Clear Filter
               </button>
