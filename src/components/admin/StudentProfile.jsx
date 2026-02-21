@@ -1,65 +1,105 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Download, X, FileText, TrendingUp } from "lucide-react";
 
 const StudentProfile = ({ user, onClose }) => {
   const [filter, setFilter] = useState("none");
+  const [activities, setActivities] = useState([]);
+  const [loadingActivities, setLoadingActivities] = useState(false);
 
-  // Mock data for activities (extended to include all 5 types)
-  const activities = [
-    {
-      id: 1,
-      type: "Notes",
-      title: "Quantum Mechanics Lecture Notes",
-      course: "PHY401",
-      time: "2 hours ago",
-    },
-    {
-      id: 2,
-      type: "Resources",
-      title: "Advanced Calculus Textbook PDF",
-      course: "MAT302",
-      time: "5 hours ago",
-    },
-    {
-      id: 3,
-      type: "Q&A",
-      title: "Answered: Thermal Dynamics Problem Set 4",
-      course: "PHY202",
-      time: "1 day ago",
-    },
-    {
-      id: 4,
-      type: "Events",
-      title: "Registered: Tech Symposium 2024",
-      course: "GEN101",
-      time: "2 days ago",
-    },
-    {
-      id: 5,
-      type: "Groups",
-      title: "Joined: AI Research Lab Group",
-      course: "CS450",
-      time: "3 days ago",
-    },
-    {
-      id: 6,
-      type: "Complaints",
-      title: "Reported: Lab Equipment Issue",
-      course: "PHY401",
-      time: "4 days ago",
-    },
-    {
-      id: 7,
-      type: "Notes",
-      title: "Data Structures Cheat Sheet",
-      course: "CS201",
-      time: "5 days ago",
-    },
-  ];
+  // // Mock data for activities (extended to include all 5 types)
+  // const activities = [
+  //   {
+  //     id: 1,
+  //     type: "Notes",
+  //     title: "Quantum Mechanics Lecture Notes",
+  //     course: "PHY401",
+  //     time: "2 hours ago",
+  //   },
+  //   {
+  //     id: 2,
+  //     type: "Resources",
+  //     title: "Advanced Calculus Textbook PDF",
+  //     course: "MAT302",
+  //     time: "5 hours ago",
+  //   },
+  //   {
+  //     id: 3,
+  //     type: "Q&A",
+  //     title: "Answered: Thermal Dynamics Problem Set 4",
+  //     course: "PHY202",
+  //     time: "1 day ago",
+  //   },
+  //   {
+  //     id: 4,
+  //     type: "Events",
+  //     title: "Registered: Tech Symposium 2024",
+  //     course: "GEN101",
+  //     time: "2 days ago",
+  //   },
+  //   {
+  //     id: 5,
+  //     type: "Groups",
+  //     title: "Joined: AI Research Lab Group",
+  //     course: "CS450",
+  //     time: "3 days ago",
+  //   },
+  //   {
+  //     id: 6,
+  //     type: "Complaints",
+  //     title: "Reported: Lab Equipment Issue",
+  //     course: "PHY401",
+  //     time: "4 days ago",
+  //   },
+  //   {
+  //     id: 7,
+  //     type: "Notes",
+  //     title: "Data Structures Cheat Sheet",
+  //     course: "CS201",
+  //     time: "5 days ago",
+  //   },
+  // ];
 
-  const filteredActivities = activities.filter(
-    (a) => filter === "none" || a.type === filter,
-  );
+  useEffect(() => {
+    if (filter === "none" || !user?.S_ID) return;
+
+    const fetchActivities = async () => {
+      try {
+        setLoadingActivities(true);
+        const res = await fetch(
+          `http://localhost:8080/api/students/${user.S_ID}/activities?type=${filter}`,
+        );
+        const data = await res.json();
+        setActivities(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingActivities(false);
+      }
+    };
+
+    fetchActivities();
+  }, [filter, user?.S_ID]);
+
+  // const filteredActivities = activities.filter(
+  //   (a) => filter === "none" || a.type === filter,
+  // );
+
+  const totalCount =
+    user?.notes_count +
+      user?.questions_count +
+      user?.events_count +
+      user?.groups_count +
+      user?.complaints_count || 0;
+
+  const notesPercent = totalCount ? (user.notes_count / totalCount) * 100 : 0;
+  const questionsPercent = totalCount
+    ? (user.questions_count / totalCount) * 100
+    : 0;
+  const eventsPercent = totalCount ? (user.events_count / totalCount) * 100 : 0;
+  const groupsPercent = totalCount ? (user.groups_count / totalCount) * 100 : 0;
+  const complaintsPercent = totalCount
+    ? (user.complaints_count / totalCount) * 100
+    : 0;
 
   return (
     <div className="bg-white w-full font-sans">
@@ -122,8 +162,9 @@ const StudentProfile = ({ user, onClose }) => {
                 Hobbies
               </p>
               <p className="text-sm font-bold text-gray-800">
-                {user?.hobbies.map((h) => h.Hobby_Name).join(", ") ||
-                  "No hobbies listed"}
+                {user?.hobbies?.length > 0
+                  ? user.hobbies.map((h) => h.Hobby_Name).join(", ")
+                  : "No hobbies listed"}
               </p>
             </div>
             <div>
@@ -173,7 +214,7 @@ const StudentProfile = ({ user, onClose }) => {
                   fill="none"
                   className="stroke-[#0f3d1e]"
                   strokeWidth="4"
-                  strokeDasharray="40 100"
+                  strokeDasharray={`${notesPercent} 100`}
                   strokeDashoffset="0"
                 ></circle>
 
@@ -185,8 +226,8 @@ const StudentProfile = ({ user, onClose }) => {
                   fill="none"
                   className="stroke-[#4caf50]"
                   strokeWidth="4"
-                  strokeDasharray="25 100"
-                  strokeDashoffset="-40"
+                  strokeDasharray={`${questionsPercent} 100`}
+                  strokeDashoffset={`-${notesPercent}`}
                 ></circle>
 
                 {/* 3. Events (20%) - Starts at 65 (40+25), Length 20 */}
@@ -197,8 +238,8 @@ const StudentProfile = ({ user, onClose }) => {
                   fill="none"
                   className="stroke-[#1b5e20]"
                   strokeWidth="4"
-                  strokeDasharray="20 100"
-                  strokeDashoffset="-65"
+                  strokeDasharray={`${eventsPercent} 100`}
+                  strokeDashoffset={`-${notesPercent + questionsPercent}`}
                 ></circle>
 
                 {/* 4. Groups (10%) - Starts at 85 (40+25+20), Length 10 */}
@@ -209,8 +250,8 @@ const StudentProfile = ({ user, onClose }) => {
                   fill="none"
                   className="stroke-[#81c784]"
                   strokeWidth="4"
-                  strokeDasharray="10 100"
-                  strokeDashoffset="-85"
+                  strokeDasharray={`${groupsPercent} 100`}
+                  strokeDashoffset={`-${notesPercent + questionsPercent + eventsPercent}`}
                 ></circle>
 
                 {/* 5. Complaints (5%) - Starts at 95 (40+25+20+10), Length 5 */}
@@ -221,14 +262,14 @@ const StudentProfile = ({ user, onClose }) => {
                   fill="none"
                   className="stroke-[#c8e6c9]"
                   strokeWidth="4"
-                  strokeDasharray="5 100"
-                  strokeDashoffset="-95"
+                  strokeDasharray={`${complaintsPercent} 100`}
+                  strokeDashoffset={`-${notesPercent + questionsPercent + eventsPercent + groupsPercent}`}
                 ></circle>
               </svg>
 
               <div className="absolute text-center">
                 <span className="block text-4xl font-black text-[#0f3d1e] leading-none">
-                  156
+                  {totalCount}
                 </span>
                 <span className="text-[10px] uppercase font-bold text-gray-400 tracking-tighter">
                   Activities
@@ -240,36 +281,56 @@ const StudentProfile = ({ user, onClose }) => {
             <div className="grid grid-cols-2 gap-x-12 gap-y-6">
               <StatItem
                 label="Notes Shared"
-                value="62"
-                percent="40%"
+                value={user?.notes_count || 0}
+                percent={
+                  user?.notes_count / totalCount > 0
+                    ? `${((user.notes_count / totalCount) * 100).toFixed(1)}%`
+                    : "0%"
+                }
                 color="bg-[#0f3d1e]"
                 onClick={() => setFilter("Notes")}
               />
               <StatItem
                 label="Q&A Responses"
-                value="39"
-                percent="25%"
+                value={user?.questions_count || 0}
+                percent={
+                  user?.questions_count / totalCount > 0
+                    ? `${((user.questions_count / totalCount) * 100).toFixed(1)}%`
+                    : "0%"
+                }
                 color="bg-[#4caf50]"
                 onClick={() => setFilter("Q&A")}
               />
               <StatItem
                 label="Events"
-                value="31"
-                percent="20%"
+                value={user?.events_count || 0}
+                percent={
+                  user?.events_count / totalCount > 0
+                    ? `${((user.events_count / totalCount) * 100).toFixed(1)}%`
+                    : "0%"
+                }
                 color="bg-[#1b5e20]"
                 onClick={() => setFilter("Events")}
               />
               <StatItem
                 label="Groups"
-                value="24"
-                percent="10%"
+                value={user?.groups_count || 0}
+                percent={
+                  user?.groups_count / totalCount > 0
+                    ? `${((user.groups_count / totalCount) * 100).toFixed(1)}%`
+                    : "0%"
+                }
                 color="bg-[#81c784]"
                 onClick={() => setFilter("Groups")}
               />
               <StatItem
                 label="Complaints"
-                value="12"
-                percent="5%"
+                value={user?.complaints_count || 0}
+                percent={
+                  user?.complaints_count / totalCount > 0
+                    ? `${((user.complaints_count / totalCount) * 100).toFixed(1)}%`
+                    : "0%"
+                }
                 color="bg-[#c8e6c9]"
                 onClick={() => setFilter("Complaints")}
               />
@@ -297,8 +358,10 @@ const StudentProfile = ({ user, onClose }) => {
             </div>
 
             <div className="space-y-6">
-              {filteredActivities.length > 0 ? (
-                filteredActivities.map((item) => (
+              {loadingActivities ? (
+                <p className="text-center text-gray-400 py-4">Loading...</p>
+              ) : activities.length > 0 ? (
+                activities.map((item) => (
                   <div
                     key={item.id}
                     className="flex items-center justify-between pb-6 border-b border-gray-50 last:border-0 group/item"
@@ -316,7 +379,7 @@ const StudentProfile = ({ user, onClose }) => {
                         </p>
                         <p className="text-xs text-gray-400 mt-1 font-medium">
                           Category:{" "}
-                          <span className="text-gray-600">{item.type}</span> •
+                          {/* <span className="text-gray-600">{item.type}</span> • */}
                           Course:{" "}
                           <span className="uppercase text-gray-600 font-bold">
                             {item.course}
