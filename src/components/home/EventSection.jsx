@@ -24,24 +24,29 @@ const EventSection = () => {
     }
   }, [previewStatus, dispatch]);
 
-  console.log(previewEvents);
-
   return (
     <section className="flex flex-col px-6 sm:px-10 py-8 items-center mt-10 bg-[#FFFBEB]">
       <FilledTitle text="Events" />
 
-      {previewStatus === "loading" && <Loading text="loading events" />}
+      {previewStatus === "loading" && <Loading text="loading events..." />}
 
       {previewStatus === "failed" && (
         <p className="text-red-500 mt-4">Error: {previewError}</p>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
-        {previewStatus === "succeeded" &&
-          previewEvents?.map((event) => (
-            <EventCard key={event.E_ID} event={event} />
-          ))}
-      </div>
+      {previewStatus === "succeeded" && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
+          {previewEvents?.length > 0 ? (
+            previewEvents.map((event) => (
+              <EventCard key={event.E_ID} event={event} />
+            ))
+          ) : (
+            <p className="col-span-full text-gray-500 text-center">
+              No events available
+            </p>
+          )}
+        </div>
+      )}
 
       <ShowMoreButton text="View More Events" path="/events" />
     </section>

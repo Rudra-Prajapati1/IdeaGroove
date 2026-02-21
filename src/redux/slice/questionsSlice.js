@@ -6,30 +6,33 @@ import {
 import api from "../../api/axios";
 
 const questionsAdapter = createEntityAdapter({
-  selectId: (questions) => questions.Q_ID,
+  selectId: (question) => question.Q_ID,
   sortComparer: (a, b) => new Date(b.Added_On) - new Date(a.Added_On),
 });
 
 const initialState = questionsAdapter.getInitialState({
   status: "idle",
   error: null,
+  page: 1,
+  totalPages: 1,
+  total: 0,
 });
+
+/* ================= FETCH QUESTIONS ================= */
 
 export const fetchQuestions = createAsyncThunk(
   "questions/fetchQuestions",
-  async (_, { rejectWithValue }) => {
+  async ({ page = 1, limit = 10 } = {}, { rejectWithValue }) => {
     try {
-      const { data } = await api.get(
-        `/collections/${
-          import.meta.env.VITE_MOCKMAN_API_KEY
-        }/693edc11b6dbbbd14cf90cb7/documents`
-      );
+      const { data } = await api.get(`/qna?page=${page}&limit=${limit}`);
 
-      return data.map((d) => d.data);
-    } catch (error) {
-      return rejectWithValue(error?.message || "Failed to fetch Question");
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to fetch questions",
+      );
     }
-  }
+  },
 );
 
 const questionsSlice = createSlice({
@@ -44,23 +47,44 @@ const questionsSlice = createSlice({
       })
       .addCase(fetchQuestions.fulfilled, (state, action) => {
         state.status = "succeeded";
-        questionsAdapter.setAll(state, action.payload);
+
+        const { QnA, page, totalPages, total } = action.payload;
+
+        state.page = page;
+        state.totalPages = totalPages;
+        state.total = total;
+
+        // Extract unique questions
+        const uniqueQuestions = [];
+        const seen = new Set();
+
+        QnA.forEach((row) => {
+          if (!seen.has(row.Q_ID)) {
+            seen.add(row.Q_ID);
+            uniqueQuestions.push({
+              Q_ID: row.Q_ID,
+              Question: row.Question,
+              Question_Author: row.Question_Author,
+              Added_On: row.Added_On,
+              Total_Answers: row.Total_Answers,
+            });
+          }
+        });
+
+        questionsAdapter.setAll(state, uniqueQuestions);
       })
       .addCase(fetchQuestions.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload || action.error.message;
+        state.error = action.payload;
       });
   },
 });
 
-export const {
-  selectAll: selectAllQuestions,
-  selectById: selectQuestionById,
-  selectIds: selectQuestionIds,
-  selectEntities: selectQuestionEntities,
-} = questionsAdapter.getSelectors((state) => state.questions);
+export default questionsSlice.reducer;
+
+export const { selectAll: selectAllQuestions, selectById: selectQuestionById } =
+  questionsAdapter.getSelectors((state) => state.questions);
 
 export const selectQuestionsStatus = (state) => state.questions.status;
-export const selectQuestionsError = (state) => state.questions.error;
 
-export default questionsSlice.reducer;
+export const selectQuestionsError = (state) => state.questions.error;
