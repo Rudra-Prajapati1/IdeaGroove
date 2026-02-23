@@ -249,9 +249,9 @@ const AdminEventCard = ({ event, onModerate }) => {
             disabled={!isActive}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all
               ${
-                !isActive
-                  ? "bg-gray-100 text-gray-300 cursor-not-allowed"
-                  : "text-red-500 bg-red-50 hover:bg-red-500 hover:text-white"
+                isActive
+                  ? "text-red-500 bg-red-50 hover:bg-red-500 hover:text-white"
+                  : "bg-gray-100 text-gray-300 cursor-not-allowed"
               }`}
           >
             <Ban size={12} /> Block

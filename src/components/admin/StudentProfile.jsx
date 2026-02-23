@@ -337,7 +337,7 @@ const StudentProfile = ({ id, onClose }) => {
                     : "0%"
                 }
                 color="bg-[#4caf50]"
-                onClick={() => setFilter("Q&A")}
+                onClick={() => setFilter("QnA")}
               />
               <StatItem
                 label="Events"
