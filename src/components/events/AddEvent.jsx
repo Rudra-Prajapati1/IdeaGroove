@@ -1,19 +1,25 @@
 import React, { useRef, useState } from "react";
 import { X, Calendar, ImagePlus, Loader2, Info } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
 import { createPortal } from "react-dom";
+import { createEvent, updateEvent } from "../../redux/slice/eventsSlice"; // Import thunks
+import { selectUser } from "../../redux/slice/authSlice"; // To get user S_ID
 
-const AddEventOverlay = ({ onClose, onUpload, initialData }) => {
-  const { user } = useSelector((state) => state.auth);
+const AddEventOverlay = ({ onClose, onSuccess, initialData }) => {
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
   const fileInputRef = useRef(null);
   const isEditMode = !!initialData;
   const [formData, setFormData] = useState({
-    Description: "",
-    Event_Date: "",
+    Description: initialData?.Description || "",
+    Event_Date: initialData?.Event_Date?.split("T")[0] || "", // Format to YYYY-MM-DD
     Poster_File: null,
   });
 
+  const [previewUrl, setPreviewUrl] = useState(
+    initialData?.Poster_File || null,
+  );
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -63,6 +69,7 @@ const AddEventOverlay = ({ onClose, onUpload, initialData }) => {
         return;
       }
 
+      setPreviewUrl(URL.createObjectURL(file));
       setFormData((prev) => ({ ...prev, Poster_File: file }));
     }
   };
@@ -76,6 +83,7 @@ const AddEventOverlay = ({ onClose, onUpload, initialData }) => {
 
       if (!validateFile(file)) return;
 
+      setPreviewUrl(URL.createObjectURL(file));
       setFormData((prev) => ({
         ...prev,
         Poster_File: file,
@@ -83,11 +91,11 @@ const AddEventOverlay = ({ onClose, onUpload, initialData }) => {
     }
   };
 
-  /* ---------- SUBMIT VALIDATION ---------- */
+  /* ---------- SUBMIT VALIDATION AND DISPATCH ---------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.Poster_File) {
+    if (!isEditMode && !formData.Poster_File) {
       toast.error("Event poster is required");
       return;
     }
@@ -105,33 +113,53 @@ const AddEventOverlay = ({ onClose, onUpload, initialData }) => {
     setLoading(true);
 
     const submissionData = new FormData();
-    submissionData.append("Poster_File", formData.Poster_File);
-
-    // ✅ Send NULL / empty safely
     submissionData.append("Description", formData.Description.trim() || null);
-
     submissionData.append("Event_Date", formData.Event_Date);
-    submissionData.append("Added_By", user?.id || 1);
-    submissionData.append("Added_On", new Date().toISOString());
-    submissionData.append("Is_Active", 1);
+
+    if (formData.Poster_File) {
+      submissionData.append("Poster_File", formData.Poster_File);
+    }
 
     if (isEditMode) {
       submissionData.append("E_ID", initialData.E_ID);
+    } else {
+      submissionData.append("Added_By", user?.id || 1); // Assuming user has S_ID
     }
-    setTimeout(() => {
-      setLoading(false);
+
+    try {
+      if (isEditMode) {
+        await dispatch(updateEvent(submissionData)).unwrap();
+      } else {
+        await dispatch(createEvent(submissionData)).unwrap();
+      }
       toast.success(
         isEditMode ? "Event updated successfully" : "Event posted successfully",
       );
-      onUpload ? onUpload(submissionData) : console.log("Uploaded:", formData);
+      onSuccess();
       onClose();
-    }, 1500);
+    } catch (err) {
+      let errorMessage = isEditMode
+        ? "Failed to update event"
+        : "Failed to create event";
+
+      if (err?.response?.data) {
+        // Typical shape from your controllers: { error: "..." } or { message: "..." }
+        errorMessage =
+          err.response.data.error || err.response.data.message || errorMessage;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  /* ---------- UI (UNCHANGED) ---------- */
+  /* ---------- UI (UPDATED FOR PREVIEW) ---------- */
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 font-poppins">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 font-poppins">
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]"
         onClick={(e) => e.stopPropagation()}
@@ -171,7 +199,7 @@ const AddEventOverlay = ({ onClose, onUpload, initialData }) => {
                 onDrop={handleDrop}
                 className={`relative border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center transition-all cursor-pointer
                   ${isDragging ? "border-green-500 bg-green-50" : "border-slate-300 hover:border-green-400 hover:bg-slate-50"}
-                  ${formData.Poster_File ? "bg-green-50 border-green-200" : ""}
+                  ${previewUrl ? "bg-green-50 border-green-200" : ""}
                 `}
               >
                 <input
@@ -180,18 +208,18 @@ const AddEventOverlay = ({ onClose, onUpload, initialData }) => {
                   onChange={handleFileChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   accept="image/*"
-                  required
+                  required={!isEditMode}
                 />
 
-                {formData.Poster_File ? (
+                {previewUrl ? (
                   <div className="flex flex-col items-center gap-2">
                     <img
-                      src={URL.createObjectURL(formData.Poster_File)}
+                      src={previewUrl}
                       alt="Preview"
                       className="w-32 h-32 object-cover rounded-lg shadow-md mb-2"
                     />
                     <p className="text-sm font-semibold text-green-700 line-clamp-1">
-                      {formData.Poster_File.name}
+                      {formData.Poster_File?.name || "Current Poster"}
                     </p>
                   </div>
                 ) : (
@@ -269,9 +297,14 @@ const AddEventOverlay = ({ onClose, onUpload, initialData }) => {
           <button
             type="submit"
             form="add-event-form"
-            disabled={loading || !formData.Poster_File || !formData.Event_Date}
+            disabled={
+              loading ||
+              !formData.Event_Date ||
+              (!isEditMode && !formData.Poster_File)
+            }
             className="flex-1 px-4 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex justify-center items-center gap-2 shadow-lg shadow-green-900/10"
           >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
             {loading ? (
               <>{isEditMode ? "Updating..." : "Publishing..."}</>
             ) : (

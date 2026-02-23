@@ -1,19 +1,22 @@
-import event_temp_image from "/images/events_temp_image.jpg";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, Edit2, Trash2, X } from "lucide-react";
-import { useSelector } from "react-redux";
+import { Clock, Edit2, Loader2, Trash2, X } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
 import { selectIsAuthenticated, selectUser } from "../../redux/slice/authSlice";
+import { deleteEvent } from "../../redux/slice/eventsSlice";
 import ComplaintButton from "../ComplaintButton";
 import toast from "react-hot-toast";
-import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 const EventCard = ({ event, onEdit }) => {
+  const dispatch = useDispatch();
   const isAuth = useSelector(selectIsAuthenticated);
   const user = useSelector(selectUser);
   const navigate = useNavigate();
 
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const dateObj = new Date(event.Event_Date);
   const month = dateObj
@@ -21,21 +24,46 @@ const EventCard = ({ event, onEdit }) => {
     .toUpperCase();
   const day = dateObj.getDate();
 
-  console.log(event, user);
-  const isOwner = user && event.Added_By === user.id;
+  // Use correct field name – check what your user object has
+  const isOwner =
+    user && event.Added_By === (user.S_ID || user.id || user.Student_ID);
 
   useEffect(() => {
     if (!previewOpen) return;
 
     const handleEsc = (e) => {
-      if (e.key === "Escape") {
-        setPreviewOpen(false);
-      }
+      if (e.key === "Escape") setPreviewOpen(false);
     };
 
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [previewOpen]);
+
+  const handleDelete = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this event? This action cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    setDeleting(true);
+
+    try {
+      await dispatch(deleteEvent(event.E_ID)).unwrap();
+      toast.success("Event deleted successfully!");
+      setShowConfirm(false);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "Failed to delete event. Please try again.";
+      toast.error(msg);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <>
@@ -59,7 +87,7 @@ const EventCard = ({ event, onEdit }) => {
 
           {!isOwner && (
             <ComplaintButton
-              onClick={() => navigate(`/submitComplaint/event/${event.E_ID}`)}
+              onClick={() => navigate(`/submit-complaint/event/${event.E_ID}`)}
               className="absolute top-4 right-4"
               element="event"
             />
@@ -85,7 +113,7 @@ const EventCard = ({ event, onEdit }) => {
 
           <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between">
             <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
-              Added by {event.Contact_Person || "Admin"}
+              Added by {event.Organizer_Name || event.Contact_Person || "Admin"}
             </p>
 
             {isOwner && (
@@ -100,12 +128,23 @@ const EventCard = ({ event, onEdit }) => {
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
+
                 <button
-                  onClick={() => toast.success("Event Deleted Successfully!")}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete();
+                  }}
+                  disabled={deleting}
+                  className={`p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors ${
+                    deleting ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                   title="Delete Event"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  {deleting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             )}
@@ -113,12 +152,13 @@ const EventCard = ({ event, onEdit }) => {
         </div>
       </div>
 
+      {/* Image Preview Modal */}
       {previewOpen &&
         createPortal(
           <div
             role="dialog"
             aria-modal="true"
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-9999 flex items-center justify-center bg-black/80 backdrop-blur-sm"
             onClick={() => setPreviewOpen(false)}
           >
             <button
@@ -135,7 +175,7 @@ const EventCard = ({ event, onEdit }) => {
               className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
             />
           </div>,
-          document.getElementById("modal-root"),
+          document.getElementById("modal-root") || document.body,
         )}
     </>
   );
