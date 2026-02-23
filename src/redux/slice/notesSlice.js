@@ -82,6 +82,7 @@ const notesSlice = createSlice({
       /* ALL */
       .addCase(fetchNotes.pending, (state) => {
         state.status = "loading";
+        state.error = null;
       })
       .addCase(fetchNotes.fulfilled, (state, action) => {
         state.status = "succeeded";
