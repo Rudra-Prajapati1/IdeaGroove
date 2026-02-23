@@ -25,6 +25,13 @@ const initialState = eventsAdapter.getInitialState({
   userEvents: [],
   userStatus: "idle",
   userError: null,
+
+  createStatus: "idle",
+  createError: null,
+  updateStatus: "idle",
+  updateError: null,
+  deleteStatus: "idle",
+  deleteError: null,
 });
 
 /* ================= ALL EVENTS ================= */
@@ -69,6 +76,62 @@ export const fetchUserEvents = createAsyncThunk(
       return data;
     } catch (err) {
       return rejectWithValue("Failed to fetch user events");
+    }
+  },
+);
+
+/* ================= CREATE EVENT ================= */
+
+export const createEvent = createAsyncThunk(
+  "events/createEvent",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const { data } = await api.post("/events/create", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return data; // { status: true, message: ... }
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to create event",
+      );
+    }
+  },
+);
+
+/* ================= UPDATE EVENT ================= */
+
+export const updateEvent = createAsyncThunk(
+  "events/updateEvent",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const { data } = await api.post("/events/update", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return data; // { status: true, message: ... }
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to update event",
+      );
+    }
+  },
+);
+
+/* ================= DELETE EVENT ================= */
+
+export const deleteEvent = createAsyncThunk(
+  "events/deleteEvent",
+  async (eventId, { rejectWithValue }) => {
+    try {
+      const { data } = await api.get(`/events/delete/${eventId}`);
+      return { eventId, ...data }; // Return eventId so we can remove it locally if needed
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to delete event",
+      );
     }
   },
 );
@@ -124,6 +187,48 @@ const eventsSlice = createSlice({
       .addCase(fetchUserEvents.rejected, (state, action) => {
         state.userStatus = "failed";
         state.userError = action.payload;
+      })
+
+      /* ===== CREATE EVENT ===== */
+      .addCase(createEvent.pending, (state) => {
+        state.createStatus = "loading";
+        state.createError = null;
+      })
+      .addCase(createEvent.fulfilled, (state, action) => {
+        state.createStatus = "succeeded";
+        // No addOne since no data returned; parent will refetch
+      })
+      .addCase(createEvent.rejected, (state, action) => {
+        state.createStatus = "failed";
+        state.createError = action.payload;
+      })
+
+      /* ===== UPDATE EVENT ===== */
+      .addCase(updateEvent.pending, (state) => {
+        state.updateStatus = "loading";
+        state.updateError = null;
+      })
+      .addCase(updateEvent.fulfilled, (state, action) => {
+        state.updateStatus = "succeeded";
+        // No upsert since no data returned; parent will refetch
+      })
+      .addCase(updateEvent.rejected, (state, action) => {
+        state.updateStatus = "failed";
+        state.updateError = action.payload;
+      })
+      /* ===== DELETE EVENT ===== */
+      .addCase(deleteEvent.pending, (state) => {
+        state.deleteStatus = "loading";
+        state.deleteError = null;
+      })
+      .addCase(deleteEvent.fulfilled, (state, action) => {
+        state.deleteStatus = "succeeded";
+        // Optional: remove from state immediately (optimistic update)
+        eventsAdapter.removeOne(state, action.payload.eventId);
+      })
+      .addCase(deleteEvent.rejected, (state, action) => {
+        state.deleteStatus = "failed";
+        state.deleteError = action.payload;
       });
   },
 });
@@ -156,3 +261,5 @@ export const selectUserEvents = (state) => state.events.userEvents;
 export const selectUserEventsStatus = (state) => state.events.userStatus;
 
 export const selectUserEventsError = (state) => state.events.userError;
+export const selectDeleteStatus = (state) => state.events.deleteStatus;
+export const selectDeleteError = (state) => state.events.deleteError;

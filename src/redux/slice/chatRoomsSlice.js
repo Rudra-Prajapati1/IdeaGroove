@@ -6,6 +6,8 @@ import {
 } from "@reduxjs/toolkit";
 import api from "../../api/axios";
 
+/* ================= ENTITY ADAPTER ================= */
+
 const groupsAdapter = createEntityAdapter({
   selectId: (group) => group.Room_ID,
   sortComparer: (a, b) => new Date(b.Created_On) - new Date(a.Created_On),
@@ -18,6 +20,9 @@ const initialState = groupsAdapter.getInitialState({
   totalPages: 1,
   total: 0,
 
+  createStatus: "idle",
+  createError: null,
+
   previewGroups: [],
   previewStatus: "idle",
   previewError: null,
@@ -27,7 +32,9 @@ const initialState = groupsAdapter.getInitialState({
   userError: null,
 });
 
-/* ================= FETCH ALL GROUPS ================= */
+/* =========================================================
+   FETCH ALL GROUPS
+========================================================= */
 
 export const fetchGroups = createAsyncThunk(
   "groups/fetchGroups",
@@ -49,7 +56,87 @@ export const fetchGroups = createAsyncThunk(
   },
 );
 
-/* ================= PREVIEW ================= */
+/* =========================================================
+   CREATE GROUP   ---> POST /groups/create
+========================================================= */
+
+export const createGroup = createAsyncThunk(
+  "groups/createGroup",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const { data } = await api.post("/groups/create", payload);
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to create group",
+      );
+    }
+  },
+);
+
+/* =========================================================
+   JOIN GROUP   ---> POST /groups/joinGroup
+========================================================= */
+
+export const joinGroup = createAsyncThunk(
+  "groups/joinGroup",
+  async ({ Room_ID, Student_ID }, { rejectWithValue }) => {
+    try {
+      const { data } = await api.post("/groups/joinGroup", {
+        Room_ID,
+        Student_ID,
+      });
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to join group",
+      );
+    }
+  },
+);
+
+/* =========================================================
+   LEAVE GROUP   ---> POST /groups/leaveGroup
+========================================================= */
+
+export const leaveGroup = createAsyncThunk(
+  "groups/leaveGroup",
+  async ({ Room_ID, Student_ID }, { rejectWithValue }) => {
+    try {
+      const { data } = await api.post("/groups/leaveGroup", {
+        Room_ID,
+        Student_ID,
+      });
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to leave group",
+      );
+    }
+  },
+);
+
+/* =========================================================
+   DELETE GROUP  ---> GET /groups/delete/:Room_ID
+========================================================= */
+
+export const deleteGroup = createAsyncThunk(
+  "groups/deleteGroup",
+  async (Room_ID, { rejectWithValue }) => {
+    try {
+      const { data } = await api.get(`/groups/delete/${Room_ID}`);
+      return { Room_ID, message: data.message };
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to delete group",
+      );
+    }
+  },
+);
+
+/* =========================================================
+   PREVIEW GROUPS
+========================================================= */
 
 export const fetchPreviewGroups = createAsyncThunk(
   "groups/fetchPreviewGroups",
@@ -63,7 +150,9 @@ export const fetchPreviewGroups = createAsyncThunk(
   },
 );
 
-/* ================= USER GROUPS ================= */
+/* =========================================================
+   USER GROUPS
+========================================================= */
 
 export const fetchUserGroups = createAsyncThunk(
   "groups/fetchUserGroups",
@@ -85,17 +174,21 @@ export const fetchUserGroups = createAsyncThunk(
   },
 );
 
+/* =========================================================
+   SLICE
+========================================================= */
+
 const groupsSlice = createSlice({
   name: "groups",
   initialState,
   reducers: {},
+
   extraReducers: (builder) => {
     builder
 
-      /* ===== ALL ===== */
+      /* ---------- FETCH ALL ---------- */
       .addCase(fetchGroups.pending, (state) => {
         state.status = "loading";
-        state.error = null;
       })
       .addCase(fetchGroups.fulfilled, (state, action) => {
         state.status = "succeeded";
@@ -110,10 +203,27 @@ const groupsSlice = createSlice({
         state.error = action.payload;
       })
 
-      /* ===== PREVIEW ===== */
+      /* ---------- CREATE GROUP ---------- */
+      .addCase(createGroup.pending, (state) => {
+        state.createStatus = "loading";
+        state.createError = null;
+      })
+      .addCase(createGroup.fulfilled, (state) => {
+        state.createStatus = "succeeded";
+      })
+      .addCase(createGroup.rejected, (state, action) => {
+        state.createStatus = "failed";
+        state.createError = action.payload;
+      })
+
+      /* ---------- DELETE GROUP ---------- */
+      .addCase(deleteGroup.fulfilled, (state, action) => {
+        groupsAdapter.removeOne(state, action.payload.Room_ID);
+      })
+
+      /* ---------- PREVIEW ---------- */
       .addCase(fetchPreviewGroups.pending, (state) => {
         state.previewStatus = "loading";
-        state.previewError = null;
       })
       .addCase(fetchPreviewGroups.fulfilled, (state, action) => {
         state.previewStatus = "succeeded";
@@ -124,10 +234,9 @@ const groupsSlice = createSlice({
         state.previewError = action.payload;
       })
 
-      /* ===== USER ===== */
+      /* ---------- USER GROUPS ---------- */
       .addCase(fetchUserGroups.pending, (state) => {
         state.userStatus = "loading";
-        state.userError = null;
       })
       .addCase(fetchUserGroups.fulfilled, (state, action) => {
         state.userStatus = "succeeded";
@@ -142,13 +251,18 @@ const groupsSlice = createSlice({
 
 export default groupsSlice.reducer;
 
-/* ================= SELECTORS ================= */
+/* =========================================================
+   SELECTORS
+========================================================= */
 
 export const { selectAll: selectAllGroups, selectById: selectGroupById } =
   groupsAdapter.getSelectors((state) => state.groups);
 
 export const selectGroupsStatus = (state) => state.groups.status;
 export const selectGroupsError = (state) => state.groups.error;
+
+export const selectCreateGroupStatus = (state) => state.groups.createStatus;
+export const selectCreateGroupError = (state) => state.groups.createError;
 
 export const selectGroupsPagination = createSelector(
   (state) => state.groups.page,

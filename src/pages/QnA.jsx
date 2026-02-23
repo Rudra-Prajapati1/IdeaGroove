@@ -82,10 +82,7 @@ const QnA = () => {
 
         {status === "succeeded" && (
           <>
-            <DiscussionForum
-              MOCK_DISCUSSIONS={groupedDiscussions}
-              DEGREE_SUBJECTS={DEGREE_SUBJECTS}
-            />
+            <DiscussionForum discussions={groupedDiscussions} />
 
             {/* Pagination */}
             {totalPages > 1 && (

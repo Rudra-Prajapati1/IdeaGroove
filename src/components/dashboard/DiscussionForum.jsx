@@ -3,27 +3,14 @@ import { Filter, GraduationCap, Plus } from "lucide-react";
 import Controls from "../common/Controls";
 import AskQuestionModal from "../qna/AskQuestion";
 import QnACard from "../cards/QnACard";
-import { useSelector, useDispatch } from "react-redux";
-import {
-  fetchQnA,
-  selectAllQnA,
-  selectQnAStatus,
-  selectQnAError,
-} from "../../redux/slice/qnaSlice";
 import { selectIsAuthenticated, selectUser } from "../../redux/slice/authSlice";
 import ActionButton from "../common/ActionButton";
+import { useSelector } from "react-redux";
 
-const DiscussionForum = () => {
-  const dispatch = useDispatch();
-
+const DiscussionForum = ({ discussions }) => {
   const isAuth = useSelector(selectIsAuthenticated);
   const currentUser = useSelector(selectUser);
   const currentUserId = currentUser?.S_ID || currentUser?.id || null;
-
-  const qnaData = useSelector(selectAllQnA) ?? []; // real data from qnaSlice
-  const qnaStatus = useSelector(selectQnAStatus);
-  const qnaError = useSelector(selectQnAError);
-
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [selectedDegree, setSelectedDegree] = useState("");
@@ -31,19 +18,12 @@ const DiscussionForum = () => {
   const [showAskModal, setShowAskModal] = useState(false);
   const [editing, setEditing] = useState(null);
 
-  // Auto-fetch QnA data when component mounts (if not already loaded)
-  useEffect(() => {
-    if (qnaStatus === "idle") {
-      dispatch(fetchQnA({ page: 1, limit: 20 })); // adjust page/limit as needed
-    }
-  }, [qnaStatus, dispatch]);
-
   // Extract unique degrees & subjects from real data (for filters)
   const { uniqueDegrees, uniqueSubjects } = useMemo(() => {
     const degrees = new Set();
     const subjects = new Set();
 
-    qnaData.forEach((item) => {
+    discussions.forEach((item) => {
       if (item.Degree_Name) degrees.add(item.Degree_Name);
       if (item.Subject_Name) subjects.add(item.Subject_Name);
     });
@@ -52,11 +32,11 @@ const DiscussionForum = () => {
       uniqueDegrees: Array.from(degrees),
       uniqueSubjects: Array.from(subjects),
     };
-  }, [qnaData]);
+  }, [discussions]);
 
   // Filter & sort real data
   const filteredDiscussions = useMemo(() => {
-    return qnaData
+    return discussions
       .filter((post) => {
         // Degree filter
         if (selectedDegree && post.Degree_Name !== selectedDegree) return false;
@@ -80,7 +60,7 @@ const DiscussionForum = () => {
         if (filter === "oldest_to_newest") return dateA - dateB;
         return 0;
       });
-  }, [qnaData, search, filter, selectedDegree, selectedSubject]);
+  }, [discussions, search, filter, selectedDegree, selectedSubject]);
 
   const handleQuestionSubmit = (data) => {
     console.log("New/Edited Question:", data);
@@ -95,24 +75,6 @@ const DiscussionForum = () => {
       // TODO: dispatch delete thunk here (question or answer)
     }
   };
-
-  // Loading / Error states
-  if (qnaStatus === "loading") {
-    return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-green-600"></div>
-      </div>
-    );
-  }
-
-  if (qnaStatus === "failed") {
-    return (
-      <div className="text-center py-12 text-red-600">
-        <p className="text-xl font-medium">Failed to load discussions</p>
-        <p className="mt-2">{qnaError || "Unknown error"}</p>
-      </div>
-    );
-  }
 
   return (
     <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
@@ -234,7 +196,7 @@ const DiscussionForum = () => {
           ) : (
             filteredDiscussions.map((post) => (
               <QnACard
-                key={post.Q_ID || post.A_ID} // use Q_ID primarily
+                key={post.id} // use Q_ID primarily
                 post={post}
                 isAuth={isAuth}
                 currentUserId={currentUserId}
