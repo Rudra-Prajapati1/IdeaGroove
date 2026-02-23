@@ -1,17 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import group_temp_image from "/images/group_temp_image.jpg";
 import { Info, Search, Users } from "lucide-react";
 
 const AdminViewMembers = ({ group, setIsModalOpen }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const members = [
-    { id: 1, name: "Alex Rivera", role: "GROUP ADMIN", isAdmin: true },
-    { id: 2, name: "Jordan Smith", role: "Member", isAdmin: false },
-    { id: 3, name: "Taylor Morgan", role: "Member", isAdmin: false },
-    { id: 4, name: "Jamie Chen", role: "Member", isAdmin: false },
-    { id: 5, name: "Casey Wilson", role: "Member", isAdmin: false },
-    { id: 6, name: "Riley Harper", role: "Member", isAdmin: false },
-  ];
+  const [members, setMembers] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    const fetchViewMembers = async () => {
+      try {
+        const reponse = await fetch(
+          `http://localhost:8080/api/groups/viewMembers/${group.id}`,
+        );
+
+        if (!reponse.ok) {
+          throw new Error("Failed to fetch View Members");
+        }
+
+        const data = await reponse.json();
+        setMembers(data.membersDetails);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchViewMembers();
+  }, []);
 
   // Filter members based on search
   const filteredMembers = members.filter((m) =>
@@ -33,19 +49,17 @@ const AdminViewMembers = ({ group, setIsModalOpen }) => {
           <div className="flex items-center gap-5">
             <img
               src={group_temp_image}
-              alt={group.Room_Name}
+              alt={group.Name}
               className="w-20 h-20 rounded-2xl object-cover border-2 border-white/20 shadow-xl"
             />
             <div>
-              <h2 className="text-2xl font-bold font-poppins">
-                {group.Room_Name}
-              </h2>
+              <h2 className="text-2xl font-bold font-poppins">{group.Name}</h2>
               <div className="flex flex-wrap gap-2 mt-2">
                 <span className="bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
                   {group.Based_On}
                 </span>
                 <span className="flex items-center gap-1 text-green-400 text-xs font-bold">
-                  <Users className="w-3 h-3" /> {group.Member_Count || "12"}{" "}
+                  <Users className="w-3 h-3" /> {group.Member_Count || "0"}{" "}
                   Members
                 </span>
               </div>
@@ -96,10 +110,15 @@ const AdminViewMembers = ({ group, setIsModalOpen }) => {
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border border-gray-100 shadow-sm">
-                      <img
-                        src={`https://i.pravatar.cc/150?u=${member.id}`}
-                        alt={member.name}
-                      />
+                      {member.Profile_Pic ? (
+                        <img src={member.Profile_Pic} alt={member.name} />
+                      ) : (
+                        <div
+                          className={`rounded-xl flex items-center justify-center font-black text-lg uppercase shrink-0`}
+                        >
+                          {member.Name?.charAt(0)}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <p className="font-bold text-gray-900 text-sm">

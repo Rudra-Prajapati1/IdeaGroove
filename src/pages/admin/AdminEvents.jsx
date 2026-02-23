@@ -117,9 +117,11 @@ const AdminEvents = () => {
           Organizer_ID: ev.Organizer_ID,
           Organizer_Name: ev.Organizer_Name,
           Added_On: ev.Added_On,
-          // Poster_File: ev.Poster_File,
-          status: ev.Is_Active === 1 ? "active" : "blocked",
+          Poster_File: ev.Poster_File,
+          status: ev.Is_Active,
         }));
+
+        console.log(formattedEvents);
 
         eventsStats[0].value = data.total;
         eventsStats[1].value = formattedEvents.filter(
