@@ -7,6 +7,7 @@ import chatsReducer from "./slice/chatsSlice";
 import notesReducer from "./slice/notesSlice";
 import qnaReducer from "./slice/qnaSlice";
 import authReducer from "./slice/authSlice";
+import studentsReducer from "./slice/studentsSlice";
 
 export default configureStore({
   reducer: {
@@ -17,6 +18,7 @@ export default configureStore({
     notes: notesReducer,
     qna: qnaReducer,
     auth: authReducer,
+    students: studentsReducer,
   },
   devTools: import.meta.env.DEV,
 });
