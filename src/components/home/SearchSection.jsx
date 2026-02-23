@@ -132,7 +132,7 @@ const SearchSection = () => {
                     onClick={() => handleSuggestionClick(student)}
                     className="p-4 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors"
                   >
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200">
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
                       {student.Profile_Pic ? (
                         <img
                           src={student.Profile_Pic}

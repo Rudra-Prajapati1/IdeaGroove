@@ -1,23 +1,22 @@
+// src/components/auth/SignupForm.jsx
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  Eye,
-  EyeClosed,
-  ChevronDown,
-  X,
-  Search,
-  AlertCircle,
-} from "lucide-react";
+  sendOTP,
+  verifyOTP,
+  signup,
+  selectAuthLoading,
+  selectAuthError,
+} from "../../redux/slice/authSlice";
+import toast from "react-hot-toast";
+import { Eye, EyeClosed, ChevronDown, Search, AlertCircle } from "lucide-react";
+import api from "../../api/axios"; // Use configured api for resources
 
 import SectionWrapper from "./SectionWrapper";
 import Input from "./Input";
 import ProfileUpload from "./ProfileUpload";
-
-import { loginSuccess } from "../../redux/slice/authSlice";
 import { MultiSearchableDropdown } from "../common/MultipleSearchComponent";
-import toast from "react-hot-toast";
 
 const FloatingError = ({ message, show }) => {
   if (!show || !message) return null;
@@ -142,24 +141,28 @@ const SignupForm = ({ onLogin }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const authLoading = useSelector(selectAuthLoading);
+  const serverError = useSelector(selectAuthError);
+
   const { isAuthenticated } = useSelector((state) => state.auth);
 
   const toastShown = useRef(false);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !toastShown.current) {
+      toast.success("Welcome!");
+      toastShown.current = true;
       navigate("/dashboard");
     }
   }, [isAuthenticated, navigate]);
 
-  // --- STATE MANAGEMENT ---
+  // ─── Form State ────────────────────────────────────────────────────
   const [step, setStep] = useState("personal");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Data from Backend
+  // Resources
   const [resources, setResources] = useState({
     colleges: [],
     degrees: [],
@@ -172,328 +175,228 @@ const SignupForm = ({ onLogin }) => {
     Name: "",
     Roll_No: "",
     Email: "",
-    College_ID: "",
-    Degree_ID: "",
-    Year: "",
     Password: "",
     confirmPassword: "",
     Profile_Pic: null,
+    College_ID: "",
+    Degree_ID: "",
+    Year: "",
     Hobbies: [],
   });
 
-  const passwordFields = [
-    {
-      id: "Password",
-      label: "Password:",
-      placeholder: "Enter password",
-      value: signupData.Password,
-      showState: showPassword,
-      toggleFunc: () => setShowPassword(!showPassword),
-    },
-    {
-      id: "confirmPassword",
-      label: "Confirm Password:",
-      placeholder: "Re-enter password",
-      value: signupData.confirmPassword,
-      showState: showConfirmPassword,
-      toggleFunc: () => setShowConfirmPassword(!showConfirmPassword),
-    },
-  ];
+  const [displayBatch, setDisplayBatch] = useState("");
 
+  // OTP
+  const [otp, setOtp] = useState(["", "", "", ""]);
+  const otpRefs = [useRef(), useRef(), useRef(), useRef()];
+
+  // ─── Fetch Resources ───────────────────────────────────────────────
   useEffect(() => {
     const fetchResources = async () => {
+      setResourceLoading(true);
       try {
-        const response = await axios.get("http://localhost:8080/api/search");
+        const { data } = await api.get("/api/search");
         setResources({
-          colleges: response.data.colleges || [],
-          degrees: response.data.degrees || [],
-          hobbies: response.data.hobbies || [],
+          colleges: data.colleges || [],
+          degrees: data.degrees || [],
+          hobbies: data.hobbies || [],
         });
-        setResourceLoading(false);
       } catch (err) {
         console.error("Resource Fetch Error:", err);
-        setErrors({
-          general: "Failed to load colleges. Please check connection.",
-        });
+        setErrors({ general: "Failed to load options. Check connection." });
+        toast.error("Failed to load signup options");
+      } finally {
         setResourceLoading(false);
       }
     };
     fetchResources();
   }, []);
 
-  // Helper to clear errors when user types
+  // ─── Helpers ───────────────────────────────────────────────────────
   const handleData = (field, value) => {
     setSignupData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
+        const next = { ...prev };
+        delete next[field];
+        return next;
       });
     }
   };
 
-  const validateStep1 = () => {
-    let newErrors = {};
-    if (!signupData.Username) newErrors.Username = "Username is required";
-    if (!signupData.Name) newErrors.Name = "Name is required";
-    if (!signupData.Roll_No) {
+  const validatePersonal = () => {
+    const newErrors = {};
+
+    if (!signupData.Username?.trim())
+      newErrors.Username = "Username is required";
+    if (!signupData.Name?.trim()) newErrors.Name = "Name is required";
+
+    if (!signupData.Roll_No?.trim()) {
       newErrors.Roll_No = "Roll No is required";
-    } else {
-      const rollNoRegex = /^[a-zA-Z0-9\s-]+$/;
-      if (!rollNoRegex.test(signupData.Roll_No)) {
-        newErrors.Roll_No =
-          "Only numbers, letters, hyphens, and spaces allowed";
-      }
+    } else if (!/^[a-zA-Z0-9\s-]+$/.test(signupData.Roll_No)) {
+      newErrors.Roll_No = "Only letters, numbers, spaces, hyphens allowed";
     }
+
     if (!signupData.Password) {
       newErrors.Password = "Password is required";
     } else if (signupData.Password.length < 6) {
       newErrors.Password = "Must be at least 6 characters";
     }
+
     if (signupData.Password !== signupData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
     setErrors(newErrors);
 
-    // Focus on first invalid field
     if (Object.keys(newErrors).length > 0) {
-      const firstErrorField = Object.keys(newErrors)[0];
+      const first = Object.keys(newErrors)[0];
       setTimeout(() => {
-        let element = document.querySelector(`[name="${firstErrorField}"]`);
-
-        // for custom components like dropdowns
-        if (!element) {
-          element = document.querySelector(`[data-name="${firstErrorField}"]`);
-        }
-
-        if (element && document.activeElement !== element) {
-          element.focus();
-        }
+        const el =
+          document.querySelector(`[name="${first}"]`) ||
+          document.querySelector(`[data-name="${first}"]`);
+        el?.focus();
       }, 100);
     }
 
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
+  const handleImageChange = (file) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       setErrors({ Profile_Pic: "Please upload a valid image" });
       return;
     }
-    setSignupData((prev) => ({ ...prev, Profile_Pic: file }));
-    setErrors((prev) => {
-      const newErrors = { ...prev };
-      delete newErrors.Profile_Pic;
-      return newErrors;
-    });
+    handleData("Profile_Pic", file);
   };
 
-  const [displayBatch, setDisplayBatch] = useState("");
+  const handleBatchChange = (e) => {
+    let val = e.target.value.replace(/\D/g, "");
 
-  const handleBatchInputChange = (e) => {
-    let value = e.target.value.replace(/\D/g, "");
-    let formattedValue = "";
-
-    if (value.length > 0 && value[0] !== "2") {
-      setErrors((prev) => ({
-        ...prev,
-        Year: "Batch must start with the year 2000+",
-      }));
+    if (val && val[0] !== "2") {
+      setErrors((p) => ({ ...p, Year: "Batch must start with 20XX" }));
       return;
     }
 
-    if (value.length > 0) {
-      formattedValue = value.substring(0, 4);
-      if (value.length > 4) {
-        formattedValue += "-" + value.substring(4, 8);
-      } else if (
-        value.length === 4 &&
-        e.nativeEvent.inputType !== "deleteContentBackward"
-      ) {
-        formattedValue += "-";
-      }
-    }
+    let formatted = val.slice(0, 4);
+    if (val.length > 4) formatted += "-" + val.slice(4, 8);
 
-    setDisplayBatch(formattedValue);
+    setDisplayBatch(formatted);
 
-    if (formattedValue.length === 9) {
-      const startYear = parseInt(formattedValue.substring(0, 4));
-      const endYear = parseInt(formattedValue.substring(5, 9));
-
-      if (
-        startYear < 2000 ||
-        startYear > 2099 ||
-        endYear < 2000 ||
-        endYear > 2099
-      ) {
-        setErrors((prev) => ({
-          ...prev,
-          Year: "Years must be between 2000 and 2099",
-        }));
+    if (formatted.length === 9) {
+      const [s, e] = formatted.split("-").map(Number);
+      if (e <= s || s < 2000 || e > 2099) {
+        setErrors((p) => ({ ...p, Year: "Invalid batch range" }));
         handleData("Year", "");
-        return;
+      } else {
+        handleData("Year", formatted.replace("-", "").slice(2));
+        setErrors((p) => {
+          const n = { ...p };
+          delete n.Year;
+          return n;
+        });
       }
-
-      if (endYear <= startYear) {
-        setErrors((prev) => ({
-          ...prev,
-          Year: "End year must be after start year",
-        }));
-        handleData("Year", "");
-        return;
-      }
-
-      const internalID =
-        formattedValue.substring(2, 4) + formattedValue.substring(7, 9);
-      handleData("Year", internalID);
-      setErrors((prev) => ({ ...prev, Year: null }));
     } else {
       handleData("Year", "");
     }
   };
 
-  const [otp, setOtp] = useState(["", "", "", ""]);
-  const otpRefs = [useRef(), useRef(), useRef(), useRef()];
+  // ─── Step Handlers ─────────────────────────────────────────────────
+  const handleNextPersonal = () => {
+    if (validatePersonal()) {
+      setStep("educational");
+    }
+  };
+
+  const handleSendOtp = async () => {
+    const newErrors = {};
+
+    if (!signupData.College_ID) newErrors.College_ID = "College required";
+    if (!signupData.Degree_ID) newErrors.Degree_ID = "Degree required";
+    if (!signupData.Year) newErrors.Year = "Batch required";
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!signupData.Email) {
+      newErrors.Email = "Email required";
+    } else if (!emailRegex.test(signupData.Email)) {
+      newErrors.Email = "Invalid email";
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      toast.error("Please fix the highlighted fields");
+      return;
+    }
+
+    const result = await dispatch(sendOTP(signupData.Email));
+
+    if (sendOTP.fulfilled.match(result)) {
+      // OTP sent → move to OTP step
+      setStep("otp");
+    }
+  };
+
+  const handleCompleteSignup = async () => {
+    const fullOtp = otp.join("").trim();
+    if (fullOtp.length !== 4) {
+      setErrors({ otp: "Enter complete 4-digit OTP" });
+      return;
+    }
+
+    const verifyResult = await dispatch(verifyOTP({ otp: fullOtp }));
+
+    if (!verifyOTP.fulfilled.match(verifyResult)) return;
+
+    // OTP verified → proceed to signup
+    const formData = new FormData();
+
+    formData.append("Username", signupData.Username.trim());
+    formData.append("Name", signupData.Name.trim());
+    formData.append("Roll_No", signupData.Roll_No.trim());
+    formData.append("Email", signupData.Email.trim());
+    formData.append("Password", signupData.Password);
+    formData.append("College_ID", signupData.College_ID);
+    formData.append("Degree_ID", signupData.Degree_ID);
+    formData.append("Year", signupData.Year);
+
+    if (signupData.Profile_Pic) {
+      formData.append("image", signupData.Profile_Pic);
+    }
+
+    if (signupData.Hobbies?.length > 0) {
+      formData.append("Hobbies", signupData.Hobbies.join(","));
+    }
+
+    const signupResult = await dispatch(signup(formData));
+
+    if (signup.fulfilled.match(signupResult)) {
+      navigate("/dashboard");
+    }
+  };
 
   const handleOtpChange = (index, value) => {
-    if (isNaN(value)) return;
+    if (!/^\d?$/.test(value)) return;
     const newOtp = [...otp];
-    newOtp[index] = value.substring(value.length - 1);
+    newOtp[index] = value;
     setOtp(newOtp);
 
     if (value && index < 3) {
-      otpRefs[index + 1].current.focus();
-    }
-  };
-
-  const [tempToken, setTempToken] = useState("");
-
-  const handleSendOtp = async () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    let newErrors = {};
-
-    if (!signupData.College_ID) {
-      newErrors.College_ID = "Please select a college";
-    }
-    if (!signupData.Degree_ID) {
-      newErrors.Degree_ID = "Please select a degree";
-    }
-    if (!signupData.Year) {
-      newErrors.Year = "Please enter your batch year";
-    }
-    if (!signupData.Email) {
-      newErrors.Email = "Email is required";
-    } else if (!emailRegex.test(signupData.Email)) {
-      newErrors.Email = "Please enter a valid email address";
-    } else {
-      toast.success("OTP sent successfully");
+      otpRefs[index + 1]?.current?.focus();
     }
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      // Focus on first invalid field
-      setTimeout(() => {
-        const firstErrorField = Object.keys(newErrors)[0];
-        // Try to find input with name attribute
-        let element = document.querySelector(`[name="${firstErrorField}"]`);
-        // If not found, try to find dropdown with data-name attribute
-        if (!element) {
-          element = document.querySelector(`[data-name="${firstErrorField}"]`);
-        }
-        if (element) {
-          element.focus();
-        }
-      }, 100);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await axios.post("http://localhost:8080/api/auth/sendOTP", {
-        email: signupData.Email,
+    if (errors.otp)
+      setErrors((p) => {
+        const n = { ...p };
+        delete n.otp;
+        return n;
       });
-      setTempToken(res.data.token);
-      setStep("otp");
-      setErrors({});
-    } catch (err) {
-      setErrors({ Email: err.response?.data?.error || "Failed to send OTP" });
-    } finally {
-      setLoading(false);
-    }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const fullOtp = otp.join("");
-    if (fullOtp.length < 4) {
-      setErrors({ otp: "Please enter the complete 4-digit OTP" });
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      await axios.post("http://localhost:8080/api/auth/verifyOTP", {
-        otp: fullOtp,
-        token: tempToken,
-      });
-
-      const formData = new FormData();
-
-      formData.append("Username", signupData.Username);
-      formData.append("Name", signupData.Name);
-      formData.append("Roll_No", signupData.Roll_No);
-      formData.append("Email", signupData.Email);
-      formData.append("Password", signupData.Password);
-      formData.append("College_ID", signupData.College_ID);
-      formData.append("Degree_ID", signupData.Degree_ID);
-      formData.append("Year", signupData.Year);
-
-      if (signupData.Profile_Pic) {
-        formData.append("image", signupData.Profile_Pic);
-      }
-
-      if (signupData.Hobbies.length > 0) {
-        formData.append("Hobbies", signupData.Hobbies.join(","));
-      }
-
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/signup",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        },
-      );
-
-      if (response.status === 201 || response.status === 200) {
-        const userFromServer = response.data.user;
-
-        console.log(response.data.user.Profile_Pic);
-
-        dispatch(loginSuccess(userFromServer));
-        toast.success("Signup Successfully");
-        setTimeout(() => navigate("/dashboard"), 1500);
-      }
-    } catch (err) {
-      console.error("Submission Error:", err);
-      const msg =
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        "Action Failed.";
-      setErrors({ otp: msg });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleKeyDown = (index, e) => {
+  const handleOtpKeyDown = (index, e) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
-      otpRefs[index - 1].current.focus();
+      otpRefs[index - 1]?.current?.focus();
     }
   };
 
@@ -501,28 +404,24 @@ const SignupForm = ({ onLogin }) => {
     <div className="w-full py-2 flex items-start pt-20 mt-5 justify-center">
       <style>{`
         @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-8px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(-8px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
-        .animate-slideDown {
-          animation: slideDown 0.2s ease-out;
-        }
+        .animate-slideDown { animation: slideDown 0.2s ease-out; }
       `}</style>
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-4 w-full font-inter items-center justify-between"
-      >
+
+      <form className="flex flex-col gap-4 w-full font-inter items-center justify-between">
+        {serverError && (
+          <div className="w-full bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-center">
+            {serverError}
+          </div>
+        )}
+
         {step === "personal" && (
           <SectionWrapper title="Personal Details">
             <div>
               <div className="flex gap-12 items-center">
-                <div className="flex flex-col ">
+                <div className="flex flex-col gap-6">
                   <div className="relative">
                     <Input
                       label="Username"
@@ -566,7 +465,8 @@ const SignupForm = ({ onLogin }) => {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-6 mt-2">
+
+              <div className="grid grid-cols-2 gap-6 mt-6">
                 <div className="relative">
                   <Input
                     label="Roll No"
@@ -574,13 +474,16 @@ const SignupForm = ({ onLogin }) => {
                     placeholder="Enter the roll no"
                     value={signupData.Roll_No}
                     onChange={(v) => handleData("Roll_No", v)}
-                    className={errors.Roll_No ? "border-red-500" : ""}
+                    className={
+                      errors.Roll_No ? "border-red-500" : "border-gray-300"
+                    }
                   />
                   <FloatingError
                     message={errors.Roll_No}
                     show={!!errors.Roll_No}
                   />
                 </div>
+
                 <div className="w-full relative">
                   <MultiSearchableDropdown
                     label="Hobbies"
@@ -599,57 +502,78 @@ const SignupForm = ({ onLogin }) => {
                   />
                 </div>
               </div>
-              <div className="flex gap-6 mt-2">
-                {passwordFields.map((field) => (
-                  <div
-                    key={field.id}
-                    className="flex flex-col gap-1 w-1/2 relative"
-                  >
-                    <label className="text-md font-semibold text-primary">
-                      {field.label}
 
-                      <div className="relative">
-                        <div>
-                          <input
-                            type={field.showState ? "text" : "password"}
-                            name={field.id}
-                            value={field.value}
-                            placeholder={field.placeholder}
-                            onChange={(e) =>
-                              handleData(field.id, e.target.value)
-                            }
-                            required
-                            className={`w-full text-sm border-2 border-gray-300 rounded-xl outline-none 
-                     transition-colors duration-300 focus:border-primary/60 p-3 ${errors[field.id] ? "border-red-500" : ""}`}
-                          />
-                        </div>
-                        <span
-                          className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer 
-                     hover:bg-primary/10 p-1 rounded-2xl transition-colors"
-                          onClick={field.toggleFunc}
-                        >
-                          {field.showState ? (
-                            <Eye className="w-5 h-5 text-primary" />
-                          ) : (
-                            <EyeClosed className="w-5 h-5 text-primary" />
-                          )}
-                        </span>
-                      </div>
-                      <FloatingError
-                        message={errors[field.id]}
-                        show={!!errors[field.id]}
-                      />
+              <div className="grid grid-cols-2 gap-6 mt-6">
+                {[
+                  {
+                    id: "Password",
+                    label: "Password",
+                    placeholder: "Enter password",
+                    value: signupData.Password,
+                    show: showPassword,
+                    toggle: () => setShowPassword(!showPassword),
+                  },
+                  {
+                    id: "confirmPassword",
+                    label: "Confirm Password",
+                    placeholder: "Re-enter password",
+                    value: signupData.confirmPassword,
+                    show: showConfirmPassword,
+                    toggle: () => setShowConfirmPassword(!showConfirmPassword),
+                  },
+                ].map((field) => (
+                  <div key={field.id} className="relative">
+                    <label className="text-md font-semibold text-primary mb-1 block">
+                      {field.label}
                     </label>
+                    <div className="relative">
+                      <input
+                        type={field.show ? "text" : "password"}
+                        name={field.id}
+                        value={field.value}
+                        placeholder={field.placeholder}
+                        onChange={(e) => handleData(field.id, e.target.value)}
+                        className={`w-full text-sm border-2 rounded-xl outline-none transition-colors p-3 ${
+                          errors[field.id]
+                            ? "border-red-500"
+                            : "border-gray-300 focus:border-primary/60"
+                        }`}
+                      />
+                      <span
+                        className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer hover:bg-primary/10 p-1 rounded-xl transition-colors"
+                        onClick={field.toggle}
+                      >
+                        {field.show ? (
+                          <Eye className="w-5 h-5 text-primary" />
+                        ) : (
+                          <EyeClosed className="w-5 h-5 text-primary" />
+                        )}
+                      </span>
+                    </div>
+                    <FloatingError
+                      message={errors[field.id]}
+                      show={!!errors[field.id]}
+                    />
                   </div>
                 ))}
               </div>
+            </div>
+
+            <div className="flex justify-end mt-8">
+              <button
+                type="button"
+                onClick={handleNextPersonal}
+                className="bg-primary text-white px-8 py-3 rounded-xl hover:bg-primary/90 transition font-medium"
+              >
+                Next → Educational Details
+              </button>
             </div>
           </SectionWrapper>
         )}
 
         {step === "educational" && (
           <SectionWrapper title="Educational Details">
-            <div className="relative">
+            <div className="space-y-6">
               <SearchableDropdown
                 label="College"
                 name="College_ID"
@@ -662,9 +586,7 @@ const SignupForm = ({ onLogin }) => {
                 loading={resourceLoading}
                 error={errors.College_ID}
               />
-            </div>
 
-            <div className="relative">
               <SearchableDropdown
                 label="Degree"
                 name="Degree_ID"
@@ -677,46 +599,69 @@ const SignupForm = ({ onLogin }) => {
                 loading={resourceLoading}
                 error={errors.Degree_ID}
               />
+
+              <div className="relative">
+                <label className="text-md font-semibold text-primary block mb-1">
+                  Batch (Start Year - End Year)
+                </label>
+                <input
+                  type="text"
+                  name="Year"
+                  placeholder="e.g. 2023-2027"
+                  value={displayBatch}
+                  onChange={handleBatchChange}
+                  maxLength={9}
+                  className={`w-full text-sm border-2 rounded-xl outline-none transition-colors p-3 ${
+                    errors.Year
+                      ? "border-red-500"
+                      : "border-gray-300 focus:border-primary/60"
+                  }`}
+                />
+                <FloatingError message={errors.Year} show={!!errors.Year} />
+              </div>
+
+              <div className="relative">
+                <Input
+                  label="Email"
+                  name="Email"
+                  type="email"
+                  placeholder="Enter your institutional email"
+                  value={signupData.Email}
+                  onChange={(v) => handleData("Email", v)}
+                  className={
+                    errors.Email ? "border-red-500" : "border-gray-300"
+                  }
+                />
+                <FloatingError message={errors.Email} show={!!errors.Email} />
+              </div>
             </div>
 
-            <div className="flex flex-col gap-1 w-full relative">
-              <label className="text-md font-semibold text-primary">
-                Batch (Start Year - End Year)
-              </label>
-              <input
-                type="text"
-                name="Year"
-                placeholder="e.g. 2023-2027"
-                value={displayBatch}
-                onChange={handleBatchInputChange}
-                maxLength={9}
-                className={`w-full text-sm border-2 border-gray-300 rounded-xl outline-none 
-      transition-colors duration-300 focus:border-primary/60 p-3 
-      ${errors.Year ? "border-red-500" : ""}`}
-              />
-
-              <FloatingError message={errors.Year} show={!!errors.Year} />
-            </div>
-            <div className="relative">
-              <Input
-                label="Email"
-                name="Email"
-                type="email"
-                placeholder="Enter the email"
-                value={signupData.Email}
-                onChange={(v) => handleData("Email", v)}
-                className={errors.Email ? "border-red-500" : ""}
-              />
-              <FloatingError message={errors.Email} show={!!errors.Email} />
+            <div className="flex gap-4 justify-end mt-8">
+              <button
+                type="button"
+                onClick={() => setStep("personal")}
+                className="border border-primary text-primary px-8 py-3 rounded-xl hover:bg-primary/10 transition"
+              >
+                ← Back
+              </button>
+              <button
+                type="button"
+                onClick={handleSendOtp}
+                disabled={authLoading || resourceLoading}
+                className="bg-primary text-white px-8 py-3 rounded-xl hover:bg-primary/90 disabled:opacity-60 transition font-medium"
+              >
+                {authLoading ? "Sending OTP..." : "Send OTP →"}
+              </button>
             </div>
           </SectionWrapper>
         )}
 
         {step === "otp" && (
           <SectionWrapper title="OTP Verification">
-            <div className="flex flex-col items-center gap-6 py-4 relative">
-              <p className="text-sm text-gray-500 text-center">
-                We have sent a 4-digit code to <br />
+            <div className="flex flex-col items-center gap-6 py-6">
+              <p className="text-sm text-gray-600 text-center">
+                We have sent a 4-digit code to
+                <br />
                 <span className="font-bold text-primary">
                   {signupData.Email}
                 </span>
@@ -731,15 +676,20 @@ const SignupForm = ({ onLogin }) => {
                     maxLength={1}
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
                     className={`w-14 h-14 text-center text-2xl font-bold border-2 rounded-xl focus:border-primary outline-none transition-all ${
-                      errors.otp ? "border-red-500" : "border-gray-300"
+                      errors.otp
+                        ? "border-red-500"
+                        : "border-gray-300 focus:border-primary"
                     }`}
                   />
                 ))}
               </div>
 
-              <FloatingError message={errors.otp} show={!!errors.otp} />
+              <FloatingError
+                message={errors.otp || serverError}
+                show={!!(errors.otp || serverError)}
+              />
 
               <button
                 type="button"
@@ -748,53 +698,32 @@ const SignupForm = ({ onLogin }) => {
               >
                 Didn't receive code? Resend OTP
               </button>
+
+              <div className="flex gap-4 mt-8">
+                <button
+                  type="button"
+                  onClick={() => setStep("educational")}
+                  className="border border-primary text-primary px-8 py-3 rounded-xl hover:bg-primary/10 transition"
+                >
+                  ← Back
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCompleteSignup}
+                  disabled={authLoading || otp.join("").length < 4}
+                  className="bg-primary text-white px-10 py-3 rounded-xl hover:bg-primary/90 disabled:opacity-60 transition font-medium"
+                >
+                  {authLoading ? "Creating account..." : "Complete Signup"}
+                </button>
+              </div>
             </div>
           </SectionWrapper>
         )}
 
-        <div className="flex gap-4">
-          {step !== "personal" && (
-            <button
-              type="button"
-              onClick={() =>
-                setStep(step === "otp" ? "educational" : "personal")
-              }
-              className="border border-primary text-primary px-6 py-2 rounded-lg hover:bg-primary/10 transition-colors"
-            >
-              Back
-            </button>
-          )}
-
-          {step === "personal" ? (
-            <button
-              type="button"
-              onClick={() => validateStep1() && setStep("educational")}
-              className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/80 transition-colors"
-            >
-              Next
-            </button>
-          ) : step === "educational" ? (
-            <button
-              type="button"
-              onClick={handleSendOtp}
-              className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/80 transition-colors"
-            >
-              Send OTP
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={loading || otp.join("").length < 4}
-              className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/80 transition-colors disabled:opacity-50"
-            >
-              {loading ? "Verifying..." : "Signup"}
-            </button>
-          )}
-        </div>
-
         <span
           onClick={onLogin}
-          className="text-[13px] text-primary/80 hover:underline cursor-pointer"
+          className="text-[13px] text-primary/80 hover:underline cursor-pointer mt-6"
         >
           Already have an account? Login
         </span>
