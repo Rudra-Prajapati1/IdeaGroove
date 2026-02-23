@@ -72,6 +72,7 @@ const qnaSlice = createSlice({
       /* ALL */
       .addCase(fetchQnA.pending, (state) => {
         state.status = "loading";
+        state.error = null;
       })
       .addCase(fetchQnA.fulfilled, (state, action) => {
         state.status = "succeeded";

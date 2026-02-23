@@ -1,10 +1,17 @@
-import React from "react";
-import DiscussionForum from "../components/dashboard/DiscussionForum";
-import FilledTitle from "../components/common/FilledTitle";
-import { ArrowLeft } from "lucide-react";
-import PageHeader from "../components/common/PageHeader";
+import React, { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchQnA,
+  selectAllQnA,
+  selectQnAStatus,
+  selectQnAError,
+  selectQnAPagination,
+} from "../redux/slice/qnaSlice";
 
-// --- Configuration Data ---
+import DiscussionForum from "../components/dashboard/DiscussionForum";
+import PageHeader from "../components/common/PageHeader";
+import Loading from "../components/common/Loading";
+
 const DEGREE_SUBJECTS = {
   "Computer Science": [
     "Data Structures",
@@ -17,67 +24,95 @@ const DEGREE_SUBJECTS = {
   Business: ["Marketing", "Finance", "Economics", "Management"],
 };
 
-// --- Mock Data ---
-const MOCK_DISCUSSIONS = [
-  {
-    id: 1,
-    author: "Prof. H. Smith",
-    time: "2h ago",
-    askedOn: "2025-02-01T10:30:00",
-    title: "Clarification on Project Submission Guidelines",
-    excerpt: "Please ensure that all repositories are public...",
-    degree: "Computer Science",
-    subject: "Web Development",
-    pinned: true,
-    avatarColor: "bg-green-100",
-    answers: [
-      {
-        id: 101,
-        author: "Sarah J.",
-        time: "1h ago",
-        text: "Does this apply to group projects?",
-        votes: 5,
-      },
-    ],
-  },
-  {
-    id: 2,
-    author: "Jessica S.",
-    time: "45m ago",
-    askedOn: "2025-07-11T10:30:00",
-    title: "Help needed with Linear Algebra Eigenvalues",
-    excerpt: "I'm struggling to understand the geometric interpretation...",
-    degree: "Mathematics",
-    subject: "Linear Algebra",
-    pinned: false,
-    avatarColor: "bg-blue-100",
-    answers: [],
-  },
-  {
-    id: 3,
-    author: "Michael P.",
-    time: "3h ago",
-    askedOn: "2025-02-03T14:10:00",
-    title: "Thermodynamics: Second Law confusion",
-    excerpt: "Can someone explain entropy in a closed system...",
-    degree: "Engineering",
-    subject: "Thermodynamics",
-    pinned: false,
-    avatarColor: "bg-orange-100",
-    answers: [],
-  },
-];
-
 const QnA = () => {
+  const dispatch = useDispatch();
+
+  const qnaData = useSelector(selectAllQnA);
+  const status = useSelector(selectQnAStatus);
+  const error = useSelector(selectQnAError);
+  const { totalPages } = useSelector(selectQnAPagination);
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  /* ===== FETCH ON PAGE CHANGE ===== */
+  useEffect(() => {
+    dispatch(fetchQnA({ page: currentPage, limit: 10 }));
+  }, [dispatch, currentPage]);
+
+  /* ===== GROUP ANSWERS BY QUESTION ===== */
+  const groupedDiscussions = useMemo(() => {
+    const map = {};
+
+    qnaData.forEach((row) => {
+      if (!map[row.Q_ID]) {
+        map[row.Q_ID] = {
+          id: row.Q_ID,
+          author: row.Question_Author,
+          askedOn: row.Added_On,
+          title: row.Question,
+          subject: "",
+          avatarColor: "bg-green-100",
+          answers: [],
+        };
+      }
+
+      if (row.A_ID) {
+        map[row.Q_ID].answers.push({
+          id: row.A_ID,
+          author: row.Answer_Author,
+          text: row.Answer,
+          time: row.Answered_On,
+        });
+      }
+    });
+
+    return Object.values(map);
+  }, [qnaData]);
+
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
       <PageHeader title="QnA" />
 
       <div className="mx-auto px-6 relative z-30 mt-10">
-        <DiscussionForum
-          MOCK_DISCUSSIONS={MOCK_DISCUSSIONS}
-          DEGREE_SUBJECTS={DEGREE_SUBJECTS}
-        />
+        {status === "loading" && <Loading text="Loading discussions..." />}
+
+        {status === "failed" && (
+          <p className="text-red-500 text-center">{error}</p>
+        )}
+
+        {status === "succeeded" && (
+          <>
+            <DiscussionForum
+              MOCK_DISCUSSIONS={groupedDiscussions}
+              DEGREE_SUBJECTS={DEGREE_SUBJECTS}
+            />
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-12">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+                >
+                  Previous
+                </button>
+
+                <span className="font-semibold">
+                  Page {currentPage} of {totalPages}
+                </span>
+
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
