@@ -1,4 +1,8 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSlice,
+  createSelector,
+} from "@reduxjs/toolkit";
 import api from "../../api/axios";
 
 const initialState = {
@@ -16,9 +20,12 @@ const initialState = {
   userQuestions: [],
   userStatus: "idle",
   userError: null,
+
+  createStatus: "idle",
+  createError: null,
 };
 
-/* ================= ALL QNA ================= */
+/* ================= FETCH ALL QNA ================= */
 
 export const fetchQnA = createAsyncThunk(
   "qna/fetchQnA",
@@ -29,6 +36,22 @@ export const fetchQnA = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.error || "Failed to fetch QnA",
+      );
+    }
+  },
+);
+
+/* ================= CREATE QUESTION ================= */
+
+export const createQuestion = createAsyncThunk(
+  "qna/createQuestion",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const { data } = await api.post("/qna/createQuestion", payload);
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to create question",
       );
     }
   },
@@ -66,12 +89,14 @@ const qnaSlice = createSlice({
   name: "qna",
   initialState,
   reducers: {},
+
   extraReducers: (builder) => {
     builder
 
-      /* ALL */
+      /* ===== FETCH ALL ===== */
       .addCase(fetchQnA.pending, (state) => {
         state.status = "loading";
+        state.error = null;
       })
       .addCase(fetchQnA.fulfilled, (state, action) => {
         state.status = "succeeded";
@@ -85,7 +110,24 @@ const qnaSlice = createSlice({
         state.error = action.payload;
       })
 
-      /* PREVIEW */
+      /* ===== CREATE QUESTION ===== */
+      .addCase(createQuestion.pending, (state) => {
+        state.createStatus = "loading";
+        state.createError = null;
+      })
+      .addCase(createQuestion.fulfilled, (state) => {
+        state.createStatus = "succeeded";
+        // IMPORTANT:
+        // we DO NOT push new question manually
+        // because backend returns JOIN rows
+        // we will refetch instead
+      })
+      .addCase(createQuestion.rejected, (state, action) => {
+        state.createStatus = "failed";
+        state.createError = action.payload;
+      })
+
+      /* ===== PREVIEW ===== */
       .addCase(fetchPreviewQnA.pending, (state) => {
         state.previewStatus = "loading";
       })
@@ -98,7 +140,7 @@ const qnaSlice = createSlice({
         state.previewError = action.payload;
       })
 
-      /* USER */
+      /* ===== USER ===== */
       .addCase(fetchUserQuestions.pending, (state) => {
         state.userStatus = "loading";
       })
@@ -121,14 +163,20 @@ export const selectAllQnA = (state) => state.qna.data;
 export const selectQnAStatus = (state) => state.qna.status;
 export const selectQnAError = (state) => state.qna.error;
 
-export const selectQnAPagination = (state) => ({
-  page: state.qna.page,
-  totalPages: state.qna.totalPages,
-});
+export const selectCreateStatus = (state) => state.qna.createStatus;
+export const selectCreateError = (state) => state.qna.createError;
+
+export const selectQnAPagination = createSelector(
+  (state) => state.qna.page,
+  (state) => state.qna.totalPages,
+  (state) => state.qna.total,
+  (page, totalPages, total) => ({ page, totalPages, total }),
+);
 
 export const selectPreviewQnA = (state) => state.qna.previewQnA;
-export const selectPreviewStatus = (state) => state.qna.previewStatus;
-export const selectPreviewError = (state) => state.qna.previewError;
+export const selectPreviewQnAStatus = (state) => state.qna.previewStatus;
+export const selectPreviewQnAError = (state) => state.qna.previewError;
 
 export const selectUserQuestions = (state) => state.qna.userQuestions;
-export const selectUserStatus = (state) => state.qna.userStatus;
+export const selectUserQuestionsStatus = (state) => state.qna.userStatus;
+export const selectUserQuestionsError = (state) => state.qna.userError;

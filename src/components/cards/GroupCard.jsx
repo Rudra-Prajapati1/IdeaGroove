@@ -13,14 +13,18 @@ import {
   Info, // Added for description icon
 } from "lucide-react";
 import { useSelector } from "react-redux";
-import { selectIsAuthenticated } from "../../redux/slice/authSlice";
+import { selectIsAuthenticated, selectUser } from "../../redux/slice/authSlice";
 import { useNavigate } from "react-router-dom";
 import ViewMembers from "@/components/groups/ViewMembers";
 import ComplaintButton from "../ComplaintButton";
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { deleteGroup, fetchGroups } from "../../redux/slice/chatRoomsSlice";
 
 const GroupCard = ({ group, onEdit }) => {
-  const isAuth = useSelector(selectIsAuthenticated);
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
+  const isAuth = !!user;
   const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,11 +41,8 @@ const GroupCard = ({ group, onEdit }) => {
     return colors[category] || "bg-gray-100 text-gray-700";
   };
 
-  let MOCK_CURRENT_USER_ID = 0;
-  if (isAuth) {
-    MOCK_CURRENT_USER_ID = 104;
-  }
-  const isOwner = group.Created_By === MOCK_CURRENT_USER_ID;
+  const currentUserId = user?.id || user?.S_ID;
+  const isOwner = group.Created_By === currentUserId;
 
   const formattedDate = group.Created_On
     ? new Date(group.Created_On).toLocaleDateString("en-IN", {
@@ -50,6 +51,27 @@ const GroupCard = ({ group, onEdit }) => {
         year: "numeric",
       })
     : "Recently created";
+
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this group?",
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await dispatch(deleteGroup(group.Room_ID)).unwrap();
+
+      toast.success("Group deleted successfully!");
+
+      // refresh list so pagination stays correct
+      dispatch(fetchGroups({ page: 1, limit: 9 }));
+    } catch (err) {
+      toast.error(err || "Failed to delete group");
+    }
+  };
 
   return (
     <>
@@ -114,9 +136,7 @@ const GroupCard = ({ group, onEdit }) => {
               </button>
               <button
                 className="px-3 bg-red-50 text-red-600 rounded-lg border border-red-100"
-                onClick={() => {
-                  toast.success("Group Deleted Successfully!");
-                }}
+                onClick={handleDelete}
               >
                 <Trash2 className="w-4 h-4" />
               </button>

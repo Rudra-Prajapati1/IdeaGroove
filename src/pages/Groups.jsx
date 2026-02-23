@@ -1,3 +1,4 @@
+// FULLY UPDATED: src/pages/Groups.jsx
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -60,6 +61,9 @@ const Groups = () => {
             setEditingGroup(null);
           }}
           initialData={editingGroup}
+          onSuccess={() =>
+            dispatch(fetchGroups({ page: currentPage, limit: 9 }))
+          }
         />
       )}
 

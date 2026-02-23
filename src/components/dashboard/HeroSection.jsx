@@ -87,7 +87,7 @@ const HeroSection = ({ user, isPublic = false }) => {
               <img
                 src={user?.Profile_Pic}
                 alt="User Profile"
-                className="w-48 h-48 lg:w-60 lg:h-60 rounded-full object-cover grayscale-[20%] hover:grayscale-0 transition-all duration-500"
+                className="w-48 h-48 lg:w-60 lg:h-60 rounded-full object-cover grayscale-20 hover:grayscale-0 transition-all duration-500"
               />
             ) : (
               <div className="w-48 h-48 lg:w-60 lg:h-60 rounded-full bg-green-500 flex items-center justify-center text-white text-7xl lg:text-8xl font-bold uppercase shadow-xl transition-all duration-500 hover:scale-105">

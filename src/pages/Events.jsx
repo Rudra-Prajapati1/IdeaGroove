@@ -62,6 +62,12 @@ const Events = () => {
             setAddEvent(false);
             setEditingEvent(null);
           }}
+          onSuccess={() => {
+            // Refresh the event list after success
+            dispatch(fetchEvents({ page: currentPage, limit: 9 }));
+            // Optional: you can also reset page to 1 if you want newest first
+            // setCurrentPage(1);
+          }}
           initialData={editingEvent}
         />
       )}

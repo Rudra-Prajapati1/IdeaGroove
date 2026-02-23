@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { createQuestion, fetchQnA } from "../../redux/slice/qnaSlice";
 
 // --- Mock Data ---
 const DEGREE_OPTIONS = [
@@ -33,6 +35,8 @@ const SUBJECT_OPTIONS = {
 };
 
 const AskQuestionModal = ({ onClose, onSubmit, editing }) => {
+  const dispatch = useDispatch();
+
   const { user } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
@@ -52,8 +56,9 @@ const AskQuestionModal = ({ onClose, onSubmit, editing }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!formData.Question || !formData.Degree_ID || !formData.Subject_ID)
       return;
 
@@ -63,16 +68,23 @@ const AskQuestionModal = ({ onClose, onSubmit, editing }) => {
       Question: formData.Question,
       Degree_ID: parseInt(formData.Degree_ID),
       Subject_ID: parseInt(formData.Subject_ID),
-      Added_By: user?.id || 1,
-      Is_Active: 1,
+      Added_By: user?.id || user?.S_ID,
     };
 
-    setTimeout(() => {
-      setLoading(false);
-      toast.success("Question posted successfully");
-      onSubmit(payload);
+    try {
+      // 1️⃣ create question
+      await dispatch(createQuestion(payload)).unwrap();
+
+      // 2️⃣ refetch qna list (CRITICAL for JOIN query)
+      await dispatch(fetchQnA({ page: 1, limit: 10 }));
+
+      toast.success("Question posted successfully!");
       onClose();
-    }, 1500);
+    } catch (err) {
+      toast.error(err || "Failed to post question");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputClass =

@@ -1,95 +1,49 @@
 import React, { useState, useEffect, useRef } from "react";
-import toast from "react-hot-toast";
-import { Eye, EyeClosed, ArrowLeft } from "lucide-react"; // Added ArrowLeft icon
+import { Eye, EyeClosed, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { loginSuccess } from "../../redux/slice/authSlice";
+import {
+  login,
+  selectAuthLoading,
+  selectIsAuthenticated,
+} from "../../redux/slice/authSlice";
+import toast from "react-hot-toast";
 
 const LoginForm = ({ onSignup }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const loading = useSelector(selectAuthLoading);
 
-  // 1. New State for Toggling Views
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [form, setForm] = useState({ username: "", password: "" });
   const [resetEmail, setResetEmail] = useState("");
-
-  const [loginData, setLoginData] = useState({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const toastShown = useRef(false);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      if (!toastShown.current) {
-        toast.success("You are already logged in!");
-        toastShown.current = true;
-      }
+    if (isAuthenticated && !toastShown.current) {
+      toast.success("Welcome back!");
+      toastShown.current = true;
       navigate("/dashboard");
     }
   }, [isAuthenticated, navigate]);
 
-  const handleData = (field, value) => {
-    setLoginData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (!form.username || !form.password) {
+      return toast.error("Please fill in all fields");
+    }
+    dispatch(login(form));
   };
 
-  // Login Handler
-  const handleLogin = async (e) => {
+  const handleForgotPassword = (e) => {
     e.preventDefault();
-    if (!loginData.password || !loginData.username) {
-      return toast.error("Please enter all required fields.");
-    }
-
-    setLoading(true);
-    try {
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/login",
-        loginData,
-        { withCredentials: true },
-      );
-
-      if (response.status === 200) {
-        dispatch(loginSuccess(response.data.user));
-        toast.success("Login Successful!");
-        setTimeout(() => navigate("/dashboard"), 1000);
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Login Failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 2. Forgot Password Handler
-  const handleForgotPassword = async (e) => {
-    e.preventDefault();
-    if (!resetEmail) return toast.error("Please enter your email.");
-
-    setLoading(true);
-    try {
-      //Replace with your actual forgot-password API endpoint
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/forgot-password",
-        { email: resetEmail },
-      );
-      if (response.status == 200) {
-        toast.success("Reset link sent to your email!");
-        setResetEmail("");
-        setTimeout(() => {
-          setIsForgotPassword(false);
-        }, 2000);
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Request Failed");
-    } finally {
-      setLoading(false);
-    }
+    if (!resetEmail) return toast.error("Please enter your email");
+    toast.success("Reset link would be sent (feature coming soon)");
+    setTimeout(() => setIsForgotPassword(false), 1800);
   };
 
   return (
@@ -97,102 +51,99 @@ const LoginForm = ({ onSignup }) => {
       onSubmit={isForgotPassword ? handleForgotPassword : handleLogin}
       className="flex flex-col gap-4 w-full pr-8 font-inter"
     >
-      {/* --- CONDITIONAL RENDERING STARTS HERE --- */}
       {!isForgotPassword ? (
         <>
-          {/* LOGIN FIELDS */}
           <div className="flex flex-col">
             <label className="text-lg font-semibold mb-1 text-primary">
-              Username:
+              Username
             </label>
             <input
-              className="w-full text-sm border-2 border-gray-300 rounded-xl outline-none transition-colors duration-300 focus:border-primary/60 p-3"
               type="text"
               placeholder="Enter username"
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
+              className="w-full text-sm border-2 border-gray-300 rounded-xl outline-none focus:border-primary/60 p-3"
               required
               autoFocus
-              value={loginData.username}
-              onChange={(e) => handleData("username", e.target.value)}
             />
           </div>
 
           <div className="flex flex-col">
             <label className="text-lg font-semibold mb-1 text-primary">
-              Password:
+              Password
             </label>
-            <div className="flex items-center justify-end relative">
+            <div className="relative">
               <input
-                className="w-full text-sm border-2 border-gray-300 rounded-xl outline-none transition-colors duration-300 focus:border-primary/60 p-3"
-                type={!showPassword ? "password" : "text"}
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter password"
-                value={loginData.password}
-                onChange={(e) => handleData("password", e.target.value)}
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                className="w-full text-sm border-2 border-gray-300 rounded-xl outline-none focus:border-primary/60 p-3"
+                required
               />
               <span
-                className="absolute mr-2 cursor-pointer hover:bg-primary/10 p-1 rounded-2xl"
-                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+                onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? (
-                  <Eye className="w-5 h-5 text-primary" />
-                ) : (
-                  <EyeClosed className="w-5 h-5 text-primary" />
-                )}
+                {showPassword ? <Eye size={20} /> : <EyeClosed size={20} />}
               </span>
             </div>
           </div>
 
-          <div className="text-[13px] flex flex-col items-start gap-1">
-            <span
-              className="text-primary/80 hover:underline cursor-pointer"
-              onClick={() => setIsForgotPassword(true)} // Toggle to Forgot Password
+          <div className="text-sm flex flex-col gap-1">
+            <button
+              type="button"
+              className="text-primary/80 hover:underline text-left"
+              onClick={() => setIsForgotPassword(true)}
             >
               Forgot password?
-            </span>
-            <span
+            </button>
+            <button
+              type="button"
+              className="text-primary/80 hover:underline text-left"
               onClick={onSignup}
-              className="text-primary/80 hover:underline cursor-pointer"
             >
               Don't have an account? Signup
-            </span>
+            </button>
           </div>
 
           <button
+            type="submit"
             disabled={loading}
-            className="bg-primary text-white w-28 cursor-pointer text-lg py-2 px-4 rounded-xl shadow-md self-center mt-4 hover:bg-primary/80 active:scale-95 duration-300 transition-all"
+            className="bg-primary text-white w-32 py-2.5 rounded-xl self-center mt-3 hover:bg-primary/90 disabled:opacity-60 transition"
           >
-            {loading ? "Loading..." : "Login"}
+            {loading ? "Logging in..." : "Login"}
           </button>
         </>
       ) : (
         <>
-          {/* FORGOT PASSWORD FIELD (One Field, One Button) */}
           <div className="flex flex-col">
             <label className="text-lg font-semibold mb-1 text-primary">
-              Enter you registered email:
+              Registered Email
             </label>
             <input
-              className="w-full text-sm border-2 border-gray-300 rounded-xl outline-none transition-colors duration-300 focus:border-primary/60 p-3"
               type="email"
-              placeholder="abc@gmail.com"
-              required
-              autoFocus
+              placeholder="you@example.com"
               value={resetEmail}
               onChange={(e) => setResetEmail(e.target.value)}
+              className="w-full text-sm border-2 border-gray-300 rounded-xl outline-none focus:border-primary/60 p-3"
+              required
+              autoFocus
             />
           </div>
 
-          <div className="text-[13px]">
-            <span
-              className="text-primary/80 hover:underline cursor-pointer flex items-center gap-1"
-              onClick={() => setIsForgotPassword(false)} // Back to Login
-            >
-              <ArrowLeft className="w-3 h-3" /> Back to Login
-            </span>
-          </div>
+          <button
+            type="button"
+            className="text-sm text-primary/80 hover:underline flex items-center gap-1.5 mt-2"
+            onClick={() => setIsForgotPassword(false)}
+          >
+            <ArrowLeft size={14} /> Back to Login
+          </button>
 
           <button
+            type="submit"
             disabled={loading}
-            className="bg-primary text-white w-max cursor-pointer text-lg py-2 px-6 rounded-xl shadow-md self-center mt-4 hover:bg-primary/80 active:scale-95 duration-300 transition-all"
+            className="bg-primary text-white w-max py-2.5 px-8 rounded-xl self-center mt-4 hover:bg-primary/90 disabled:opacity-60 transition"
           >
             {loading ? "Sending..." : "Send Reset Link"}
           </button>
