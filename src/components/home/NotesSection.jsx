@@ -5,8 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   fetchPreviewNotes,
   selectPreviewNotes,
-  selectPreviewStatus,
-  selectPreviewError,
+  selectPreviewNotesStatus,
+  selectPreviewNotesError,
 } from "../../redux/slice/notesSlice";
 import { selectIsAuthenticated, selectUser } from "../../redux/slice/authSlice";
 import ShowMoreButton from "../common/ShowMoreButton";
@@ -37,8 +37,8 @@ const NotesSection = () => {
   const dispatch = useDispatch();
 
   const previewNotes = useSelector(selectPreviewNotes);
-  const previewStatus = useSelector(selectPreviewStatus);
-  const previewError = useSelector(selectPreviewError);
+  const previewStatus = useSelector(selectPreviewNotesStatus);
+  const previewError = useSelector(selectPreviewNotesError);
 
   const isAuth = useSelector(selectIsAuthenticated);
   const user = useSelector(selectUser);

@@ -2,6 +2,7 @@ import {
   createAsyncThunk,
   createEntityAdapter,
   createSlice,
+  createSelector,
 } from "@reduxjs/toolkit";
 import api from "../../api/axios";
 
@@ -147,23 +148,19 @@ export const { selectAll: selectAllGroups, selectById: selectGroupById } =
   groupsAdapter.getSelectors((state) => state.groups);
 
 export const selectGroupsStatus = (state) => state.groups.status;
-
 export const selectGroupsError = (state) => state.groups.error;
 
-export const selectGroupsPagination = (state) => ({
-  page: state.groups.page,
-  totalPages: state.groups.totalPages,
-  total: state.groups.total,
-});
+export const selectGroupsPagination = createSelector(
+  (state) => state.groups.page,
+  (state) => state.groups.totalPages,
+  (state) => state.groups.total,
+  (page, totalPages, total) => ({ page, totalPages, total }),
+);
 
 export const selectPreviewGroups = (state) => state.groups.previewGroups;
-
 export const selectPreviewGroupsStatus = (state) => state.groups.previewStatus;
-
 export const selectPreviewGroupsError = (state) => state.groups.previewError;
 
 export const selectUserGroups = (state) => state.groups.userGroups;
-
 export const selectUserGroupsStatus = (state) => state.groups.userStatus;
-
 export const selectUserGroupsError = (state) => state.groups.userError;

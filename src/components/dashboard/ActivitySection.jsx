@@ -1,36 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import EventCard from "@/components/cards/EventCard";
 import GroupCard from "@/components/cards/GroupCard";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  fetchEvents,
-  selectAllEvents,
-  selectEventsStatus,
+  selectUserEvents,
+  selectUserEventsStatus,
 } from "../../redux/slice/eventsSlice";
 import {
-  fetchGroups,
-  selectAllGroups,
-  selectGroupsError,
-  selectGroupsStatus,
+  selectUserGroups,
+  selectUserGroupsStatus,
 } from "../../redux/slice/chatRoomsSlice";
-import FilledTitle from "../common/FilledTitle";
-import QnACard from "../cards/QnACard";
 import {
-  fetchQuestions,
-  selectAllQuestions,
-  selectQuestionsStatus,
-} from "../../redux/slice/questionsSlice";
+  selectUserQuestions,
+  selectUserQuestionsStatus,
+} from "../../redux/slice/qnaSlice";
 import {
-  fetchAnswers,
-  selectAnswersStatus,
-} from "../../redux/slice/answerSlice";
-import {
-  fetchNotes,
-  selectAllNotes,
-  selectNotesError,
-  selectNotesStatus,
+  selectUserNotes,
+  selectUserNotesStatus,
+  selectUserNotesError,
 } from "../../redux/slice/notesSlice";
-import NotesCard from "../cards/NotesCard";
 import {
   CalendarDays,
   LucideGroup,
@@ -46,7 +34,7 @@ import Controls from "../common/Controls";
 import AddEventOverlay from "../events/AddEvent";
 import AddGroupOverlay from "../groups/AddGroup";
 
-const ActivitySection = () => {
+const ActivitySection = ({ isPublic }) => {
   const optionList = [
     { key: 1, label: "Events", icon: CalendarDays },
     { key: 2, label: "Groups", icon: Users },
@@ -61,19 +49,13 @@ const ActivitySection = () => {
   const [addGroup, setAddGroup] = useState(false);
 
   const isAuth = useSelector(selectIsAuthenticated);
-  const dispatch = useDispatch();
 
   /* ================= EVENTS ================= */
 
-  const events = useSelector(selectAllEvents);
-  const eventsStatus = useSelector(selectEventsStatus);
+  const userEvents = useSelector(selectUserEvents);
+  const eventsStatus = useSelector(selectUserEventsStatus);
 
-  const MOCK_CURRENT_USER_ID = 104;
-
-  const filteredEvents = events.filter((event) => {
-    const isOwnerEvent = event.Added_By === MOCK_CURRENT_USER_ID;
-    if (!isOwnerEvent) return false;
-
+  const filteredEvents = userEvents.filter((event) => {
     const eventDate = new Date(event.Event_Date);
     const today = new Date();
 
@@ -86,23 +68,13 @@ const ActivitySection = () => {
     return matchesSearch;
   });
 
-  useEffect(() => {
-    if (eventsStatus === "idle") {
-      dispatch(fetchEvents());
-    }
-  }, [eventsStatus, dispatch]);
-
   /* ================= GROUPS ================= */
 
-  const groups = useSelector(selectAllGroups);
-  const groupsStatus = useSelector(selectGroupsStatus);
-  const groupsError = useSelector(selectGroupsError);
+  const userGroups = useSelector(selectUserGroups);
+  const groupsStatus = useSelector(selectUserGroupsStatus);
 
-  const filteredGroups = groups
+  const filteredGroups = userGroups
     .filter((group) => {
-      const isOwnerGroup = group.Created_By === MOCK_CURRENT_USER_ID;
-      if (!isOwnerGroup) return false;
-
       return (
         group?.Room_Name?.toLowerCase().includes(search.toLowerCase()) ?? false
       );
@@ -117,43 +89,16 @@ const ActivitySection = () => {
       return 0;
     });
 
-  useEffect(() => {
-    if (groupsStatus === "idle") {
-      dispatch(fetchGroups({ page: 1, limit: 50 }));
-    }
-  }, [groupsStatus, dispatch]);
-
   /* ================= QUESTIONS ================= */
 
-  const questions = useSelector(selectAllQuestions);
-  const questionsStatus = useSelector(selectQuestionsStatus);
-  const answerStatus = useSelector(selectAnswersStatus);
-
-  useEffect(() => {
-    if (questionsStatus === "idle") {
-      dispatch(fetchQuestions());
-    }
-  }, [questionsStatus, dispatch]);
-
-  useEffect(() => {
-    if (answerStatus === "idle") {
-      dispatch(fetchAnswers());
-    }
-  }, [answerStatus, dispatch]);
+  const userQuestions = useSelector(selectUserQuestions);
+  const qnaStatus = useSelector(selectUserQuestionsStatus);
 
   /* ================= NOTES ================= */
 
-  const notes = useSelector(selectAllNotes);
-  const notesStatus = useSelector(selectNotesStatus);
-  const notesError = useSelector(selectNotesError);
-
-  useEffect(() => {
-    if (notesStatus === "idle") {
-      dispatch(fetchNotes());
-    }
-  }, [notesStatus, dispatch]);
-
-  const ownedNotes = notes.filter((n) => n.Added_By === MOCK_CURRENT_USER_ID);
+  const userNotes = useSelector(selectUserNotes);
+  const notesStatus = useSelector(selectUserNotesStatus);
+  const notesError = useSelector(selectUserNotesError);
 
   return (
     <section>
@@ -185,10 +130,10 @@ const ActivitySection = () => {
 
       {/* ================= EVENTS ================= */}
       {option === "Events" && (
-        <div className="w-10/12 m-auto bg-[#fffbeb] px-12 py-12 rounded-2xl">
+        <div className="mt-16 w-10/12 m-auto bg-[#fffbeb] px-12 py-12 rounded-2xl">
           {eventsStatus === "loading" && <p>Loading Events...</p>}
           {eventsStatus === "failed" && <p>Error loading Events</p>}
-          {eventsStatus === "succeeded" && (
+          {(eventsStatus === "succeeded" || eventsStatus === "idle") && (
             <>
               {addEvent && (
                 <AddEventOverlay onClose={() => setAddEvent(false)} />
@@ -206,14 +151,16 @@ const ActivitySection = () => {
                     Past: "past",
                   }}
                 />
-                <button
-                  disabled={!isAuth}
-                  onClick={() => setAddEvent(!addEvent)}
-                  className={`${!isAuth && "cursor-not-allowed"} flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm`}
-                >
-                  <UploadIcon className="w-4 h-4" />
-                  Upload Events
-                </button>
+                {!isPublic && (
+                  <button
+                    disabled={!isAuth}
+                    onClick={() => setAddEvent(!addEvent)}
+                    className={`${!isAuth && "cursor-not-allowed"} flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm`}
+                  >
+                    <UploadIcon className="w-4 h-4" />
+                    Upload Events
+                  </button>
+                )}
               </div>
 
               {filteredEvents.length === 0 ? (
@@ -235,10 +182,10 @@ const ActivitySection = () => {
 
       {/* ================= GROUPS ================= */}
       {option === "Groups" && (
-        <div className="w-10/12 m-auto bg-[#fffbeb] px-12 py-12 rounded-2xl">
+        <div className="mt-16 w-10/12 m-auto bg-[#fffbeb] px-12 py-12 rounded-2xl">
           {groupsStatus === "loading" && <p>Loading Groups...</p>}
-          {groupsStatus === "failed" && <p>Error: {groupsError}</p>}
-          {groupsStatus === "succeeded" && (
+          {groupsStatus === "failed" && <p>Error loading Groups</p>}
+          {(groupsStatus === "succeeded" || groupsStatus === "idle") && (
             <>
               {addGroup && (
                 <AddGroupOverlay onClose={() => setAddGroup(false)} />
@@ -257,16 +204,18 @@ const ActivitySection = () => {
                     "Oldest to Newest": "oldest_to_newest",
                   }}
                 />
-                <button
-                  disabled={!isAuth}
-                  onClick={() => setAddGroup(!addGroup)}
-                  className={`${
-                    !isAuth ? "cursor-not-allowed" : "cursor-pointer"
-                  } flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm`}
-                >
-                  <LucideGroup className="w-4 h-4" />
-                  Create Group
-                </button>
+                {!isPublic && (
+                  <button
+                    disabled={!isAuth}
+                    onClick={() => setAddGroup(!addGroup)}
+                    className={`${
+                      !isAuth ? "cursor-not-allowed" : "cursor-pointer"
+                    } flex items-center gap-2 bg-green-600 text-white shadow-md px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm`}
+                  >
+                    <LucideGroup className="w-4 h-4" />
+                    Create Group
+                  </button>
+                )}
               </div>
 
               {filteredGroups.length === 0 ? (
@@ -288,16 +237,16 @@ const ActivitySection = () => {
 
       {/* ================= QnA ================= */}
       {option === "QnA" && (
-        <div className="-mt-8">
+        <div className="mt-8">
           <DiscussionForum />
         </div>
       )}
 
       {/* ================= NOTES ================= */}
       {option === "Notes" && (
-        <div className="mt-17">
+        <div className="mt-8">
           <NotesSection
-            notes={ownedNotes}
+            notes={userNotes}
             status={notesStatus}
             error={notesError}
           />

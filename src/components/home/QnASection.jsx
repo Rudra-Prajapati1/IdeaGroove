@@ -5,8 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   fetchPreviewQnA,
   selectPreviewQnA,
-  selectPreviewStatus,
-  selectPreviewError,
+  selectPreviewQnAStatus,
+  selectPreviewQnAError,
 } from "../../redux/slice/qnaSlice";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 import ShowMoreButton from "../common/ShowMoreButton";
@@ -16,8 +16,8 @@ const QnASection = () => {
   const dispatch = useDispatch();
 
   const previewQnA = useSelector(selectPreviewQnA);
-  const previewStatus = useSelector(selectPreviewStatus);
-  const previewError = useSelector(selectPreviewError);
+  const previewStatus = useSelector(selectPreviewQnAStatus);
+  const previewError = useSelector(selectPreviewQnAError);
   const isAuth = useSelector(selectIsAuthenticated);
 
   useEffect(() => {
