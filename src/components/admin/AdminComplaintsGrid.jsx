@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ClipboardList,
   ChevronLeft,
@@ -51,6 +51,33 @@ const AdminComplaintsGrid = ({
       default:
         return "bg-gray-50 text-gray-600";
     }
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredComplaints]);
+
+  const getPageNumbers = () => {
+    const pages = [];
+
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+
+      if (currentPage > 3) pages.push("...");
+
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+
+      for (let i = start; i <= end; i++) pages.push(i);
+
+      if (currentPage < totalPages - 2) pages.push("...");
+
+      pages.push(totalPages);
+    }
+
+    return pages;
   };
 
   return (
@@ -155,55 +182,62 @@ const AdminComplaintsGrid = ({
       </div>
 
       {/* Pagination Footer */}
-      <div className="p-6 bg-gray-50/30 border-t border-gray-100 flex justify-between items-center">
-        <p className="text-xs text-gray-400 font-medium">
-          Showing{" "}
-          <span className="font-bold text-gray-600">
-            {(currentPage - 1) * itemsPerPage + 1}
-          </span>{" "}
-          to{" "}
-          <span className="font-bold text-gray-600">
-            {Math.min(currentPage * itemsPerPage, filteredComplaints.length)}
-          </span>{" "}
-          <br /> of{" "}
-          <span className="font-bold text-gray-600">
-            {filteredComplaints.length}
-          </span>{" "}
-          complaints
-        </p>
+      {currentData.length > 0 && (
+        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-white">
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
+            Showing{" "}
+            <span className="text-gray-600">
+              {(currentPage - 1) * itemsPerPage + 1}–
+              {Math.min(currentPage * itemsPerPage, filteredComplaints.length)}
+            </span>{" "}
+            of{" "}
+            <span className="text-gray-600">{filteredComplaints.length}</span>{" "}
+            Complaints
+          </p>
 
-        <div className="flex gap-2">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => prev - 1)}
-            className="p-2 border border-gray-200 bg-white rounded-lg text-gray-400 hover:bg-gray-50 disabled:opacity-50"
-          >
-            <ChevronLeft size={16} />
-          </button>
-
-          {[...Array(totalPages)].map((_, i) => (
+          <div className="flex items-center gap-1">
             <button
-              key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`px-3 py-1 rounded-lg text-xs font-bold ${
-                currentPage === i + 1
-                  ? "bg-[#062D1C] text-white"
-                  : "bg-white border border-gray-200 text-gray-400"
-              }`}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="h-8 w-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 disabled:opacity-30"
             >
-              {i + 1}
+              <ChevronLeft size={15} />
             </button>
-          ))}
 
-          <button
-            disabled={currentPage === totalPages || totalPages === 0}
-            onClick={() => setCurrentPage((prev) => prev + 1)}
-            className="p-2 border border-gray-200 bg-white rounded-lg text-gray-400 hover:bg-gray-50 disabled:opacity-50"
-          >
-            <ChevronRight size={16} />
-          </button>
+            {getPageNumbers().map((page, i) =>
+              page === "..." ? (
+                <span
+                  key={`dots-${i}`}
+                  className="h-8 w-8 flex items-center justify-center text-gray-300 text-xs"
+                >
+                  ···
+                </span>
+              ) : (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`h-8 w-8 flex items-center justify-center rounded-lg text-xs font-bold
+              ${
+                currentPage === page
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-gray-500 hover:bg-gray-100"
+              }`}
+                >
+                  {page}
+                </button>
+              ),
+            )}
+
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="h-8 w-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 disabled:opacity-30"
+            >
+              <ChevronRight size={15} />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

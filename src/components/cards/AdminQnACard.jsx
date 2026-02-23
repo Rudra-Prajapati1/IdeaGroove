@@ -9,16 +9,19 @@ import {
   ChevronDown,
   ChevronUp,
   GraduationCap,
+  ExternalLink,
 } from "lucide-react";
+import StudentProfile from "../admin/StudentProfile";
 
 const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const isActive = qna.status === "active";
   const answers = qna.answers || [];
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
     <div
-      className={`bg-white border-2 border-gray-100 ${!isActive ? "border-red-500" : "border-green-500"} rounded-2xl flex flex-col transition-all hover:shadow-lg group overflow-hidden mb-4  hover:border-gray-200`}
+      className={`bg-white border-2 border-gray-100 ${isActive ? "hover:border-green-300 hover:shadow-green-200" : "hover:border-red-300 hover:shadow-red-200"} rounded-2xl flex flex-col transition-all hover:shadow-lg group overflow-hidden mb-4  hover:border-gray-200`}
     >
       <div className="p-5 flex items-center justify-between">
         <div className="flex flex-col gap-2 flex-1 pr-6">
@@ -45,8 +48,26 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
           </h3>
           <div className="flex items-center gap-4 mt-1">
             <p className="text-xs text-gray-500 font-medium flex items-center gap-1">
-              <User size={12} className="text-gray-400" /> Asked by{" "}
-              <span className="text-gray-900 font-bold">{qna.authorName}</span>
+              <button
+                onClick={() => setIsProfileOpen(true)}
+                title="View student profile"
+                className="group/author flex items-center gap-1.5 hover:text-[#1B431C] transition-colors"
+              >
+                <User
+                  size={12}
+                  className="text-gray-400 group-hover/author:text-[#1B431C] transition-colors"
+                />
+                <span>
+                  Asked by{" "}
+                  <span className="font-bold text-gray-900 group-hover/author:text-[#1B431C] underline underline-offset-2 decoration-dashed decoration-gray-300 group-hover/author:decoration-[#1B431C] transition-colors">
+                    {qna.authorName}
+                  </span>
+                </span>
+                <ExternalLink
+                  size={12}
+                  className="text-gray-300 opacity-0 group-hover/author:opacity-100 transition-opacity"
+                />
+              </button>
             </p>
             <span className="flex items-center gap-1 text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-100 uppercase">
               <GraduationCap size={12} /> {qna.degreeName}
@@ -65,18 +86,28 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
         </div>
         <div className="flex flex-col gap-2 min-w-[130px]">
           <button
-            onClick={() => onModerate("block", qna.id)}
+            onClick={() => onModerate("block", group.id)}
             disabled={!isActive}
-            className={`flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border ${!isActive ? "bg-slate-50 text-slate-300 cursor-not-allowed opacity-50 grayscale" : "bg-red-50 text-red-600 border-red-100 hover:bg-red-600 hover:text-white"}`}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all
+                        ${
+                          !isActive
+                            ? "bg-gray-100 text-gray-300 cursor-not-allowed"
+                            : "text-red-500 bg-red-50 hover:bg-red-500 hover:text-white"
+                        }`}
           >
-            <Ban size={14} /> Block
+            <Ban size={12} /> Block
           </button>
           <button
-            onClick={() => onModerate("unblock", qna.id)}
+            onClick={() => onModerate("unblock", group.id)}
             disabled={isActive}
-            className={`flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border ${isActive ? "bg-slate-50 text-slate-300 cursor-not-allowed opacity-50 grayscale" : "bg-[#1B431C] text-white hover:bg-[#153416]"}`}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all
+                        ${
+                          isActive
+                            ? "bg-gray-100 text-gray-300 cursor-not-allowed"
+                            : "bg-[#1B431C] text-white hover:bg-[#153416]"
+                        }`}
           >
-            <CheckCircle size={14} /> Unblock
+            <CheckCircle size={12} /> Unblock
           </button>
         </div>
       </div>
@@ -148,6 +179,23 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
                 No replies found.
               </p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Profile Modal */}
+      {isProfileOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={(e) =>
+            e.target === e.currentTarget && setIsProfileOpen(false)
+          }
+        >
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <StudentProfile
+              id={qna.authorId} // Assuming Added_By contains the S_ID of the uploader
+              onClose={() => setIsProfileOpen(false)}
+            />
           </div>
         </div>
       )}
