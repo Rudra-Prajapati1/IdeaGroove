@@ -101,21 +101,21 @@ import EmailConfirmationModal from "../../components/admin/EmailConfirmationModa
 export const qnaStats = [
   {
     title: "Total Questions",
-    value: "1,240",
+    value: "",
     infoText: "+22 today",
     color: "green",
     type: "total",
   },
   {
     title: "Active Question",
-    value: "48",
+    value: "",
     infoText: "Currently Active",
     color: "yellow",
     type: "pending",
   },
   {
     title: "InActive Questions",
-    value: "19",
+    value: "",
     infoText: "Blocked & Deleted",
     color: "red",
     type: "blocked",
@@ -149,6 +149,7 @@ const AdminQnA = () => {
           id: qna.Q_ID,
           question: qna.Question,
           authorName: qna.Question_Author,
+          authorId: qna.Author_Id,
           addedOn: qna.Added_On,
           answersCount: qna.Total_Answers,
           degreeName: qna.Degree_Name,
@@ -161,6 +162,10 @@ const AdminQnA = () => {
             time: ans.Answered_On,
           })),
         }));
+
+        qnaStats[0].value = data.total;
+        qnaStats[1].value = data.QnA.filter((q) => q.Is_Active === 1).length;
+        qnaStats[2].value = data.QnA.filter((q) => q.Is_Active !== 1).length;
 
         setQnas(filteredQnAs);
       } catch (err) {

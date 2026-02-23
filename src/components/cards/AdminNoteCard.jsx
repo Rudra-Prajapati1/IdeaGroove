@@ -132,7 +132,9 @@ const AdminNoteCard = ({ note, onModerate }) => {
 
   return (
     <>
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 overflow-hidden group">
+      <div
+        className={`bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 overflow-hidden group ${isActive ? "hover:border-green-300 hover:shadow-green-200" : "hover:border-red-300 hover:shadow-red-200"}`}
+      >
         <div className="px-4 pt-4 pb-3 flex justify-between items-center">
           <span className="text-[10px] font-mono font-semibold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-md">
             #{note.id}

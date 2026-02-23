@@ -188,7 +188,7 @@ const AdminGroupCard = ({ group, onModerate }) => {
   return (
     <>
       <div
-        className={`bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 group flex flex-col overflow-hidden hover:-translate-y-0.5 ${isActive ? "hover:border-green-300" : "hover:border-red-300"}`}
+        className={`bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 group flex flex-col overflow-hidden hover:-translate-y-0.5 ${isActive ? "hover:border-green-300 hover:shadow-green-200" : "hover:border-red-300 hover:shadow-red-200"}`}
       >
         {/* Colored Header Band */}
         <div
