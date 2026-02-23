@@ -2,6 +2,7 @@ import {
   createAsyncThunk,
   createEntityAdapter,
   createSlice,
+  createSelector,
 } from "@reduxjs/toolkit";
 import api from "../../api/axios";
 
@@ -100,6 +101,7 @@ const notesSlice = createSlice({
       /* PREVIEW */
       .addCase(fetchPreviewNotes.pending, (state) => {
         state.previewStatus = "loading";
+        state.previewError = null;
       })
       .addCase(fetchPreviewNotes.fulfilled, (state, action) => {
         state.previewStatus = "succeeded";
@@ -113,6 +115,7 @@ const notesSlice = createSlice({
       /* USER */
       .addCase(fetchUserNotes.pending, (state) => {
         state.userStatus = "loading";
+        state.userError = null;
       })
       .addCase(fetchUserNotes.fulfilled, (state, action) => {
         state.userStatus = "succeeded";
@@ -135,17 +138,17 @@ export const { selectAll: selectAllNotes, selectById: selectNotesById } =
 export const selectNotesStatus = (state) => state.notes.status;
 export const selectNotesError = (state) => state.notes.error;
 
-export const selectNotesPagination = (state) => ({
-  page: state.notes.page,
-  totalPages: state.notes.totalPages,
-});
+export const selectNotesPagination = createSelector(
+  (state) => state.notes.page,
+  (state) => state.notes.totalPages,
+  (state) => state.notes.total,
+  (page, totalPages, total) => ({ page, totalPages, total }),
+);
 
 export const selectPreviewNotes = (state) => state.notes.previewNotes;
-
-export const selectPreviewStatus = (state) => state.notes.previewStatus;
-
-export const selectPreviewError = (state) => state.notes.previewError;
+export const selectPreviewNotesStatus = (state) => state.notes.previewStatus;
+export const selectPreviewNotesError = (state) => state.notes.previewError;
 
 export const selectUserNotes = (state) => state.notes.userNotes;
-
 export const selectUserNotesStatus = (state) => state.notes.userStatus;
+export const selectUserNotesError = (state) => state.notes.userError;

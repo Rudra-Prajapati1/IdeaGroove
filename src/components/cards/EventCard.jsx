@@ -21,7 +21,8 @@ const EventCard = ({ event, onEdit }) => {
     .toUpperCase();
   const day = dateObj.getDate();
 
-  const isOwner = user && event.Added_By === user.S_ID;
+  console.log(event, user);
+  const isOwner = user && event.Added_By === user.id;
 
   useEffect(() => {
     if (!previewOpen) return;

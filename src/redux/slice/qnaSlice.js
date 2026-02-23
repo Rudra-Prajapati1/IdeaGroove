@@ -1,4 +1,8 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSlice,
+  createSelector,
+} from "@reduxjs/toolkit";
 import api from "../../api/axios";
 
 const initialState = {
@@ -89,6 +93,7 @@ const qnaSlice = createSlice({
       /* PREVIEW */
       .addCase(fetchPreviewQnA.pending, (state) => {
         state.previewStatus = "loading";
+        state.previewError = null;
       })
       .addCase(fetchPreviewQnA.fulfilled, (state, action) => {
         state.previewStatus = "succeeded";
@@ -102,6 +107,7 @@ const qnaSlice = createSlice({
       /* USER */
       .addCase(fetchUserQuestions.pending, (state) => {
         state.userStatus = "loading";
+        state.userError = null;
       })
       .addCase(fetchUserQuestions.fulfilled, (state, action) => {
         state.userStatus = "succeeded";
@@ -122,14 +128,17 @@ export const selectAllQnA = (state) => state.qna.data;
 export const selectQnAStatus = (state) => state.qna.status;
 export const selectQnAError = (state) => state.qna.error;
 
-export const selectQnAPagination = (state) => ({
-  page: state.qna.page,
-  totalPages: state.qna.totalPages,
-});
+export const selectQnAPagination = createSelector(
+  (state) => state.qna.page,
+  (state) => state.qna.totalPages,
+  (state) => state.qna.total,
+  (page, totalPages, total) => ({ page, totalPages, total }),
+);
 
 export const selectPreviewQnA = (state) => state.qna.previewQnA;
-export const selectPreviewStatus = (state) => state.qna.previewStatus;
-export const selectPreviewError = (state) => state.qna.previewError;
+export const selectPreviewQnAStatus = (state) => state.qna.previewStatus;
+export const selectPreviewQnAError = (state) => state.qna.previewError;
 
 export const selectUserQuestions = (state) => state.qna.userQuestions;
-export const selectUserStatus = (state) => state.qna.userStatus;
+export const selectUserQuestionsStatus = (state) => state.qna.userStatus;
+export const selectUserQuestionsError = (state) => state.qna.userError;

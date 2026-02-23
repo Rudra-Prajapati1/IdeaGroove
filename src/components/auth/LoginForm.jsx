@@ -42,7 +42,6 @@ const LoginForm = ({ onSignup }) => {
   const handleForgotPassword = (e) => {
     e.preventDefault();
     if (!resetEmail) return toast.error("Please enter your email");
-    // You can add forgotPassword thunk here later
     toast.success("Reset link would be sent (feature coming soon)");
     setTimeout(() => setIsForgotPassword(false), 1800);
   };
