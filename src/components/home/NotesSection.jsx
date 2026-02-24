@@ -63,7 +63,9 @@ const NotesSection = () => {
       {previewStatus === "succeeded" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mt-10 px-4">
           {previewNotes?.length > 0 ? (
-            previewNotes.map((note,index) => (
+
+            previewNotes.map((note, index) => (
+
               <NotesCard
                 key={note.N_ID}
                 note={note}

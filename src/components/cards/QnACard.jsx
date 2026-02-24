@@ -3,20 +3,21 @@ import { MessageSquare, Send, Edit2, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ComplaintButton from "../ComplaintButton";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
+import { selectAuth, selectUser } from "../../redux/slice/authSlice";
 
 const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
   const navigate = useNavigate();
   // Local state for expanding answers
   const [isExpanded, setIsExpanded] = useState(false);
   const [answerText, setAnswerText] = useState("");
-
-  // Safe check for undefined post
   if (!post) return null;
 
-  const isOwner = post.id === currentUser;
+  const { user } = useSelector(selectAuth);
+  const isOwner = post.Author_ID === user.id;
 
-  const askedDate = post.askedOn
-    ? new Date(post.askedOn).toLocaleDateString("en-IN", {
+  const askedDate = post.Added_On
+    ? new Date(post.Added_On).toLocaleDateString("en-IN", {
         day: "2-digit",
         month: "short",
         year: "numeric",
@@ -31,9 +32,9 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
   };
 
   // 2. Safe Access Helpers
-  const authorName = post.author || "Unknown";
+  const authorName = post.Question_Author || "Unknown";
   const authorInitial = authorName.charAt(0);
-  const answers = post.answers || []; // Fallback to empty array
+  const answers = post.Answers || []; // Fallback to empty array
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
@@ -45,7 +46,14 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
             <div
               className={`w-8 h-8 rounded-full ${post.avatarColor || "bg-gray-100"} flex items-center justify-center text-xs font-bold`}
             >
-              {authorInitial}
+              {post.Profile_Pic ? (
+                <img
+                  src={post.Profile_Pic}
+                  className="rounded-full w-full h-full"
+                />
+              ) : (
+                authorInitial.toUpperCase()
+              )}
             </div>
             <span className="text-sm font-semibold text-slate-700">
               {post.Question_Author}
@@ -56,9 +64,9 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
           </div>
 
           <div className="flex items-center gap-3">
-            {post.subject && (
+            {post.Subject_Name && (
               <span className="px-2 py-1 bg-green-50 text-green-700 text-[10px] font-bold uppercase rounded-md border border-green-100">
-                {post.subject}
+                {post.Subject_Name}
               </span>
             )}
 
@@ -97,9 +105,13 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
         <div className="flex items-center justify-between pt-4 border-t border-slate-50">
           <div className="flex gap-4">
             <div className="flex items-center gap-1 text-slate-500 text-xs">
-              <MessageSquare className="w-4 h-4" /> {answers.length} Answers
+              <MessageSquare className="w-4 h-4" />
+              {answers.Total_Answers > 0
+                ? `${answers.Total_Answers} Answers`
+                : "0 Answers"}
             </div>
           </div>
+
           <button
             // disabled={!isAuth}
             onClick={(e) => {
@@ -124,7 +136,7 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
         <div className="bg-slate-50 p-8 border-t border-slate-100 animate-in slide-in-from-top-2 duration-200">
           {/* List of Answers */}
           <div className="space-y-4 mb-8">
-            {answers.length > 0 ? (
+            {answers.Total_Answers > 0 ? (
               answers.map((ans) => (
                 <div
                   key={ans.id}

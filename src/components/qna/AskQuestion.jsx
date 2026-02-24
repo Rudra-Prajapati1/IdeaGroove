@@ -12,30 +12,17 @@ import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { createQuestion, fetchQnA } from "../../redux/slice/qnaSlice";
-
-// --- Mock Data ---
-const DEGREE_OPTIONS = [
-  { id: 1, name: "Computer Science" },
-  { id: 2, name: "Mathematics" },
-  { id: 3, name: "Engineering" },
-  { id: 4, name: "Business" },
-];
-
-const SUBJECT_OPTIONS = {
-  1: [
-    { id: 101, name: "Data Structures" },
-    { id: 102, name: "Web Development" },
-  ],
-  2: [
-    { id: 201, name: "Calculus" },
-    { id: 202, name: "Linear Algebra" },
-  ],
-  3: [{ id: 301, name: "Thermodynamics" }],
-  4: [{ id: 401, name: "Marketing" }],
-};
+import {
+  selectAllDegrees,
+  selectSubjectsByDegree,
+} from "../../redux/slice/degreeSubjectSlice";
 
 const AskQuestionModal = ({ onClose, onSubmit, editing }) => {
   const dispatch = useDispatch();
+  const degrees = useSelector(selectAllDegrees);
+  const subjects = useSelector(
+    selectSubjectsByDegree(Number(formData.Degree_ID) || 0),
+  );
 
   const { user } = useSelector((state) => state.auth);
 
@@ -154,9 +141,9 @@ const AskQuestionModal = ({ onClose, onSubmit, editing }) => {
                   required
                 >
                   <option value="">Select Degree</option>
-                  {DEGREE_OPTIONS.map((deg) => (
-                    <option key={deg.id} value={deg.id}>
-                      {deg.name}
+                  {degrees.map((deg) => (
+                    <option key={deg.Degree_ID} value={deg.Degree_ID}>
+                      {deg.degree_name}
                     </option>
                   ))}
                 </select>
@@ -186,9 +173,9 @@ const AskQuestionModal = ({ onClose, onSubmit, editing }) => {
                       : "Select Degree First"}
                   </option>
                   {formData.Degree_ID &&
-                    SUBJECT_OPTIONS[formData.Degree_ID]?.map((sub) => (
-                      <option key={sub.id} value={sub.id}>
-                        {sub.name}
+                    subjects.map((sub) => (
+                      <option key={sub.Subject_ID} value={sub.Subject_ID}>
+                        {sub.subject_name}
                       </option>
                     ))}
                 </select>

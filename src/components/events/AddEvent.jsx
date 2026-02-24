@@ -138,9 +138,10 @@ const AddEventOverlay = ({ onClose, onSuccess, initialData }) => {
       onSuccess();
       onClose();
     } catch (err) {
+      console.log(err);
       let errorMessage = isEditMode
         ? "Failed to update event"
-        : "Failed to create event";
+        : `Failed to create event: ${err}`;
 
       if (err?.response?.data) {
         // Typical shape from your controllers: { error: "..." } or { message: "..." }

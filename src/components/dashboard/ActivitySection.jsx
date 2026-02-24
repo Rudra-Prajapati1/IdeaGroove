@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import EventCard from "@/components/cards/EventCard";
 import GroupCard from "@/components/cards/GroupCard";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  fetchUserEvents,
   selectUserEvents,
+  selectUserEventsError,
   selectUserEventsStatus,
 } from "../../redux/slice/eventsSlice";
 import {
@@ -35,6 +37,8 @@ import AddEventOverlay from "../events/AddEvent";
 import AddGroupOverlay from "../groups/AddGroup";
 
 const ActivitySection = ({ isPublic }) => {
+  const dispatch = useDispatch();
+
   const optionList = [
     { key: 1, label: "Events", icon: CalendarDays },
     { key: 2, label: "Groups", icon: Users },
@@ -54,6 +58,7 @@ const ActivitySection = ({ isPublic }) => {
 
   const userEvents = useSelector(selectUserEvents);
   const eventsStatus = useSelector(selectUserEventsStatus);
+  const userEventsError = useSelector(selectUserEventsError);
 
   const filteredEvents = userEvents.filter((event) => {
     const eventDate = new Date(event.Event_Date);
@@ -68,6 +73,11 @@ const ActivitySection = ({ isPublic }) => {
     return matchesSearch;
   });
 
+  useEffect(() => {
+    console.log(eventsStatus);
+    // dispatch(fetchUserEvents());
+    console.log(userEvents);
+  }, [eventsStatus]);
   /* ================= GROUPS ================= */
 
   const userGroups = useSelector(selectUserGroups);
@@ -132,7 +142,9 @@ const ActivitySection = ({ isPublic }) => {
       {option === "Events" && (
         <div className="mt-16 w-10/12 m-auto bg-[#fffbeb] px-12 py-12 rounded-2xl">
           {eventsStatus === "loading" && <p>Loading Events...</p>}
-          {eventsStatus === "failed" && <p>Error loading Events</p>}
+          {eventsStatus === "failed" && (
+            <p>Error loading Events: {userEventsError}</p>
+          )}
           {(eventsStatus === "succeeded" || eventsStatus === "idle") && (
             <>
               {addEvent && (

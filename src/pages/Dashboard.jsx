@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { selectUser, selectIsAuthenticated } from "../redux/slice/authSlice";
 import {
   fetchUserEvents,
+  selectUserEvents,
   selectUserEventsStatus,
 } from "../redux/slice/eventsSlice";
 import {
@@ -32,6 +33,7 @@ const Dashboard = () => {
 
   const [displayUser, setDisplayUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const events = useSelector(selectUserEvents);
 
   // User-specific statuses
   const eventsStatus = useSelector(selectUserEventsStatus);
@@ -44,6 +46,7 @@ const Dashboard = () => {
       const userId = currentUser.S_ID;
       if (eventsStatus === "idle")
         dispatch(fetchUserEvents({ userId, page: 1, limit: 20 }));
+      console.log(events);
       if (groupsStatus === "idle")
         dispatch(fetchUserGroups({ userId, page: 1, limit: 20 }));
       if (notesStatus === "idle")

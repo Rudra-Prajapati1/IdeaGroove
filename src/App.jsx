@@ -1,5 +1,10 @@
 import { Route, Routes, useLocation } from "react-router-dom";
 import React, { useEffect } from "react";
+import {
+  fetchDegreeSubject,
+  selectDegreeSubjectStatus,
+} from "../src/redux/slice/degreeSubjectSlice";
+import { useSelector, useDispatch } from "react-redux";
 
 import UserLayout from "./layouts/UserLayout";
 import AdminLayout from "./layouts/AdminLayout";
@@ -20,6 +25,15 @@ function ScrollToTop() {
 }
 
 const App = () => {
+  const dispatch = useDispatch();
+  const degreeStatus = useSelector(selectDegreeSubjectStatus);
+
+  useEffect(() => {
+    if (degreeStatus === "idle") {
+      dispatch(fetchDegreeSubject());
+    }
+  }, [degreeStatus, dispatch]);
+
   return (
     <>
       <ScrollToTop />
