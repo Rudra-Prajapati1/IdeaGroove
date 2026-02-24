@@ -97,7 +97,13 @@ const EventCard = ({ event, onEdit }) => {
         <div className="p-5 flex flex-col justify-between grow">
           <div>
             <h2 className="text-xl font-bold text-gray-900 line-clamp-2 mb-4 font-poppins">
-              {event.Description || "Description not available"}
+              {event.Description === "null" ? (
+                <span className="text-gray-500 italic">
+                  Description not available
+                </span>
+              ) : (
+                event.Description
+              )}
             </h2>
 
             <div className="space-y-3">

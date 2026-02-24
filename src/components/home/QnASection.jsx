@@ -38,9 +38,9 @@ const QnASection = () => {
       {previewStatus === "succeeded" && (
         <div className="flex flex-col gap-5 w-full md:w-[60%] mt-10">
           {previewQnA?.length > 0 ? (
-            previewQnA.map((QnA) => (
-              <QnACard key={QnA.Q_ID} post={QnA} isAuth={isAuth} />
-            ))
+            previewQnA.map((QnA) => {
+              return <QnACard key={QnA.Q_ID} post={QnA} isAuth={isAuth} />;
+            })
           ) : (
             <p className="col-span-full text-gray-500 text-center">
               No QnA available

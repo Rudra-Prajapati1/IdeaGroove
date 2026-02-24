@@ -8,6 +8,7 @@ import notesReducer from "./slice/notesSlice";
 import qnaReducer from "./slice/qnaSlice";
 import authReducer from "./slice/authSlice";
 import studentsReducer from "./slice/studentsSlice";
+import degreeSubjectReducer from "./slice/degreeSubjectSlice";
 
 export default configureStore({
   reducer: {
@@ -19,6 +20,7 @@ export default configureStore({
     qna: qnaReducer,
     auth: authReducer,
     students: studentsReducer,
+    degreeSubject: degreeSubjectReducer,
   },
   devTools: import.meta.env.DEV,
 });
