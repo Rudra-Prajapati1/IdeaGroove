@@ -18,17 +18,10 @@ import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 import ActionButton from "../common/ActionButton";
 import AddNotes from "../notes/AddNotes";
 import { selectUser } from "../../redux/slice/authSlice";
-
-const DEGREE_SUBJECTS = {
-  "Computer Science": ["DBMS", "React", "Java", "Web Development"],
-  Engineering: [
-    "Operating Systems",
-    "REST API",
-    "Computer Networks",
-    "Compiler Design",
-    "Software Engineering",
-  ],
-};
+import {
+  selectAllDegrees,
+  selectSubjectsByDegree,
+} from "../../redux/slice/degreeSubjectSlice";
 
 const STYLE_VARIANTS = [
   { color: "bg-blue-600", icon: Code2 },
@@ -50,10 +43,16 @@ const NotesSection = ({ notes }) => {
   const [showAddNotes, setShowAddNotes] = useState(false);
   const [editing, setEditing] = useState(null);
 
+  const degrees = useSelector(selectAllDegrees);
+  const subjects = useSelector(
+    selectSubjectsByDegree(Number(selectedDegree) || 0),
+  );
+
   const filteredNotes = notes
     .filter((note) => {
-      if (selectedDegree && note.Degree_Name !== selectedDegree) return false;
-      if (selectedSubject && note.Subject_Name !== selectedSubject)
+      if (selectedDegree && note.Degree_ID !== Number(selectedDegree))
+        return false;
+      if (selectedSubject && note.Subject_ID !== Number(selectedSubject))
         return false;
 
       const matchesSearch =
@@ -132,9 +131,9 @@ const NotesSection = ({ notes }) => {
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700"
                 >
                   <option value="">All Degrees</option>
-                  {Object.keys(DEGREE_SUBJECTS).map((degree) => (
-                    <option key={degree} value={degree}>
-                      {degree}
+                  {degrees.map((deg) => (
+                    <option key={deg.Degree_ID} value={deg.Degree_ID}>
+                      {deg.degree_name}
                     </option>
                   ))}
                 </select>
@@ -151,9 +150,9 @@ const NotesSection = ({ notes }) => {
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700"
                   >
                     <option value="">All Subjects</option>
-                    {DEGREE_SUBJECTS[selectedDegree].map((subject) => (
-                      <option key={subject} value={subject}>
-                        {subject}
+                    {subjects.map((sub) => (
+                      <option key={sub.Subject_ID} value={sub.Subject_ID}>
+                        {sub.subject_name}
                       </option>
                     ))}
                   </select>
