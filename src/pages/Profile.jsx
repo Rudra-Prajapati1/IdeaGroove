@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { updateStudentProfile, deleteStudentAccount } from "../redux/slice/studentsSlice";
 import {
   User,
   Pencil,
@@ -57,11 +59,33 @@ const ProfileInformation = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
-    // Logic for backend API call goes here
+  const dispatch = useDispatch();
+
+const handleSave = async () => {
+  try {
+    const payload = {
+      student_id: user.id,      // must match backend
+      username: formData.Username ?? null,
+      name: formData.Name ?? null,
+      roll_no: formData.Roll_No ?? null,
+      college_id: user.College_ID ?? null,  // adjust if needed
+      degree_id: user.Degree_ID ?? null,    // adjust if needed
+      year: formData.Year ?? null,
+      email: formData.Email ?? null,
+      profile_pic: user.Profile_Pic ?? null,
+      hobbies: formData.Hobbies ?? []
+    };
+
+    console.log("Sending data:", payload);
+
+    await dispatch(updateStudentProfile(payload)).unwrap();
+
     toast.success("Profile Updated Successfully!");
     setIsEditing(false);
-  };
+  } catch (err) {
+    toast.error(err);
+  }
+};
 
   const handleCancel = () => {
     // Revert to original user data
@@ -79,10 +103,15 @@ const ProfileInformation = () => {
     toast.error("Changes Discarded");
   };
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
+  try {
+    await dispatch(deleteStudentAccount(user.S_ID)).unwrap();
     toast.success("Profile Deleted Successfully!");
-    setIsModalOpen(false);
-  };
+    navigate("/auth");
+  } catch (err) {
+    toast.error(err);
+  }
+};
 
   const formatBatchYear = (yearId) => {
     if (!yearId || yearId.toString().length !== 4) return yearId || "N/A";
