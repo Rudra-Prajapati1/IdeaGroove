@@ -73,8 +73,6 @@ const GroupCard = ({ group, onEdit }) => {
     }
   };
 
-  console.log(group);
-
   return (
     <>
       <div className="relative bg-white border border-gray-100 shadow-md rounded-2xl p-6 w-full max-w-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -87,26 +85,19 @@ const GroupCard = ({ group, onEdit }) => {
           )}
         </div>
 
-
         <div className="mb-6">
           <h3 className="font-bold font-poppins text-xl text-gray-900 mb-1">
             {group.Room_Name}
           </h3>
 
           <div className="space-y-2.5 mb-3">
-
-             <div className="flex items-center gap-1.5 text-gray-800 text-sm">
-             <span className="font-medium">
-                Admin : {group.Creator_Name} 
-              </span>
+            <div className="flex items-center gap-1.5 text-gray-800 text-sm">
+              <span className="font-medium">Admin : {group.Creator_Name}</span>
             </div>
-            
 
             <div className="flex items-center gap-1.5 text-gray-400 text-sm">
               <Users className="w-4 h-4" />
-              <span className="font-medium">
-                {group.Member_Count} Members
-              </span>
+              <span className="font-medium">{group.Member_Count} Members</span>
             </div>
 
             <div className="flex items-center gap-1.5 text-gray-400 text-xs">

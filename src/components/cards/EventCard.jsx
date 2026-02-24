@@ -18,7 +18,7 @@ const EventCard = ({ event, onEdit }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [isModalOpen,setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const dateObj = new Date(event.Event_Date);
   const month = dateObj
@@ -26,7 +26,6 @@ const EventCard = ({ event, onEdit }) => {
     .toUpperCase();
   const day = dateObj.getDate();
 
-  // Use correct field name – check what your user object has
   const isOwner =
     user && event.Added_By === (user.S_ID || user.id || user.Student_ID);
 
@@ -42,20 +41,12 @@ const EventCard = ({ event, onEdit }) => {
   }, [previewOpen]);
 
   const handleDelete = async () => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this event? This action cannot be undone.",
-      )
-    ) {
-      return;
-    }
-
     setDeleting(true);
 
     try {
       await dispatch(deleteEvent(event.E_ID)).unwrap();
       toast.success("Event deleted successfully!");
-      setShowConfirm(false);
+      setIsModalOpen(false);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -186,13 +177,13 @@ const EventCard = ({ event, onEdit }) => {
           document.getElementById("modal-root") || document.body,
         )}
 
-      {isModalOpen && 
+      {isModalOpen && (
         <ConfirmationBox
           onClose={() => setIsModalOpen(false)}
           onConfirm={handleDelete}
-          type = "Event"
+          type="Event"
         />
-      }
+      )}
     </>
   );
 };
