@@ -7,6 +7,7 @@ import { deleteEvent } from "../../redux/slice/eventsSlice";
 import ComplaintButton from "../ComplaintButton";
 import toast from "react-hot-toast";
 import { createPortal } from "react-dom";
+import { ConfirmationBox } from "../common/ConfirmationBox";
 
 const EventCard = ({ event, onEdit }) => {
   const dispatch = useDispatch();
@@ -17,6 +18,7 @@ const EventCard = ({ event, onEdit }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [isModalOpen,setIsModalOpen] = useState(false);
 
   const dateObj = new Date(event.Event_Date);
   const month = dateObj
@@ -132,7 +134,7 @@ const EventCard = ({ event, onEdit }) => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleDelete();
+                    setIsModalOpen(true);
                   }}
                   disabled={deleting}
                   className={`p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors ${
@@ -177,6 +179,14 @@ const EventCard = ({ event, onEdit }) => {
           </div>,
           document.getElementById("modal-root") || document.body,
         )}
+
+      {isModalOpen && 
+        <ConfirmationBox
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={handleDelete}
+          type = "Event"
+        />
+      }
     </>
   );
 };
