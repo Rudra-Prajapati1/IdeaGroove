@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Filter, GraduationCap, Plus } from "lucide-react";
+import { BookOpen, Filter, GraduationCap, Plus } from "lucide-react";
 import Controls from "../common/Controls";
 import AskQuestionModal from "../qna/AskQuestion";
 import QnACard from "../cards/QnACard";
 import { selectIsAuthenticated, selectUser } from "../../redux/slice/authSlice";
 import ActionButton from "../common/ActionButton";
 import { useSelector } from "react-redux";
+import {
+  selectAllDegrees,
+  selectSubjectsByDegree,
+} from "../../redux/slice/degreeSubjectSlice";
 
 const DiscussionForum = ({ discussions }) => {
   const isAuth = useSelector(selectIsAuthenticated);
@@ -18,30 +22,18 @@ const DiscussionForum = ({ discussions }) => {
   const [showAskModal, setShowAskModal] = useState(false);
   const [editing, setEditing] = useState(null);
 
-  // Extract unique degrees & subjects from real data (for filters)
-  const { uniqueDegrees, uniqueSubjects } = useMemo(() => {
-    const degrees = new Set();
-    const subjects = new Set();
-
-    discussions.forEach((item) => {
-      if (item.Degree_Name) degrees.add(item.Degree_Name);
-      if (item.Subject_Name) subjects.add(item.Subject_Name);
-    });
-
-    return {
-      uniqueDegrees: Array.from(degrees),
-      uniqueSubjects: Array.from(subjects),
-    };
-  }, [discussions]);
+  const degrees = useSelector(selectAllDegrees);
+  const subjects = useSelector(
+    selectSubjectsByDegree(Number(selectedDegree) || 0),
+  );
 
   // Filter & sort real data
   const filteredDiscussions = useMemo(() => {
     return discussions
       .filter((post) => {
-        // Degree filter
-        if (selectedDegree && post.Degree_Name !== selectedDegree) return false;
-        // Subject filter
-        if (selectedSubject && post.Subject_Name !== selectedSubject)
+        if (selectedDegree && post.Degree_ID !== Number(selectedDegree))
+          return false;
+        if (selectedSubject && post.Subject_ID !== Number(selectedSubject))
           return false;
 
         // Search across question or answer text
@@ -137,15 +129,15 @@ const DiscussionForum = ({ discussions }) => {
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700"
                 >
                   <option value="">All Degrees</option>
-                  {uniqueDegrees.map((deg) => (
-                    <option key={deg} value={deg}>
-                      {deg}
+                  {degrees.map((deg) => (
+                    <option key={deg.Degree_ID} value={deg.Degree_ID}>
+                      {deg.degree_name}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {selectedDegree && uniqueSubjects.length > 0 && (
+              {selectedDegree && subjects.length > 0 && (
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                     <BookOpen className="w-3 h-3" /> Subject
@@ -156,9 +148,9 @@ const DiscussionForum = ({ discussions }) => {
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700"
                   >
                     <option value="">All Subjects</option>
-                    {uniqueSubjects.map((sub) => (
-                      <option key={sub} value={sub}>
-                        {sub}
+                    {subjects.map((sub) => (
+                      <option key={sub.Subject_ID} value={sub.Subject_ID}>
+                        {sub.subject_name}
                       </option>
                     ))}
                   </select>
@@ -196,7 +188,7 @@ const DiscussionForum = ({ discussions }) => {
           ) : (
             filteredDiscussions.map((post) => (
               <QnACard
-                key={post.id} // use Q_ID primarily
+                key={post.Q_ID || post.A_ID}
                 post={post}
                 isAuth={isAuth}
                 currentUserId={currentUserId}

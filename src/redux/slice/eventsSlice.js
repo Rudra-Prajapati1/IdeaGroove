@@ -73,6 +73,7 @@ export const fetchUserEvents = createAsyncThunk(
       const { data } = await api.get(
         `/events/user/${userId}?page=${page}&limit=${limit}`,
       );
+      console.log(data);
       return data;
     } catch (err) {
       return rejectWithValue("Failed to fetch user events");

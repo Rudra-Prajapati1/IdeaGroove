@@ -3,35 +3,17 @@ import { X, UploadCloud, FileText, Loader2 } from "lucide-react";
 import { useSelector } from "react-redux"; // To get current user ID
 import { createPortal } from "react-dom";
 import { toast } from "react-hot-toast";
+import {
+  selectAllDegrees,
+  selectSubjectsByDegree,
+} from "../../redux/slice/degreeSubjectSlice";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_PDF_TYPE = "application/pdf";
 const MAX_DESCRIPTION_LENGTH = 255;
 
-// MOCK DATA (Replace with API fetch or props)
-const DEGREE_OPTIONS = [
-  { id: 1, name: "Computer Science" },
-  { id: 2, name: "Mathematics" },
-  { id: 3, name: "Engineering" },
-  { id: 4, name: "Business" },
-];
-
-const SUBJECT_OPTIONS = {
-  1: [
-    { id: 101, name: "Data Structures" },
-    { id: 102, name: "Web Development" },
-  ],
-  2: [
-    { id: 201, name: "Calculus" },
-    { id: 202, name: "Linear Algebra" },
-  ],
-  3: [{ id: 301, name: "Thermodynamics" }],
-  4: [{ id: 401, name: "Marketing" }],
-};
-
 const AddNotes = ({ onClose, onUpload, editing }) => {
   const { user } = useSelector((state) => state.auth); // Get User ID
-
   const [formData, setFormData] = useState({
     title: "", // Useful for UI display even if not strictly in DB schema (or map to Note_File name)
     Degree_ID: "",
@@ -39,6 +21,10 @@ const AddNotes = ({ onClose, onUpload, editing }) => {
     Description: "",
     file: null,
   });
+  const degrees = useSelector(selectAllDegrees);
+  const subjects = useSelector(
+    selectSubjectsByDegree(Number(formData.Degree_ID) || 0),
+  );
 
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -123,7 +109,7 @@ const AddNotes = ({ onClose, onUpload, editing }) => {
     // Description is OPTIONAL as per DD
     submissionData.append("Description", formData.Description.trim() || null);
 
-    submissionData.append("Added_By", user?.id || 1);
+    submissionData.append("Added_By", user?.S_ID || user?.id);
     submissionData.append("Is_Active", 1);
 
     setTimeout(() => {
@@ -174,9 +160,9 @@ const AddNotes = ({ onClose, onUpload, editing }) => {
                 required
               >
                 <option value="">Select Degree</option>
-                {DEGREE_OPTIONS.map((deg) => (
-                  <option key={deg.id} value={deg.id}>
-                    {deg.name}
+                {degrees.map((deg) => (
+                  <option key={deg.Degree_ID} value={deg.Degree_ID}>
+                    {deg.degree_name}
                   </option>
                 ))}
               </select>
@@ -201,9 +187,9 @@ const AddNotes = ({ onClose, onUpload, editing }) => {
                     : "Select Degree First"}
                 </option>
                 {formData.Degree_ID &&
-                  SUBJECT_OPTIONS[formData.Degree_ID]?.map((sub) => (
-                    <option key={sub.id} value={sub.id}>
-                      {sub.name}
+                  subjects.map((sub) => (
+                    <option key={sub.Subject_ID} value={sub.Subject_ID}>
+                      {sub.subject_name}
                     </option>
                   ))}
               </select>
