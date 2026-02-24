@@ -170,7 +170,6 @@ import {
   CheckCircle,
   Calendar,
   ShieldCheck,
-  MessageSquare,
   Users,
   ExternalLink,
 } from "lucide-react";
@@ -182,148 +181,127 @@ import StudentProfile from "../admin/StudentProfile";
 const AdminGroupCard = ({ group, onModerate }) => {
   const isActive = group.status === "active";
   const isAuth = useSelector(selectIsAuthenticated);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
     <>
       <div
-        className={`bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 group flex flex-col overflow-hidden hover:-translate-y-0.5 ${isActive ? "hover:border-green-300 hover:shadow-green-200" : "hover:border-red-300 hover:shadow-red-200"}`}
+        className={`bg-white rounded-2xl border border-gray-200 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col overflow-hidden ${isActive ? "hover:border-green-300 hover:shadow-green-200" : "hover:border-red-300 hover:shadow-red-200"}`}
       >
-        {/* Colored Header Band */}
-        <div
-          className={`relative h-24 w-full flex items-center justify-center
-          ${
-            isActive
-              ? "bg-linear-to-br from-emerald-500 to-teal-700"
-              : "bg-linear-to-br from-red-400 to-rose-600"
-          }`}
-        >
-          {/* Background pattern */}
-          <div
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage:
-                "radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)",
-              backgroundSize: "30px 30px",
-            }}
-          />
+        {/* Header */}
+        <div className="p-4 border-b border-gray-100 flex items-start justify-between">
+          <div className="flex items-start gap-3">
+            {/* Group Icon */}
+            <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <Users size={18} className="text-[#1B431C]" />
+            </div>
 
-          {/* Icon */}
-          <div className="relative z-10 h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <MessageSquare size={22} className="text-white" />
+            <div>
+              <h3 className="font-semibold text-gray-800 text-base">
+                {group.Name}
+              </h3>
+
+              <span className="inline-block mt-1 text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md uppercase">
+                {group.Based_On}
+              </span>
+            </div>
           </div>
 
-          {/* ID badge */}
-          <span className="absolute top-3 left-3 text-[10px] font-mono font-semibold text-white/70 bg-black/20 backdrop-blur-sm px-2 py-0.5 rounded-md">
-            #{group.id}
-          </span>
-
-          {/* Status pill */}
+          {/* Status */}
           <span
-            className={`absolute top-3 right-3 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full
-            ${isActive ? "bg-white/20 text-white backdrop-blur-sm" : "bg-white/20 text-white backdrop-blur-sm"}`}
+            className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full
+              ${
+                isActive
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-red-100 text-red-600"
+              }`}
           >
             <span
-              className={`h-1.5 w-1.5 rounded-full ${isActive ? "bg-white animate-pulse" : "bg-white/60"}`}
+              className={`h-1.5 w-1.5 rounded-full ${
+                isActive ? "bg-emerald-600" : "bg-red-500"
+              }`}
             />
             {isActive ? "Active" : "Blocked"}
           </span>
-
-          {/* Group name pinned to bottom */}
-          <div className="absolute bottom-3 left-3 right-3">
-            <h3 className="font-bold text-white text-sm line-clamp-1 font-poppins drop-shadow">
-              {group.Name}
-            </h3>
-          </div>
         </div>
 
         {/* Body */}
-        <div className="p-4 flex flex-col flex-1">
-          {/* Tag */}
-          <div className="mb-3">
-            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md uppercase">
-              {group.Based_On}
-            </span>
-          </div>
-
-          {/* Metadata */}
-          <div className="flex flex-col gap-1.5 border-t border-gray-50 pt-3 mb-4">
-            <button
-              onClick={() => setIsProfileOpen(true)}
-              title="View student profile"
-              className="group/author flex items-center gap-1.5 text-[11px] text-gray-400 hover:text-[#1B431C] transition-colors w-fit"
-            >
-              <ShieldCheck
-                size={12}
-                className="text-gray-300 group-hover/author:text-[#1B431C] transition-colors"
-              />
-              <span>
-                Admin:{" "}
-                <span className="font-semibold text-md text-gray-600 group-hover/author:text-[#1B431C] underline underline-offset-2 decoration-dashed decoration-gray-300 group-hover/author:decoration-[#1B431C] transition-colors">
-                  {group.Creator_Name}
-                </span>
+        <div className="p-4 flex flex-col gap-4 text-sm">
+          {/* Admin (UNCHANGED readability structure) */}
+          <button
+            onClick={() => setIsProfileOpen(true)}
+            title="View student profile"
+            className="group/author flex items-center gap-2 text-[13px] text-gray-500 hover:text-[#1B431C] transition-colors w-fit"
+          >
+            <ShieldCheck
+              size={14}
+              className="text-gray-400 group-hover/author:text-[#1B431C] transition-colors"
+            />
+            <span>
+              Admin:{" "}
+              <span className="font-semibold text-gray-700 underline underline-offset-2 decoration-dashed decoration-gray-300 group-hover/author:decoration-[#1B431C] transition-colors">
+                {group.Creator_Name}
               </span>
-              <ExternalLink
-                size={11}
-                className="opacity-0 group-hover/author:opacity-100 transition-opacity"
-              />
-            </button>
+            </span>
+            <ExternalLink
+              size={13}
+              className="opacity-60 group-hover/author:opacity-100 transition-opacity"
+            />
+          </button>
 
-            <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
-              <Calendar size={11} className="text-gray-300" />
-              Created:{" "}
-              <span className="font-semibold text-gray-500">
+          {/* Created On */}
+          <div className="flex items-center gap-2 text-gray-600">
+            <Calendar size={14} className="text-gray-400" />
+            <span>
+              Created on{" "}
+              <span className="font-semibold">
                 {new Date(group.Created_On).toLocaleDateString("en-GB", {
                   day: "2-digit",
                   month: "short",
                   year: "numeric",
                 })}
               </span>
-            </div>
+            </span>
           </div>
 
           {/* View Members */}
           <button
             disabled={!isAuth}
             onClick={() => setIsModalOpen(true)}
-            className={`w-full py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all
+            className={`w-full py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all
               ${
                 isAuth
-                  ? "text-[#1B431C] bg-emerald-50 hover:bg-[#1B431C] hover:text-white cursor-pointer"
-                  : "text-gray-300 bg-gray-100 cursor-not-allowed"
+                  ? "bg-emerald-50 text-[#1B431C] hover:bg-[#1B431C] hover:text-white"
+                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
               }`}
           >
-            <Users size={13} />
+            <Users size={14} />
             View Members
           </button>
         </div>
 
-        {/* Action Footer */}
-        <div className="px-4 py-3 border-t border-gray-50 flex gap-2 bg-gray-50/40">
+        {/* Single Dynamic Action Button */}
+        <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
           <button
-            onClick={() => onModerate("block", group.id)}
-            disabled={!isActive}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all
-              ${
-                !isActive
-                  ? "bg-gray-100 text-gray-300 cursor-not-allowed"
-                  : "text-red-500 bg-red-50 hover:bg-red-500 hover:text-white"
-              }`}
-          >
-            <Ban size={12} /> Block
-          </button>
-          <button
-            onClick={() => onModerate("unblock", group.id)}
-            disabled={isActive}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all
+            onClick={() => onModerate(isActive ? "block" : "unblock", group.id)}
+            className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-semibold transition-all
               ${
                 isActive
-                  ? "bg-gray-100 text-gray-300 cursor-not-allowed"
+                  ? "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white"
                   : "bg-[#1B431C] text-white hover:bg-[#153416]"
               }`}
           >
-            <CheckCircle size={12} /> Unblock
+            {isActive ? (
+              <>
+                <Ban size={14} /> Block Group
+              </>
+            ) : (
+              <>
+                <CheckCircle size={14} /> Unblock Group
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -339,7 +317,7 @@ const AdminGroupCard = ({ group, onModerate }) => {
             e.target === e.currentTarget && setIsProfileOpen(false)
           }
         >
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto">
             <StudentProfile
               id={group.Creator_ID}
               onClose={() => setIsProfileOpen(false)}

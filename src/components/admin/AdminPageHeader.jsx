@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Search, GraduationCap, BookOpen } from "lucide-react";
 import SimpleDropdown from "./SimpleDropdown";
+import { useEffect } from "react";
+import { useMemo } from "react";
+import SearchableDropdown from "./SearchableDropdown";
 
 const AdminPageHeader = ({
   title,
@@ -16,6 +19,39 @@ const AdminPageHeader = ({
 }) => {
   const [selectedDegree, setSelectedDegree] = useState("all");
   const [selectedSubject, setSelectedSubject] = useState("all");
+  const [debouncedDegree, setDebouncedDegree] = useState(selectedDegree);
+  const [degreeSearch, setDegreeSearch] = useState("");
+  const [debouncedDegreeSearch, setDebouncedDegreeSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedDegreeSearch(degreeSearch);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [degreeSearch]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedDegree(selectedDegree);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [selectedDegree]);
+
+  useEffect(() => {
+    if (onDegreeFilter) {
+      onDegreeFilter(debouncedDegree);
+    }
+  }, [debouncedDegree]);
+
+  const filteredDegreeOptions = useMemo(() => {
+    if (!debouncedDegreeSearch) return degreeOptions;
+
+    return degreeOptions.filter((degree) =>
+      degree.toLowerCase().includes(debouncedDegreeSearch.toLowerCase()),
+    );
+  }, [degreeOptions, debouncedDegreeSearch]);
 
   return (
     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-2">
@@ -48,17 +84,19 @@ const AdminPageHeader = ({
         )}
 
         {degreeOptions.length > 0 && (
-          <SimpleDropdown
-            icon={GraduationCap}
-            options={degreeOptions}
-            value={selectedDegree !== "all" ? selectedDegree : null}
-            placeholder={firstTitle}
-            accent="blue"
-            onChange={(val) => {
-              setSelectedDegree(val);
-              onDegreeFilter(val);
-            }}
-          />
+          <div className="relative min-w-[200px]">
+            <SearchableDropdown
+              icon={GraduationCap}
+              options={filteredDegreeOptions}
+              value={selectedDegree !== "all" ? selectedDegree : null}
+              placeholder={firstTitle}
+              accent="blue"
+              onChange={(val) => {
+                setSelectedDegree(val);
+                onDegreeFilter(val);
+              }}
+            />
+          </div>
         )}
 
         {subjectOptions.length > 0 && (
