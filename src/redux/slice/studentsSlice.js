@@ -42,6 +42,39 @@ export const fetchStudents = createAsyncThunk(
   },
 );
 
+
+
+// 🔹 Update Student
+export const updateStudentProfile = createAsyncThunk(
+  "students/updateStudentProfile",
+  async (updatedData, { rejectWithValue }) => {
+    try {
+      const { data } = await api.post(`/students/update`, updatedData);
+      return data.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to update profile"
+      );
+    }
+  }
+);
+
+// 🔹 Delete Student
+export const deleteStudentAccount = createAsyncThunk(
+  "students/deleteStudentAccount",
+  async (id, { rejectWithValue }) => {
+    try {
+      await api.get(`/students/delete/${id}`);
+      return id;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to delete account"
+      );
+    }
+  }
+);
+
+
 const studentsSlice = createSlice({
   name: "students",
   initialState,
@@ -62,9 +95,19 @@ const studentsSlice = createSlice({
       .addCase(fetchStudents.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload;
+      })
+
+      .addCase(updateStudentProfile.fulfilled, (state, action) => {
+        studentsAdapter.upsertOne(state, action.payload);
+      })
+
+      .addCase(deleteStudentAccount.fulfilled, (state, action) => {
+        studentsAdapter.removeOne(state, action.payload);
       });
   },
 });
+
+
 
 export default studentsSlice.reducer;
 
@@ -78,3 +121,5 @@ export const selectStudentsPagination = (state) => ({
   totalPages: state.students.totalPages,
   total: state.students.total,
 });
+
+

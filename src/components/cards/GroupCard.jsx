@@ -20,6 +20,7 @@ import ComplaintButton from "../ComplaintButton";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { deleteGroup, fetchGroups } from "../../redux/slice/chatRoomsSlice";
+import { ConfirmationBox } from "../common/ConfirmationBox";
 
 const GroupCard = ({ group, onEdit }) => {
   const dispatch = useDispatch();
@@ -28,6 +29,7 @@ const GroupCard = ({ group, onEdit }) => {
   const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const getBadgeColor = (category) => {
     const colors = {
@@ -131,7 +133,7 @@ const GroupCard = ({ group, onEdit }) => {
               </button>
               <button
                 className="px-3 bg-red-50 text-red-600 rounded-lg border border-red-100"
-                onClick={handleDelete}
+                onClick={()=> {setIsDeleteOpen(true)}}
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -164,6 +166,14 @@ const GroupCard = ({ group, onEdit }) => {
           isOwner={isOwner}
         />
       )}
+
+      {isDeleteOpen && 
+          (<ConfirmationBox
+            onClose={() => setIsDeleteOpen(false)}
+            onConfirm={handleDelete}
+            type = "Group"
+          />)
+      }
     </>
   );
 };
