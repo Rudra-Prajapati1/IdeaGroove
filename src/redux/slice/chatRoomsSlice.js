@@ -6,8 +6,6 @@ import {
 } from "@reduxjs/toolkit";
 import api from "../../api/axios";
 
-/* ================= ENTITY ADAPTER ================= */
-
 const groupsAdapter = createEntityAdapter({
   selectId: (group) => group.Room_ID,
   sortComparer: (a, b) => new Date(b.Created_On) - new Date(a.Created_On),
@@ -22,6 +20,9 @@ const initialState = groupsAdapter.getInitialState({
 
   createStatus: "idle",
   createError: null,
+
+  updateStatus: "idle",
+  updateError: null,
 
   previewGroups: [],
   previewStatus: "idle",
@@ -38,9 +39,18 @@ const initialState = groupsAdapter.getInitialState({
 
 export const fetchGroups = createAsyncThunk(
   "groups/fetchGroups",
-  async ({ page = 1, limit = 9 }, { rejectWithValue }) => {
+  async (
+    { page = 1, limit = 9, search = "", filter = "all" } = {},
+    { rejectWithValue },
+  ) => {
     try {
-      const { data } = await api.get(`/groups?page=${page}&limit=${limit}`);
+      const params = new URLSearchParams({
+        page,
+        limit,
+        ...(search && { search }),
+        ...(filter && filter !== "all" && { filter }),
+      });
+      const { data } = await api.get(`/groups?${params.toString()}`);
 
       return {
         data: data.data,
@@ -57,7 +67,7 @@ export const fetchGroups = createAsyncThunk(
 );
 
 /* =========================================================
-   CREATE GROUP   ---> POST /groups/create
+   CREATE GROUP
 ========================================================= */
 
 export const createGroup = createAsyncThunk(
@@ -75,7 +85,26 @@ export const createGroup = createAsyncThunk(
 );
 
 /* =========================================================
-   JOIN GROUP   ---> POST /groups/joinGroup
+   UPDATE GROUP
+========================================================= */
+
+export const updateGroup = createAsyncThunk(
+  "groups/updateGroup",
+  async (payload, { rejectWithValue }) => {
+    try {
+      // payload: { Room_ID, Room_Name, Based_On, Description }
+      const { data } = await api.post("/groups/update", payload);
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to update group",
+      );
+    }
+  },
+);
+
+/* =========================================================
+   JOIN GROUP
 ========================================================= */
 
 export const joinGroup = createAsyncThunk(
@@ -96,7 +125,7 @@ export const joinGroup = createAsyncThunk(
 );
 
 /* =========================================================
-   LEAVE GROUP   ---> POST /groups/leaveGroup
+   LEAVE GROUP
 ========================================================= */
 
 export const leaveGroup = createAsyncThunk(
@@ -117,7 +146,7 @@ export const leaveGroup = createAsyncThunk(
 );
 
 /* =========================================================
-   DELETE GROUP  ---> GET /groups/delete/:Room_ID
+   DELETE GROUP
 ========================================================= */
 
 export const deleteGroup = createAsyncThunk(
@@ -161,7 +190,6 @@ export const fetchUserGroups = createAsyncThunk(
       const { data } = await api.get(
         `/groups/user/${userId}?page=${page}&limit=${limit}`,
       );
-
       return {
         data: data.data,
         page: data.pagination?.page || 1,
@@ -186,16 +214,16 @@ const groupsSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      /* ---------- FETCH ALL ---------- */
+      /* FETCH ALL */
       .addCase(fetchGroups.pending, (state) => {
         state.status = "loading";
+        state.error = null;
       })
       .addCase(fetchGroups.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.page = action.payload.page;
         state.totalPages = action.payload.totalPages;
         state.total = action.payload.total;
-
         groupsAdapter.setAll(state, action.payload.data);
       })
       .addCase(fetchGroups.rejected, (state, action) => {
@@ -203,7 +231,7 @@ const groupsSlice = createSlice({
         state.error = action.payload;
       })
 
-      /* ---------- CREATE GROUP ---------- */
+      /* CREATE */
       .addCase(createGroup.pending, (state) => {
         state.createStatus = "loading";
         state.createError = null;
@@ -216,12 +244,25 @@ const groupsSlice = createSlice({
         state.createError = action.payload;
       })
 
-      /* ---------- DELETE GROUP ---------- */
+      /* UPDATE */
+      .addCase(updateGroup.pending, (state) => {
+        state.updateStatus = "loading";
+        state.updateError = null;
+      })
+      .addCase(updateGroup.fulfilled, (state) => {
+        state.updateStatus = "succeeded";
+      })
+      .addCase(updateGroup.rejected, (state, action) => {
+        state.updateStatus = "failed";
+        state.updateError = action.payload;
+      })
+
+      /* DELETE — optimistic remove from adapter */
       .addCase(deleteGroup.fulfilled, (state, action) => {
         groupsAdapter.removeOne(state, action.payload.Room_ID);
       })
 
-      /* ---------- PREVIEW ---------- */
+      /* PREVIEW */
       .addCase(fetchPreviewGroups.pending, (state) => {
         state.previewStatus = "loading";
       })
@@ -234,7 +275,7 @@ const groupsSlice = createSlice({
         state.previewError = action.payload;
       })
 
-      /* ---------- USER GROUPS ---------- */
+      /* USER GROUPS */
       .addCase(fetchUserGroups.pending, (state) => {
         state.userStatus = "loading";
       })
@@ -263,6 +304,9 @@ export const selectGroupsError = (state) => state.groups.error;
 
 export const selectCreateGroupStatus = (state) => state.groups.createStatus;
 export const selectCreateGroupError = (state) => state.groups.createError;
+
+export const selectUpdateGroupStatus = (state) => state.groups.updateStatus;
+export const selectUpdateGroupError = (state) => state.groups.updateError;
 
 export const selectGroupsPagination = createSelector(
   (state) => state.groups.page,
