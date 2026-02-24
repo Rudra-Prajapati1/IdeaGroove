@@ -1,26 +1,29 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { X, UploadCloud, FileText, Loader2 } from "lucide-react";
-import { useSelector } from "react-redux"; // To get current user ID
+import { useDispatch, useSelector } from "react-redux";
 import { createPortal } from "react-dom";
 import { toast } from "react-hot-toast";
 import {
   selectAllDegrees,
   selectSubjectsByDegree,
 } from "../../redux/slice/degreeSubjectSlice";
+import { createNote, updateNote } from "../../redux/slice/notesSlice";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_PDF_TYPE = "application/pdf";
 const MAX_DESCRIPTION_LENGTH = 255;
 
-const AddNotes = ({ onClose, onUpload, editing }) => {
-  const { user } = useSelector((state) => state.auth); // Get User ID
+const AddNotes = ({ onClose, onSuccess, editing }) => {
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+
   const [formData, setFormData] = useState({
-    title: "", // Useful for UI display even if not strictly in DB schema (or map to Note_File name)
     Degree_ID: "",
     Subject_ID: "",
     Description: "",
     file: null,
   });
+
   const degrees = useSelector(selectAllDegrees);
   const subjects = useSelector(
     selectSubjectsByDegree(Number(formData.Degree_ID) || 0),
@@ -28,6 +31,17 @@ const AddNotes = ({ onClose, onUpload, editing }) => {
 
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (editing) {
+      setFormData({
+        Degree_ID: editing.Degree_ID || "",
+        Subject_ID: editing.Subject_ID || "",
+        Description: editing.Description || "",
+        file: null,
+      });
+    }
+  }, [editing]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,91 +51,74 @@ const AddNotes = ({ onClose, onUpload, editing }) => {
       return;
     }
 
-    setFormData((prev) => ({ ...prev, [name]: value }));
-
-    if (name === "Degree_ID") {
-      setFormData((prev) => ({ ...prev, Subject_ID: "" }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+      ...(name === "Degree_ID" && { Subject_ID: "" }),
+    }));
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
+  const validateAndSetFile = (file) => {
     if (!file) return;
-
     if (file.type !== ALLOWED_PDF_TYPE) {
       toast.error("Only PDF files are allowed");
       return;
     }
-
     if (file.size > MAX_FILE_SIZE) {
       toast.error("PDF size must be under 5MB");
       return;
     }
-
     setFormData((prev) => ({ ...prev, file }));
   };
+
+  const handleFileChange = (e) => validateAndSetFile(e.target.files?.[0]);
 
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-
-    const file = e.dataTransfer.files?.[0];
-    if (!file) return;
-
-    if (file.type !== ALLOWED_PDF_TYPE) {
-      toast.error("Only PDF files are allowed");
-      return;
-    }
-
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error("PDF size must be under 5MB");
-      return;
-    }
-
-    setFormData((prev) => ({ ...prev, file }));
+    validateAndSetFile(e.dataTransfer.files?.[0]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.Degree_ID) {
-      toast.error("Please select a degree");
-      return;
-    }
-
-    if (!formData.Subject_ID) {
-      toast.error("Please select a subject");
-      return;
-    }
-
-    if (!formData.file) {
-      toast.error("Please upload a PDF file");
-      return;
-    }
+    if (!formData.Degree_ID) return toast.error("Please select a degree");
+    if (!formData.Subject_ID) return toast.error("Please select a subject");
+    if (!formData.file && !editing)
+      return toast.error("Please upload a PDF file");
 
     setLoading(true);
 
     const submissionData = new FormData();
-    submissionData.append("Note_File", formData.file);
+    if (formData.file) submissionData.append("Note_File", formData.file);
     submissionData.append("Degree_ID", formData.Degree_ID);
     submissionData.append("Subject_ID", formData.Subject_ID);
-
-    // Description is OPTIONAL as per DD
-    submissionData.append("Description", formData.Description.trim() || null);
-
+    submissionData.append("Description", formData.Description.trim() || "");
     submissionData.append("Added_By", user?.S_ID || user?.id);
-    submissionData.append("Is_Active", 1);
+    if (editing) submissionData.append("N_ID", editing.N_ID);
 
-    setTimeout(() => {
-      setLoading(false);
-      toast.success("Notes uploaded successfully");
-      onUpload(submissionData);
+    try {
+      if (editing) {
+        await dispatch(updateNote(submissionData)).unwrap();
+        toast.success("Notes updated successfully!");
+      } else {
+        await dispatch(createNote(submissionData)).unwrap();
+        toast.success("Notes uploaded successfully!");
+      }
+
+      if (onSuccess) onSuccess();
       onClose();
-    }, 1500);
+    } catch (err) {
+      const message =
+        typeof err === "string" ? err : err?.message || "Failed to save notes";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 font-poppins">
+    <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 font-poppins">
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[80vh]"
         onClick={(e) => e.stopPropagation()}
@@ -130,7 +127,7 @@ const AddNotes = ({ onClose, onUpload, editing }) => {
         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 sticky top-0 z-10">
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <UploadCloud className="w-5 h-5 text-green-600" />
-            {editing ? "Edit the Notes" : "Upload New Notes"}
+            {editing ? "Edit Notes" : "Upload New Notes"}
           </h2>
           <button
             onClick={onClose}
@@ -147,7 +144,7 @@ const AddNotes = ({ onClose, onUpload, editing }) => {
             onSubmit={handleSubmit}
             className="space-y-5"
           >
-            {/* Degree Selection */}
+            {/* Degree */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">
                 Degree Program <span className="text-red-500">*</span>
@@ -168,7 +165,7 @@ const AddNotes = ({ onClose, onUpload, editing }) => {
               </select>
             </div>
 
-            {/* Subject Selection */}
+            {/* Subject */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">
                 Subject <span className="text-red-500">*</span>
@@ -210,7 +207,6 @@ const AddNotes = ({ onClose, onUpload, editing }) => {
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all text-sm resize-none"
               />
-
               <div className="mt-1 text-xs text-right">
                 <span
                   className={
@@ -224,10 +220,16 @@ const AddNotes = ({ onClose, onUpload, editing }) => {
               </div>
             </div>
 
-            {/* Drag & Drop File Upload */}
+            {/* File Upload */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Attachment <span className="text-red-500">*</span>
+                Attachment{" "}
+                {editing && (
+                  <span className="text-slate-400 font-normal">
+                    (leave blank to keep existing file)
+                  </span>
+                )}
+                {!editing && <span className="text-red-500">*</span>}
               </label>
               <div
                 onDragOver={(e) => {
@@ -246,7 +248,6 @@ const AddNotes = ({ onClose, onUpload, editing }) => {
                   onChange={handleFileChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   accept="application/pdf"
-                  required
                 />
 
                 {formData.file ? (
@@ -281,7 +282,7 @@ const AddNotes = ({ onClose, onUpload, editing }) => {
           </form>
         </div>
 
-        {/* Footer Actions */}
+        {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3 sticky bottom-0 z-10">
           <button
             type="button"
@@ -293,13 +294,16 @@ const AddNotes = ({ onClose, onUpload, editing }) => {
           <button
             type="submit"
             form="add-notes-form"
-            disabled={loading || !formData.file}
+            disabled={loading || (!formData.file && !editing)}
             className="flex-1 px-4 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex justify-center items-center gap-2"
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Uploading...
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {editing ? "Saving..." : "Uploading..."}
               </>
+            ) : editing ? (
+              "Save Changes"
             ) : (
               "Upload Notes"
             )}

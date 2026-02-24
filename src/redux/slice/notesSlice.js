@@ -25,19 +25,98 @@ const initialState = notesAdapter.getInitialState({
   userNotes: [],
   userStatus: "idle",
   userError: null,
+
+  createStatus: "idle",
+  createError: null,
+
+  updateStatus: "idle",
+  updateError: null,
+
+  deleteStatus: "idle",
+  deleteError: null,
 });
 
 /* ================= ALL NOTES ================= */
 
 export const fetchNotes = createAsyncThunk(
   "notes/fetchNotes",
-  async ({ page = 1, limit = 10 } = {}, { rejectWithValue }) => {
+  async (
+    {
+      page = 1,
+      limit = 9,
+      search = "",
+      filter = "all",
+      degree = "",
+      subject = "",
+    } = {},
+    { rejectWithValue },
+  ) => {
     try {
-      const { data } = await api.get(`/notes?page=${page}&limit=${limit}`);
+      const params = new URLSearchParams({
+        page,
+        limit,
+        ...(search && { search }),
+        ...(filter && filter !== "all" && { filter }),
+        ...(degree && { degree }),
+        ...(subject && { subject }),
+      });
+      const { data } = await api.get(`/notes?${params.toString()}`);
       return data;
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.error || "Failed to fetch notes",
+      );
+    }
+  },
+);
+
+/* ================= CREATE NOTE ================= */
+
+export const createNote = createAsyncThunk(
+  "notes/createNote",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const { data } = await api.post("/notes/create", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to upload note",
+      );
+    }
+  },
+);
+
+/* ================= UPDATE NOTE ================= */
+
+export const updateNote = createAsyncThunk(
+  "notes/updateNote",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const { data } = await api.post("/notes/update", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to update note",
+      );
+    }
+  },
+);
+
+/* ================= DELETE NOTE ================= */
+
+export const deleteNote = createAsyncThunk(
+  "notes/deleteNote",
+  async (N_ID, { rejectWithValue }) => {
+    try {
+      const { data } = await api.get(`/notes/delete/${N_ID}`);
+      return { ...data, N_ID };
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to delete note",
       );
     }
   },
@@ -90,12 +169,51 @@ const notesSlice = createSlice({
         state.page = action.payload.page;
         state.totalPages = action.payload.totalPages;
         state.total = action.payload.total;
-
         notesAdapter.setAll(state, action.payload.notes);
       })
       .addCase(fetchNotes.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload;
+      })
+
+      /* CREATE */
+      .addCase(createNote.pending, (state) => {
+        state.createStatus = "loading";
+        state.createError = null;
+      })
+      .addCase(createNote.fulfilled, (state) => {
+        state.createStatus = "succeeded";
+      })
+      .addCase(createNote.rejected, (state, action) => {
+        state.createStatus = "failed";
+        state.createError = action.payload;
+      })
+
+      /* UPDATE */
+      .addCase(updateNote.pending, (state) => {
+        state.updateStatus = "loading";
+        state.updateError = null;
+      })
+      .addCase(updateNote.fulfilled, (state) => {
+        state.updateStatus = "succeeded";
+      })
+      .addCase(updateNote.rejected, (state, action) => {
+        state.updateStatus = "failed";
+        state.updateError = action.payload;
+      })
+
+      /* DELETE */
+      .addCase(deleteNote.pending, (state) => {
+        state.deleteStatus = "loading";
+        state.deleteError = null;
+      })
+      .addCase(deleteNote.fulfilled, (state, action) => {
+        state.deleteStatus = "succeeded";
+        notesAdapter.removeOne(state, action.payload.N_ID);
+      })
+      .addCase(deleteNote.rejected, (state, action) => {
+        state.deleteStatus = "failed";
+        state.deleteError = action.payload;
       })
 
       /* PREVIEW */
@@ -137,6 +255,10 @@ export const { selectAll: selectAllNotes, selectById: selectNotesById } =
 
 export const selectNotesStatus = (state) => state.notes.status;
 export const selectNotesError = (state) => state.notes.error;
+
+export const selectCreateNoteStatus = (state) => state.notes.createStatus;
+export const selectUpdateNoteStatus = (state) => state.notes.updateStatus;
+export const selectDeleteNoteStatus = (state) => state.notes.deleteStatus;
 
 export const selectNotesPagination = createSelector(
   (state) => state.notes.page,
