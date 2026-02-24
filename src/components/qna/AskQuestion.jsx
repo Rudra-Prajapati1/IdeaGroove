@@ -1,12 +1,11 @@
-import React, { useState } from "react";
-import { createPortal } from "react-dom"; // 1. Import createPortal
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   MessageSquare,
   Loader2,
   BookOpen,
   GraduationCap,
-  FileText,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
@@ -19,27 +18,41 @@ import {
 
 const AskQuestionModal = ({ onClose, onSubmit, editing }) => {
   const dispatch = useDispatch();
+
+  const { user } = useSelector((state) => state.auth);
+
+  // ✅ CRITICAL: useState MUST come before any useSelector that depends on state
+  const [formData, setFormData] = useState({
+    Question: editing?.Question || "",
+    Degree_ID: editing?.Degree_ID ? String(editing.Degree_ID) : "",
+    Subject_ID: editing?.Subject_ID ? String(editing.Subject_ID) : "",
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  // Now it's safe to use formData.Degree_ID in useSelector
   const degrees = useSelector(selectAllDegrees);
   const subjects = useSelector(
     selectSubjectsByDegree(Number(formData.Degree_ID) || 0),
   );
 
-  const { user } = useSelector((state) => state.auth);
-
-  const [formData, setFormData] = useState({
-    Question: "",
-    Degree_ID: "",
-    Subject_ID: "",
-  });
-
-  const [loading, setLoading] = useState(false);
+  // If editing prop changes (e.g. user opens a different question to edit), sync form
+  useEffect(() => {
+    if (editing) {
+      setFormData({
+        Question: editing.Question || "",
+        Degree_ID: editing.Degree_ID ? String(editing.Degree_ID) : "",
+        Subject_ID: editing.Subject_ID ? String(editing.Subject_ID) : "",
+      });
+    }
+  }, [editing]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (name === "Degree_ID") {
-      setFormData((prev) => ({ ...prev, Subject_ID: "" }));
+      setFormData((prev) => ({ ...prev, [name]: value, Subject_ID: "" }));
     }
   };
 
@@ -51,22 +64,31 @@ const AskQuestionModal = ({ onClose, onSubmit, editing }) => {
 
     setLoading(true);
 
-    const payload = {
-      Question: formData.Question,
-      Degree_ID: parseInt(formData.Degree_ID),
-      Subject_ID: parseInt(formData.Subject_ID),
-      Added_By: user?.id || user?.S_ID,
-    };
-
     try {
-      // 1️⃣ create question
-      await dispatch(createQuestion(payload)).unwrap();
+      if (editing) {
+        // ✅ EDIT mode — delegate to parent which dispatches updateQuestion
+        await onSubmit({
+          Question: formData.Question,
+          Degree_ID: formData.Degree_ID,
+          Subject_ID: formData.Subject_ID,
+        });
+      } else {
+        // ✅ CREATE mode — dispatch directly
+        const payload = {
+          Question: formData.Question,
+          Degree_ID: parseInt(formData.Degree_ID),
+          Subject_ID: parseInt(formData.Subject_ID),
+          Added_By: user?.id || user?.S_ID,
+        };
 
-      // 2️⃣ refetch qna list (CRITICAL for JOIN query)
-      await dispatch(fetchQnA({ page: 1, limit: 10 }));
+        await dispatch(createQuestion(payload)).unwrap();
 
-      toast.success("Question posted successfully!");
-      onClose();
+        // Refetch qna list (CRITICAL for JOIN query)
+        await dispatch(fetchQnA({ page: 1, limit: 10 }));
+
+        toast.success("Question posted successfully!");
+        onClose();
+      }
     } catch (err) {
       toast.error(err || "Failed to post question");
     } finally {
@@ -77,9 +99,7 @@ const AskQuestionModal = ({ onClose, onSubmit, editing }) => {
   const inputClass =
     "w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all text-sm bg-white";
 
-  // 2. Wrap the JSX in createPortal
   return createPortal(
-    // 3. Update Z-Index to [9999] and increase blur to 'md' or 'lg'
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-200 font-poppins">
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]"
@@ -209,18 +229,20 @@ const AskQuestionModal = ({ onClose, onSubmit, editing }) => {
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Posting...
+                <Loader2 className="w-4 h-4 animate-spin" />{" "}
+                {editing ? "Updating..." : "Posting..."}
               </>
             ) : (
               <>
-                <MessageSquare className="w-4 h-4" /> Post Question
+                <MessageSquare className="w-4 h-4" />{" "}
+                {editing ? "Update Question" : "Post Question"}
               </>
             )}
           </button>
         </div>
       </div>
     </div>,
-    document.body, // Target: Render directly into body
+    document.body,
   );
 };
 

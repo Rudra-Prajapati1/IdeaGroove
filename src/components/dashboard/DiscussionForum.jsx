@@ -1,24 +1,36 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState } from "react";
 import { BookOpen, Filter, GraduationCap, Plus } from "lucide-react";
 import Controls from "../common/Controls";
 import AskQuestionModal from "../qna/AskQuestion";
 import QnACard from "../cards/QnACard";
 import { selectIsAuthenticated, selectUser } from "../../redux/slice/authSlice";
 import ActionButton from "../common/ActionButton";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import {
   selectAllDegrees,
   selectSubjectsByDegree,
 } from "../../redux/slice/degreeSubjectSlice";
+import { updateQuestion } from "../../redux/slice/qnaSlice";
+import toast from "react-hot-toast";
 
-const DiscussionForum = ({ discussions }) => {
+const DiscussionForum = ({
+  discussions,
+  search,
+  filter,
+  selectedDegree,
+  selectedSubject,
+  onSearchChange,
+  onFilterChange,
+  onDegreeChange,
+  onSubjectChange,
+  onRefetch,
+  isRefetching, // ✅ subtle loading signal — no unmounting
+}) => {
+  const dispatch = useDispatch();
   const isAuth = useSelector(selectIsAuthenticated);
   const currentUser = useSelector(selectUser);
   const currentUserId = currentUser?.S_ID || currentUser?.id || null;
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all");
-  const [selectedDegree, setSelectedDegree] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState("");
+
   const [showAskModal, setShowAskModal] = useState(false);
   const [editing, setEditing] = useState(null);
 
@@ -27,45 +39,36 @@ const DiscussionForum = ({ discussions }) => {
     selectSubjectsByDegree(Number(selectedDegree) || 0),
   );
 
-  // Filter & sort real data
-  const filteredDiscussions = useMemo(() => {
-    return discussions
-      .filter((post) => {
-        if (selectedDegree && post.Degree_ID !== Number(selectedDegree))
-          return false;
-        if (selectedSubject && post.Subject_ID !== Number(selectedSubject))
-          return false;
+  const handleQuestionSubmit = async (data) => {
+    if (editing) {
+      try {
+        await dispatch(
+          updateQuestion({
+            Q_ID: editing.Q_ID,
+            Question: data.Question,
+            Degree_ID: parseInt(data.Degree_ID),
+            Subject_ID: parseInt(data.Subject_ID),
+          }),
+        ).unwrap();
 
-        // Search across question or answer text
-        const matchesSearch =
-          (post.Question?.toLowerCase().includes(search.toLowerCase()) ??
-            false) ||
-          (post.Answer?.toLowerCase().includes(search.toLowerCase()) ?? false);
+        onRefetch();
+        toast.success("Question updated successfully!");
+      } catch (err) {
+        toast.error(err || "Failed to update question");
+      }
+    }
 
-        return matchesSearch;
-      })
-      .sort((a, b) => {
-        const dateA = new Date(a.Added_On || a.Answered_On || 0);
-        const dateB = new Date(b.Added_On || b.Answered_On || 0);
-
-        if (filter === "newest_to_oldest") return dateB - dateA;
-        if (filter === "oldest_to_newest") return dateA - dateB;
-        return 0;
-      });
-  }, [discussions, search, filter, selectedDegree, selectedSubject]);
-
-  const handleQuestionSubmit = (data) => {
-    console.log("New/Edited Question:", data);
-    // TODO: dispatch create/update thunk here when you implement it
     setShowAskModal(false);
     setEditing(null);
   };
 
   const handleDeletePost = (postId) => {
-    if (window.confirm("Delete this discussion?")) {
-      console.log("Delete QnA ID:", postId);
-      // TODO: dispatch delete thunk here (question or answer)
-    }
+    console.log("Deleted QnA ID:", postId);
+  };
+
+  const handleEditClick = (post) => {
+    setEditing(post);
+    setShowAskModal(true);
   };
 
   return (
@@ -86,9 +89,9 @@ const DiscussionForum = ({ discussions }) => {
         <div className="max-w-6xl mx-auto px-4 -mt-8 flex justify-between items-center mb-8">
           <Controls
             search={search}
-            setSearch={setSearch}
+            setSearch={onSearchChange}
             filter={filter}
-            setFilter={setFilter}
+            setFilter={onFilterChange}
             searchPlaceholder="Search questions or answers..."
             filterOptions={{
               All: "all",
@@ -122,10 +125,7 @@ const DiscussionForum = ({ discussions }) => {
                 </label>
                 <select
                   value={selectedDegree}
-                  onChange={(e) => {
-                    setSelectedDegree(e.target.value);
-                    setSelectedSubject("");
-                  }}
+                  onChange={(e) => onDegreeChange(e.target.value)}
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700"
                 >
                   <option value="">All Degrees</option>
@@ -144,7 +144,7 @@ const DiscussionForum = ({ discussions }) => {
                   </label>
                   <select
                     value={selectedSubject}
-                    onChange={(e) => setSelectedSubject(e.target.value)}
+                    onChange={(e) => onSubjectChange(e.target.value)}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700"
                   >
                     <option value="">All Subjects</option>
@@ -160,8 +160,8 @@ const DiscussionForum = ({ discussions }) => {
               {(selectedDegree || selectedSubject) && (
                 <button
                   onClick={() => {
-                    setSelectedDegree("");
-                    setSelectedSubject("");
+                    onDegreeChange("");
+                    onSubjectChange("");
                   }}
                   className="text-xs text-red-500 hover:text-red-600 font-medium underline w-full text-center"
                 >
@@ -173,8 +173,13 @@ const DiscussionForum = ({ discussions }) => {
         </div>
 
         {/* RIGHT CONTENT (FEED) */}
-        <div className="lg:col-span-9 space-y-6">
-          {filteredDiscussions.length === 0 ? (
+        {/* ✅ Subtle opacity transition while refetching — no unmount, no focus loss */}
+        <div
+          className={`lg:col-span-9 space-y-6 transition-opacity duration-200 ${
+            isRefetching ? "opacity-50 pointer-events-none" : "opacity-100"
+          }`}
+        >
+          {discussions.length === 0 ? (
             <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-500">
               <p className="text-lg font-medium">
                 {search || selectedDegree || selectedSubject
@@ -186,14 +191,14 @@ const DiscussionForum = ({ discussions }) => {
               )}
             </div>
           ) : (
-            filteredDiscussions.map((post) => (
+            discussions.map((post) => (
               <QnACard
                 key={post.Q_ID || post.A_ID}
                 post={post}
                 isAuth={isAuth}
                 currentUserId={currentUserId}
-                onEdit={() => setEditing(post)}
-                onDelete={() => handleDeletePost(post.Q_ID || post.A_ID)}
+                onEdit={() => handleEditClick(post)}
+                onDelete={handleDeletePost}
               />
             ))
           )}
