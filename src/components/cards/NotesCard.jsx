@@ -6,7 +6,6 @@ import { useDispatch } from "react-redux";
 import { deleteNote } from "../../redux/slice/notesSlice";
 import { ConfirmationBox } from "../common/ConfirmationBox";
 import toast from "react-hot-toast";
-import { ConfirmationBox } from "../common/ConfirmationBox";
 
 const NotesCard = ({
   note,
@@ -26,7 +25,7 @@ const NotesCard = ({
 
   const isOwner = isAuth && Number(note.Author_ID) === Number(currentUserId);
 
-  const [isDeleteOpen,setIsDeleteOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const formattedDate = note.Added_on
     ? new Date(note.Added_on).toLocaleDateString("en-IN", {

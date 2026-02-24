@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { X, Users, MessageSquare, Loader2, Hash } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
-import { createGroup } from "../../redux/slice/chatRoomsSlice";
+import { createGroup, updateGroup } from "../../redux/slice/chatRoomsSlice";
 
 const HOBBY_OPTIONS = [
   { id: 1, name: "Photography" },
@@ -52,24 +52,37 @@ const AddGroupOverlay = ({ onClose, initialData, onSuccess }) => {
 
     setLoading(true);
 
-    const payload = {
-      Room_Name: formData.Room_Name.trim(),
-      Based_On: parseInt(formData.Based_On),
-      Description: formData.Description || "",
-      Created_By: user?.id || user?.S_ID,
-    };
-
     try {
-      await dispatch(createGroup(payload)).unwrap();
+      if (isEditMode) {
+        // ✅ EDIT: dispatch updateGroup thunk
+        await dispatch(
+          updateGroup({
+            Room_ID: initialData.Room_ID,
+            Room_Name: formData.Room_Name.trim(),
+            Based_On: parseInt(formData.Based_On),
+            Description: formData.Description || "",
+          }),
+        ).unwrap();
 
-      toast.success("Group created successfully!");
+        toast.success("Group updated successfully!");
+      } else {
+        // ✅ CREATE: dispatch createGroup thunk
+        await dispatch(
+          createGroup({
+            Room_Name: formData.Room_Name.trim(),
+            Based_On: parseInt(formData.Based_On),
+            Description: formData.Description || "",
+            Created_By: user?.id || user?.S_ID,
+          }),
+        ).unwrap();
 
-      // tell parent page to refetch
+        toast.success("Group created successfully!");
+      }
+
       onSuccess?.();
-
       onClose();
     } catch (err) {
-      toast.error(err || "Failed to create group");
+      toast.error(err || `Failed to ${isEditMode ? "update" : "create"} group`);
     } finally {
       setLoading(false);
     }
@@ -181,7 +194,12 @@ const AddGroupOverlay = ({ onClose, initialData, onSuccess }) => {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Creating...
+                {isEditMode ? "Saving..." : "Creating..."}
+              </>
+            ) : isEditMode ? (
+              <>
+                <Users className="w-4 h-4" />
+                Save Changes
               </>
             ) : (
               <>
