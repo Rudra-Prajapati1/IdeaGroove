@@ -20,11 +20,17 @@ const QnASection = () => {
   const previewError = useSelector(selectPreviewQnAError);
   const isAuth = useSelector(selectIsAuthenticated);
 
+  
+
   useEffect(() => {
     if (previewStatus === "idle") {
+      console.log(previewStatus);
       dispatch(fetchPreviewQnA());
+      const s =(state)=>console.log(state);
+      console.log(s);
     }
   }, [previewStatus, dispatch]);
+
 
   return (
     <section className="flex flex-col px-6 sm:px-10 py-8 items-center bg-[#FFFBEB]">

@@ -134,6 +134,7 @@ const qnaSlice = createSlice({
       .addCase(fetchPreviewQnA.fulfilled, (state, action) => {
         state.previewStatus = "succeeded";
         state.previewQnA = action.payload.QnA;
+        console.log(state.previewQnA);
       })
       .addCase(fetchPreviewQnA.rejected, (state, action) => {
         state.previewStatus = "failed";

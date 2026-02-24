@@ -28,8 +28,8 @@ const NotesCard = ({
 
   const isOwner = isAuth && Number(note.Added_By) === Number(currentUserId);
 
-  const formattedDate = note.Added_On
-    ? new Date(note.Added_On).toLocaleDateString("en-IN", {
+  const formattedDate = note.Added_on
+    ? new Date(note.Added_on).toLocaleDateString("en-IN", {
         day: "2-digit",
         month: "short",
         year: "numeric",
@@ -53,7 +53,7 @@ const NotesCard = ({
 
         <div className="absolute top-4 right-4 bg-black/20 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 z-10">
           <span className="text-[10px] font-bold text-white tracking-wide uppercase">
-            {note.Subject || "General"}
+            {note.Subject_Name || "General"}
           </span>
         </div>
 
@@ -71,7 +71,7 @@ const NotesCard = ({
           <div className="flex items-center gap-1.5">
             <User className="w-3.5 h-3.5 text-slate-400" />
             <span className="font-medium text-slate-700">
-              {note.Added_By || "Anonymous"}
+              {note.Author || "Anonymous"}
             </span>
           </div>
           <div className="flex items-center gap-1.5">

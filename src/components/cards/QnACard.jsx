@@ -56,7 +56,7 @@ const QnACard = ({ post, isAuth, currentUser, onEdit, onDelete }) => {
               )}
             </div>
             <span className="text-sm font-semibold text-slate-700">
-              {authorName}
+              {post.Question_Author}
             </span>
             <span className="text-xs text-slate-400">
               • Asked on {askedDate || "Just now"}
