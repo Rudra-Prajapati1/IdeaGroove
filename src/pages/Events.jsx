@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { debounce } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchEvents,
@@ -32,25 +33,40 @@ const Events = () => {
   const [editingEvent, setEditingEvent] = useState(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  const updateDebouncedSearch = useCallback(
+    debounce((value) => {
+      setDebouncedSearch(value);
+      setCurrentPage(1); // reset to page 1 on new search
+    }, 300),
+    [],
+  );
+
+  const handleSearchChange = (value) => {
+    setSearch(value); // instant UI update
+    updateDebouncedSearch(value); // delayed API call
+  };
+
+  const handleFilterChange = (value) => {
+    setFilter(value);
+    setCurrentPage(1);
+  };
 
   /* ================= FETCH ON PAGE CHANGE ================= */
   useEffect(() => {
-    dispatch(fetchEvents({ page: currentPage, limit: 9 }));
-  }, [dispatch, currentPage]);
+    dispatch(
+      fetchEvents({
+        page: currentPage,
+        limit: 9,
+        search: debouncedSearch,
+        filter,
+      }),
+    );
+  }, [dispatch, currentPage, debouncedSearch, filter]);
 
   /* ================= FILTERING ================= */
-  const filteredEvents = events.filter((event) => {
-    const eventDate = new Date(event.Event_Date);
-    const today = new Date();
-
-    const matchesSearch =
-      event?.Description?.toLowerCase().includes(search.toLowerCase()) ?? false;
-
-    if (filter === "upcoming" && eventDate < today) return false;
-    if (filter === "past" && eventDate >= today) return false;
-
-    return matchesSearch;
-  });
+  const eventsToShow = events;
 
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
@@ -63,10 +79,7 @@ const Events = () => {
             setEditingEvent(null);
           }}
           onSuccess={() => {
-            // Refresh the event list after success
             dispatch(fetchEvents({ page: currentPage, limit: 9 }));
-            // Optional: you can also reset page to 1 if you want newest first
-            // setCurrentPage(1);
           }}
           initialData={editingEvent}
         />
@@ -76,15 +89,11 @@ const Events = () => {
         <div className="flex justify-between items-center">
           <Controls
             search={search}
-            setSearch={setSearch}
+            setSearch={handleSearchChange}
             filter={filter}
-            setFilter={setFilter}
+            setFilter={handleFilterChange}
             searchPlaceholder="Search events..."
-            filterOptions={{
-              All: "all",
-              Upcoming: "upcoming",
-              Past: "past",
-            }}
+            filterOptions={{ All: "all", Upcoming: "upcoming", Past: "past" }}
           />
 
           <ActionButton
@@ -107,17 +116,16 @@ const Events = () => {
             </div>
           )}
 
-          {status === "succeeded" && filteredEvents.length === 0 && (
+          {status === "succeeded" && eventsToShow.length === 0 && (
             <div className="text-center py-20 text-gray-500">
               <p className="text-2xl font-semibold">No Events Found</p>
               <p>Try adjusting your search or filters</p>
             </div>
           )}
 
-          {/* Events Grid */}
-          {status === "succeeded" && filteredEvents.length > 0 && (
+          {status === "succeeded" && eventsToShow.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredEvents.map((event) => (
+              {eventsToShow.map((event) => (
                 <EventCard
                   key={event.E_ID}
                   event={event}

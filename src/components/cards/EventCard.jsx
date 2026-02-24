@@ -26,7 +26,6 @@ const EventCard = ({ event, onEdit }) => {
     .toUpperCase();
   const day = dateObj.getDate();
 
-  // Use correct field name – check what your user object has
   const isOwner =
     user && event.Added_By === (user.S_ID || user.id || user.Student_ID);
 
@@ -42,20 +41,12 @@ const EventCard = ({ event, onEdit }) => {
   }, [previewOpen]);
 
   const handleDelete = async () => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this event? This action cannot be undone.",
-      )
-    ) {
-      return;
-    }
-
     setDeleting(true);
 
     try {
       await dispatch(deleteEvent(event.E_ID)).unwrap();
       toast.success("Event deleted successfully!");
-      setShowConfirm(false);
+      setIsModalOpen(false);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||

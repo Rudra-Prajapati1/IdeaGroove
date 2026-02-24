@@ -38,10 +38,15 @@ const initialState = eventsAdapter.getInitialState({
 
 export const fetchEvents = createAsyncThunk(
   "events/fetchEvents",
-  async ({ page = 1, limit = 9 }, { rejectWithValue }) => {
+  async (
+    { page = 1, limit = 9, search = "", filter = "all" },
+    { rejectWithValue },
+  ) => {
     try {
-      const { data } = await api.get(`/events?page=${page}&limit=${limit}`);
-      return data; // must return { data, total, page, totalPages }
+      const { data } = await api.get(
+        `/events?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&filter=${filter}`,
+      );
+      return data;
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.error || "Failed to fetch events",
@@ -105,14 +110,12 @@ export const createEvent = createAsyncThunk(
 
 export const updateEvent = createAsyncThunk(
   "events/updateEvent",
-  async (formData, { rejectWithValue }) => {
+  async ({ id, formData }, { rejectWithValue }) => {
     try {
-      const { data } = await api.post("/events/update", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      const { data } = await api.put(`/events/update/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      return data; // { status: true, message: ... }
+      return data; // { status, message, data: updatedEvent }
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.error || "Failed to update event",
@@ -211,7 +214,9 @@ const eventsSlice = createSlice({
       })
       .addCase(updateEvent.fulfilled, (state, action) => {
         state.updateStatus = "succeeded";
-        // No upsert since no data returned; parent will refetch
+        if (action.payload?.data) {
+          eventsAdapter.upsertOne(state, action.payload.data); // ← Instant UI update
+        }
       })
       .addCase(updateEvent.rejected, (state, action) => {
         state.updateStatus = "failed";

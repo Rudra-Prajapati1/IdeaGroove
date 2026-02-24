@@ -3,17 +3,18 @@ import { X, Calendar, ImagePlus, Loader2, Info } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
 import { createPortal } from "react-dom";
-import { createEvent, updateEvent } from "../../redux/slice/eventsSlice"; // Import thunks
-import { selectUser } from "../../redux/slice/authSlice"; // To get user S_ID
+import { createEvent, updateEvent } from "../../redux/slice/eventsSlice";
+import { selectUser } from "../../redux/slice/authSlice";
 
 const AddEventOverlay = ({ onClose, onSuccess, initialData }) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const fileInputRef = useRef(null);
   const isEditMode = !!initialData;
+
   const [formData, setFormData] = useState({
     Description: initialData?.Description || "",
-    Event_Date: initialData?.Event_Date?.split("T")[0] || "", // Format to YYYY-MM-DD
+    Event_Date: initialData?.Event_Date?.split("T")[0] || "",
     Poster_File: null,
   });
 
@@ -120,33 +121,36 @@ const AddEventOverlay = ({ onClose, onSuccess, initialData }) => {
       submissionData.append("Poster_File", formData.Poster_File);
     }
 
-    if (isEditMode) {
-      submissionData.append("E_ID", initialData.E_ID);
-    } else {
-      submissionData.append("Added_By", user?.id || 1); // Assuming user has S_ID
-    }
-
     try {
       if (isEditMode) {
-        await dispatch(updateEvent(submissionData)).unwrap();
+        // Correct format for updateEvent thunk: { id, formData }
+        await dispatch(
+          updateEvent({
+            id: initialData.E_ID,
+            formData: submissionData,
+          }),
+        ).unwrap();
+        toast.success("Event updated successfully");
       } else {
+        // For create: just pass FormData directly
+        submissionData.append("Added_By", user?.S_ID || user?.id || 1);
         await dispatch(createEvent(submissionData)).unwrap();
+        toast.success("Event posted successfully");
       }
-      toast.success(
-        isEditMode ? "Event updated successfully" : "Event posted successfully",
-      );
-      onSuccess();
+
+      onSuccess?.();
       onClose();
     } catch (err) {
       console.log(err);
+
       let errorMessage = isEditMode
         ? "Failed to update event"
-        : `Failed to create event: ${err}`;
+        : `Failed to create event`;
 
-      if (err?.response?.data) {
-        // Typical shape from your controllers: { error: "..." } or { message: "..." }
-        errorMessage =
-          err.response.data.error || err.response.data.message || errorMessage;
+      if (err?.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
       } else if (err?.message) {
         errorMessage = err.message;
       }
@@ -157,7 +161,7 @@ const AddEventOverlay = ({ onClose, onSuccess, initialData }) => {
     }
   };
 
-  /* ---------- UI (UPDATED FOR PREVIEW) ---------- */
+  /* ---------- UI (UNCHANGED) ---------- */
 
   return createPortal(
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 font-poppins">
@@ -255,7 +259,7 @@ const AddEventOverlay = ({ onClose, onSuccess, initialData }) => {
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all text-sm resize-none"
               />
 
-              {/* ✅ Character Counter */}
+              {/* Character Counter */}
               <div className="mt-1 text-xs text-right">
                 <span
                   className={
@@ -320,3 +324,4 @@ const AddEventOverlay = ({ onClose, onSuccess, initialData }) => {
 };
 
 export default AddEventOverlay;
+  
