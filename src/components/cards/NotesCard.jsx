@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Download,
   AlertTriangle,
@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice";
 import toast from "react-hot-toast";
+import { ConfirmationBox } from "../common/ConfirmationBox";
 
 const NotesCard = ({
   note,
@@ -27,6 +28,8 @@ const NotesCard = ({
   const NoteIcon = style.icon;
 
   const isOwner = isAuth && Number(note.Added_By) === Number(currentUserId);
+
+  const [isDeleteOpen,setIsDeleteOpen] = useState(false);
 
   const formattedDate = note.Added_on
     ? new Date(note.Added_on).toLocaleDateString("en-IN", {
@@ -123,6 +126,7 @@ const NotesCard = ({
               <button
                 onClick={() => {
                   toast.success("Event Deleted Successfully!");
+                  setIsDeleteOpen(true);
                 }}
                 className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
                 title="Delete Note"
@@ -131,6 +135,14 @@ const NotesCard = ({
               </button>
             </div>
           )}
+
+          {isDeleteOpen && 
+            (<ConfirmationBox
+              onClose={() => setIsDeleteOpen(false)}
+              onConfirm={handleDelete}
+              type = "Note"
+            />)
+          }
         </div>
       </div>
     </div>

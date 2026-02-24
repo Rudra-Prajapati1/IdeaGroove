@@ -277,10 +277,10 @@ const ProfileInformation = () => {
       {/* Delete Confirmation Modal */}
       {isModalOpen && (
         <ConfirmationBox
-    onClose={() => setIsModalOpen(false)}
-    onConfirm={handleDeleteAccount}
-    type = "Account"
-  />
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleDeleteAccount}
+        type = "Account"
+      />
       )}
     </div>
   );

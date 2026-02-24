@@ -18,7 +18,7 @@ const EventCard = ({ event, onEdit }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [isModalOpen,setIsModalOpen] = useState(false);
+  const [isDeleteOpen,setIsDeleteOpen] = useState(false);
 
   const dateObj = new Date(event.Event_Date);
   const month = dateObj
@@ -134,7 +134,7 @@ const EventCard = ({ event, onEdit }) => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setIsModalOpen(true);
+                    setIsDeleteOpen(true);
                   }}
                   disabled={deleting}
                   className={`p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors ${
@@ -180,12 +180,12 @@ const EventCard = ({ event, onEdit }) => {
           document.getElementById("modal-root") || document.body,
         )}
 
-      {isModalOpen && 
-        <ConfirmationBox
-          onClose={() => setIsModalOpen(false)}
-          onConfirm={handleDelete}
-          type = "Event"
-        />
+      {isDeleteOpen && 
+          (<ConfirmationBox
+            onClose={() => setIsDeleteOpen(false)}
+            onConfirm={handleDelete}
+            type = "Event"
+          />)
       }
     </>
   );
