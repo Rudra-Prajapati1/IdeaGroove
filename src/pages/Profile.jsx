@@ -321,6 +321,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   updateStudentProfile,
   fetchCurrentStudent,
+  deleteStudentAccount,
   selectCurrentStudent,
   fetchAllColleges,
   fetchAllDegrees,
@@ -345,6 +346,7 @@ import {
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import defaultProfilePic from "/DarkLogo.png";
+import { logout } from "../redux/slice/authSlice";
 
 const ProfileInformation = () => {
   const dispatch = useDispatch();
@@ -456,20 +458,46 @@ const ProfileInformation = () => {
     toast.error("Changes discarded");
   };
 
+  const handleDeleteProfile = async () => {
+    if (!window.confirm("Are you sure you want to delete your account?"))
+      return;
+
+    try {
+      await dispatch(deleteStudentAccount(currentStudent.S_ID)).unwrap();
+
+      toast.success("Account deleted successfully");
+
+      // logout auth
+      dispatch(logout());
+
+      navigate("/auth");
+    } catch (err) {
+      toast.error("Failed to delete profile");
+    }
+  };
+
   const handleSave = async () => {
     try {
       const payload = {
-        ...formData,
         student_id: currentStudent.S_ID,
+        name: formData.Name,
+        username: formData.Username,
+        email: formData.Email,
+        roll_no: formData.Roll_No,
+        year: formData.Year,
+        college_id: formData.College_ID,
+        degree_id: formData.Degree_ID,
         hobbies: formData.Hobbies,
       };
 
       await dispatch(updateStudentProfile(payload)).unwrap();
+
       toast.success("Profile Updated Successfully!");
 
       loadProfileData();
       setIsEditing(false);
     } catch (err) {
+      console.error(err);
       toast.error("Failed to update profile");
     }
   };
@@ -512,6 +540,16 @@ const ProfileInformation = () => {
             </h2>
           </div>
           <div className="flex gap-2">
+            {/* Delete Button (only when not editing) */}
+            {!isEditing && (
+              <button
+                onClick={handleDeleteProfile}
+                className="p-2.5 bg-red-50 text-red-600 rounded-full hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                title="Delete Account"
+              >
+                <Trash2 size={18} />
+              </button>
+            )}
             {isEditing && (
               <button
                 onClick={handleDiscard}
