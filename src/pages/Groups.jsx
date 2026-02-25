@@ -1,6 +1,6 @@
-// FULLY UPDATED: src/pages/Groups.jsx
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { debounce } from "lodash";
 import {
   fetchGroups,
   selectAllGroups,
@@ -9,12 +9,13 @@ import {
   selectGroupsPagination,
 } from "../redux/slice/chatRoomsSlice";
 
-import GroupCard from "@/components/cards/GroupCard";
+import GroupCard from "../components/cards/GroupCard";
 import AddGroupOverlay from "../components/groups/AddGroup";
 import Controls from "../components/common/Controls";
 import { selectIsAuthenticated } from "../redux/slice/authSlice";
 import PageHeader from "../components/common/PageHeader";
 import ActionButton from "../components/common/ActionButton";
+import Loading from "../components/common/Loading";
 import { LucideGroup } from "lucide-react";
 
 const Groups = () => {
@@ -29,30 +30,72 @@ const Groups = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [addGroup, setAddGroup] = useState(false);
   const [editingGroup, setEditingGroup] = useState(null);
+
+  // Search/filter state
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
-  /* ===== FETCH ON PAGE CHANGE ===== */
+  const updateDebouncedSearch = useCallback(
+    debounce((value) => {
+      setDebouncedSearch(value);
+      setCurrentPage(1);
+    }, 300),
+    [],
+  );
+
+  const handleSearchChange = (value) => {
+    setSearch(value);
+    updateDebouncedSearch(value);
+  };
+
+  const handleFilterChange = (value) => {
+    setFilter(value);
+    setCurrentPage(1);
+  };
+
+  /* ===== FETCH — reruns on page/search/filter change ===== */
   useEffect(() => {
-    dispatch(fetchGroups({ page: currentPage, limit: 9 }));
-  }, [dispatch, currentPage]);
+    dispatch(
+      fetchGroups({
+        page: currentPage,
+        limit: 9,
+        search: debouncedSearch,
+        filter,
+      }),
+    );
+  }, [dispatch, currentPage, debouncedSearch, filter]);
 
-  const filteredGroups = groups
-    .filter((group) =>
-      group?.Room_Name?.toLowerCase().includes(search.toLowerCase()),
-    )
-    .sort((a, b) => {
-      const dateA = new Date(a.Created_On);
-      const dateB = new Date(b.Created_On);
+  useEffect(() => {
+    if (groupsStatus === "succeeded") setHasLoadedOnce(true);
+  }, [groupsStatus]);
 
-      if (filter === "newest_to_oldest") return dateB - dateA;
-      if (filter === "oldest_to_newest") return dateA - dateB;
-      return 0;
-    });
+  const doRefetch = () =>
+    dispatch(
+      fetchGroups({
+        page: currentPage,
+        limit: 9,
+        search: debouncedSearch,
+        filter,
+      }),
+    );
+
+  const showFullPageLoader = groupsStatus === "loading" && !hasLoadedOnce;
+  const isRefetching = groupsStatus === "loading" && hasLoadedOnce;
 
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
       <PageHeader title="Groups" />
+
+      {/* Thin progress bar during search/filter refetches */}
+      {isRefetching && (
+        <div className="fixed top-0 left-0 w-full z-50">
+          <div className="h-1 bg-green-200">
+            <div className="h-1 bg-[#1A3C20] animate-pulse w-2/3" />
+          </div>
+        </div>
+      )}
 
       {(addGroup || editingGroup) && (
         <AddGroupOverlay
@@ -61,9 +104,7 @@ const Groups = () => {
             setEditingGroup(null);
           }}
           initialData={editingGroup}
-          onSuccess={() =>
-            dispatch(fetchGroups({ page: currentPage, limit: 9 }))
-          }
+          onSuccess={doRefetch}
         />
       )}
 
@@ -71,9 +112,9 @@ const Groups = () => {
         <div className="max-w-6xl mx-auto px-4 -mt-25 flex justify-between items-center">
           <Controls
             search={search}
-            setSearch={setSearch}
+            setSearch={handleSearchChange}
             filter={filter}
-            setFilter={setFilter}
+            setFilter={handleFilterChange}
             searchPlaceholder="Search groups..."
             filterOptions={{
               All: "all",
@@ -92,29 +133,47 @@ const Groups = () => {
         </div>
 
         <div className="max-w-7xl m-auto mt-12 px-12 py-12 rounded-2xl">
-          {groupsStatus === "loading" && <p>Loading Groups...</p>}
-          {groupsStatus === "failed" && <p>Error: {groupsError}</p>}
+          {/* Full-page spinner only on very first load */}
+          {showFullPageLoader && <Loading text="Loading groups..." />}
 
-          {groupsStatus === "succeeded" && (
+          {groupsStatus === "failed" && (
+            <p className="text-red-500 text-center">{groupsError}</p>
+          )}
+
+          {/* Keep groups mounted after first load so search stays focused */}
+          {(groupsStatus === "succeeded" || isRefetching) && (
             <>
-              {filteredGroups.length === 0 ? (
-                <div className="text-center py-20 text-gray-500">
-                  <p className="text-2xl font-semibold">No Groups Found</p>
-                  <p>Try adjusting your search or filters</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {filteredGroups.map((group) => (
-                    <GroupCard
-                      key={group.Room_ID}
-                      group={group}
-                      onEdit={() => setEditingGroup(group)}
-                    />
-                  ))}
-                </div>
-              )}
+              {/* Subtle dim during refetch */}
+              <div
+                className={`transition-opacity duration-200 ${
+                  isRefetching
+                    ? "opacity-50 pointer-events-none"
+                    : "opacity-100"
+                }`}
+              >
+                {groups.length === 0 ? (
+                  <div className="text-center py-20 text-gray-500">
+                    <p className="text-2xl font-semibold">No Groups Found</p>
+                    <p>
+                      {search
+                        ? "Try adjusting your search"
+                        : "Be the first to create a group!"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {groups.map((group) => (
+                      <GroupCard
+                        key={group.Room_ID}
+                        group={group}
+                        onEdit={() => setEditingGroup(group)}
+                        onDeleteSuccess={doRefetch}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
 
-              {/* PAGINATION */}
               {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-4 mt-12">
                   <button
@@ -124,11 +183,9 @@ const Groups = () => {
                   >
                     Previous
                   </button>
-
                   <span className="font-semibold">
                     Page {currentPage} of {totalPages}
                   </span>
-
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage((prev) => prev + 1)}

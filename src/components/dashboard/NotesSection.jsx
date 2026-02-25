@@ -14,10 +14,9 @@ import {
 import Controls from "../common/Controls";
 import NotesCard from "../cards/NotesCard";
 import { useSelector } from "react-redux";
-import { selectIsAuthenticated } from "../../redux/slice/authSlice";
+import { selectIsAuthenticated, selectUser } from "../../redux/slice/authSlice";
 import ActionButton from "../common/ActionButton";
 import AddNotes from "../notes/AddNotes";
-import { selectUser } from "../../redux/slice/authSlice";
 import {
   selectAllDegrees,
   selectSubjectsByDegree,
@@ -32,14 +31,22 @@ const STYLE_VARIANTS = [
   { color: "bg-sky-500", icon: BrainCircuit },
 ];
 
-const NotesSection = ({ notes }) => {
+const NotesSection = ({
+  notes,
+  search,
+  filter,
+  selectedDegree,
+  selectedSubject,
+  onSearchChange,
+  onFilterChange,
+  onDegreeChange,
+  onSubjectChange,
+  isRefetching,
+  onRefetch,
+}) => {
   const isAuth = useSelector(selectIsAuthenticated);
   const user = useSelector(selectUser);
 
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all");
-  const [selectedDegree, setSelectedDegree] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState("");
   const [showAddNotes, setShowAddNotes] = useState(false);
   const [editing, setEditing] = useState(null);
 
@@ -47,28 +54,6 @@ const NotesSection = ({ notes }) => {
   const subjects = useSelector(
     selectSubjectsByDegree(Number(selectedDegree) || 0),
   );
-
-  const filteredNotes = notes
-    .filter((note) => {
-      if (selectedDegree && note.Degree_ID !== Number(selectedDegree))
-        return false;
-      if (selectedSubject && note.Subject_ID !== Number(selectedSubject))
-        return false;
-
-      const matchesSearch =
-        note.Note_File?.toLowerCase().includes(search.toLowerCase()) ||
-        note.Description?.toLowerCase().includes(search.toLowerCase());
-
-      return matchesSearch;
-    })
-    .sort((a, b) => {
-      const dateA = new Date(a.Added_on);
-      const dateB = new Date(b.Added_on);
-
-      if (filter === "newest_to_oldest") return dateB - dateA;
-      if (filter === "oldest_to_newest") return dateA - dateB;
-      return 0;
-    });
 
   return (
     <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
@@ -79,18 +64,21 @@ const NotesSection = ({ notes }) => {
             setEditing(null);
           }}
           editing={editing}
-          onUpload={(formData) => {
-            console.log("Notes upload payload:", formData);
+          onSuccess={() => {
+            onRefetch();
+            setShowAddNotes(false);
+            setEditing(null);
           }}
         />
       )}
+
       <div className="relative z-40">
         <div className="max-w-6xl mx-auto px-4 -mt-8 flex justify-between items-center mb-8">
           <Controls
             search={search}
-            setSearch={setSearch}
+            setSearch={onSearchChange}
             filter={filter}
-            setFilter={setFilter}
+            setFilter={onFilterChange}
             searchPlaceholder="Search notes..."
             filterOptions={{
               All: "all",
@@ -98,7 +86,6 @@ const NotesSection = ({ notes }) => {
               "Oldest to Newest": "oldest_to_newest",
             }}
           />
-
           <ActionButton
             label="Upload Notes"
             icon={Upload}
@@ -110,6 +97,7 @@ const NotesSection = ({ notes }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* LEFT SIDEBAR */}
         <div className="lg:col-span-3 space-y-6">
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm sticky top-8">
             <div className="flex items-center gap-2 mb-6 text-slate-800 font-semibold border-b border-slate-100 pb-4">
@@ -124,10 +112,7 @@ const NotesSection = ({ notes }) => {
                 </label>
                 <select
                   value={selectedDegree}
-                  onChange={(e) => {
-                    setSelectedDegree(e.target.value);
-                    setSelectedSubject("");
-                  }}
+                  onChange={(e) => onDegreeChange(e.target.value)}
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700"
                 >
                   <option value="">All Degrees</option>
@@ -146,7 +131,7 @@ const NotesSection = ({ notes }) => {
                   </label>
                   <select
                     value={selectedSubject}
-                    onChange={(e) => setSelectedSubject(e.target.value)}
+                    onChange={(e) => onSubjectChange(e.target.value)}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700"
                   >
                     <option value="">All Subjects</option>
@@ -162,8 +147,8 @@ const NotesSection = ({ notes }) => {
               {(selectedDegree || selectedSubject) && (
                 <button
                   onClick={() => {
-                    setSelectedDegree("");
-                    setSelectedSubject("");
+                    onDegreeChange("");
+                    onSubjectChange("");
                   }}
                   className="text-xs text-red-500 hover:text-red-600 font-medium underline w-full text-center"
                 >
@@ -174,24 +159,31 @@ const NotesSection = ({ notes }) => {
           </div>
         </div>
 
-        {/* RIGHT CONTENT — NOTES GRID */}
-        <div className="lg:col-span-9 space-y-4">
-          {filteredNotes.length === 0 ? (
+        {/* RIGHT CONTENT — subtle dim while refetching */}
+        <div
+          className={`lg:col-span-9 space-y-4 transition-opacity duration-200 ${
+            isRefetching ? "opacity-50 pointer-events-none" : "opacity-100"
+          }`}
+        >
+          {notes.length === 0 ? (
             <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-500">
               <p className="text-lg font-medium">
-                No notes found matching your criteria.
+                {search || selectedDegree || selectedSubject
+                  ? "No notes match your filters"
+                  : "No notes found."}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredNotes.map((note, index) => (
+              {notes.map((note, index) => (
                 <NotesCard
                   key={note.N_ID}
                   note={note}
                   style={STYLE_VARIANTS[index % STYLE_VARIANTS.length]}
                   isAuth={isAuth}
-                  currentUserId={user?.S_ID}
+                  currentUserId={user?.S_ID || user?.id}
                   onEdit={() => setEditing(note)}
+                  onDeleteSuccess={onRefetch}
                 />
               ))}
             </div>
