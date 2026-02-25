@@ -207,7 +207,7 @@ export const updateStudentProfile = createAsyncThunk(
   async (updatedData, { rejectWithValue }) => {
     try {
       const { data } = await api.post("/students/update", updatedData);
-      return data;
+      return data.data; // 🔥 change here if wrapped
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.error || "Failed to update profile",
@@ -215,13 +215,12 @@ export const updateStudentProfile = createAsyncThunk(
     }
   },
 );
-
 // 🔹 Delete Student
 export const deleteStudentAccount = createAsyncThunk(
   "students/deleteStudentAccount",
   async (id, { rejectWithValue }) => {
     try {
-      await api.get(`/students/delete/${id}`);
+      await api.delete(`/students/${id}`);
       return id;
     } catch (err) {
       return rejectWithValue(
@@ -318,21 +317,22 @@ const studentsSlice = createSlice({
 
       /* ===== UPDATE STUDENT ===== */
       .addCase(updateStudentProfile.fulfilled, (state, action) => {
-        studentsAdapter.upsertOne(state, action.meta.arg);
+        const updatedStudent = action.payload;
+
+        studentsAdapter.upsertOne(state, updatedStudent);
+
         if (
           state.currentStudent &&
-          state.currentStudent.S_ID === action.meta.arg.student_id
+          state.currentStudent.S_ID === updatedStudent.S_ID
         ) {
-          state.currentStudent = {
-            ...state.currentStudent,
-            ...action.meta.arg,
-          };
+          state.currentStudent = updatedStudent;
         }
       })
 
       /* ===== DELETE STUDENT ===== */
       .addCase(deleteStudentAccount.fulfilled, (state, action) => {
         studentsAdapter.removeOne(state, action.payload);
+
         if (
           state.currentStudent &&
           state.currentStudent.S_ID === action.payload

@@ -94,13 +94,14 @@ const AdminNotes = () => {
   const [degreeOptions, setDegreeOptions] = useState([]);
   const [degreeSubjectMap, setDegreeSubjectMap] = useState({});
   const [subjectOptions, setSubjectOptions] = useState([]);
+
   useEffect(() => {
     const fetchNotes = async () => {
       try {
         setLoading(true);
 
         const response = await fetch(
-          "http://localhost:8080/api/notes?page=1&limit=50",
+          `${import.meta.env.VITE_API_BASE_URL}/notes?page=1&limit=50`,
         );
 
         if (!response.ok) throw new Error("Failed to fetch notes");
