@@ -107,7 +107,6 @@ const AdminDashboard = () => {
         const formattedDegrees = [
           ...new Set(data.degreeSubject.map((d) => d.degree_name)),
         ];
-        console.log(formattedDegrees);
 
         setDegreeOptions(formattedDegrees);
       } catch (err) {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import {
   Users,
@@ -16,59 +16,89 @@ import {
   Download,
   Filter,
 } from "lucide-react";
+import { useEffect } from "react";
 
 const AdminDash = () => {
-  const categories = [
-    { name: "Notes", percentage: 45, color: "bg-rose-600" },
-    { name: "Question", percentage: 30, color: "bg-blue-600" },
-    { name: "Events", percentage: 15, color: "bg-amber-500" },
-    { name: "Groups", percentage: 10, color: "bg-purple-600" },
-  ];
+  const [statsData, setStatsData] = useState({});
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [tooltip, setTooltip] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/admin/dashboard-stats`,
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch stats");
+        }
+
+        const data = await res.json();
+        console.log(data);
+        setStatsData(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   const stats = [
     {
       label: "Total Users",
-      value: "5,240",
+      value: statsData?.totalUsers || 0,
       color: "emerald",
       icon: Users,
       desc: "Active scholars",
     },
     {
       label: "Total Notes",
-      value: "1,248",
+      value: statsData?.totalNotes || 0,
       color: "rose",
       icon: Notebook,
       desc: "Notes Uploaded",
     },
     {
       label: "Total Questions",
-      value: "1,200",
+      value: statsData?.totalQuestions || 0,
       color: "blue",
       icon: FileText,
       desc: "Community queries",
     },
     {
       label: "Active Groups",
-      value: "85",
+      value: statsData?.activeGroups || 0,
       color: "purple",
       icon: UsersRound,
       desc: "Study circles",
     },
     {
       label: "Upcoming Events",
-      value: "14",
+      value: statsData?.totalEvents || 0,
       color: "amber",
       icon: Calendar,
       desc: "Next 7 days",
     },
     {
       label: "Complaints",
-      value: "450",
+      value: statsData?.complaints || 0,
       color: "orange",
       icon: AlertTriangle,
       desc: "Unresolved issues",
     },
   ];
+
+  const totalUploads =
+    (statsData?.totalNotes || 0) +
+    (statsData?.totalQuestions || 0) +
+    (statsData?.totalEvents || 0) +
+    (statsData?.activeGroups || 0);
 
   // --- Data for Recent Activities Table ---
   const recentActivities = [
@@ -99,6 +129,37 @@ const AdminDash = () => {
       avatar: "https://i.pravatar.cc/150?u=Damon",
     },
   ];
+
+  const categories = [
+    {
+      name: "Notes",
+      count: statsData?.totalNotes || 0,
+    },
+    {
+      name: "Questions",
+      count: statsData?.totalQuestions || 0,
+    },
+    {
+      name: "Events",
+      count: statsData?.totalEvents || 0,
+    },
+    {
+      name: "Groups",
+      count: statsData?.activeGroups || 0,
+    },
+  ].map((item) => ({
+    ...item,
+    percentage:
+      totalUploads > 0 ? Math.round((item.count / totalUploads) * 100) : 0,
+    color:
+      item.name === "Notes"
+        ? "bg-rose-600"
+        : item.name === "Questions"
+          ? "bg-blue-600"
+          : item.name === "Events"
+            ? "bg-amber-500"
+            : "bg-purple-600",
+  }));
 
   const getTheme = (color) => {
     const themes = {
@@ -189,10 +250,12 @@ const AdminDash = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden group">
-          <div className="bg-primary text-white px-6 py-4 font-bold text-sm flex items-center justify-between">
+          <div className="p-6 border-b bg-primary border-gray-50 flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <Activity size={16} className="text-emerald-400" />
-              Content Distribution
+              <Activity size={22} className="text-emerald-400" />
+              <h3 className="text-lg font-bold text-white font-poppins">
+                Content Distribution
+              </h3>
             </div>
           </div>
           <div className="p-8 flex flex-col md:flex-row items-center justify-around gap-8">
@@ -209,50 +272,40 @@ const AdminDash = () => {
                   stroke="#F1F5F9"
                   strokeWidth="3"
                 ></circle>
-                <circle
-                  cx="18"
-                  cy="18"
-                  r="15.9"
-                  fill="transparent"
-                  stroke="#E11D48"
-                  strokeWidth="4"
-                  strokeDasharray="45 100"
-                  strokeDashoffset="0"
-                ></circle>
-                <circle
-                  cx="18"
-                  cy="18"
-                  r="15.9"
-                  fill="transparent"
-                  stroke="#2563eb"
-                  strokeWidth="4"
-                  strokeDasharray="30 100"
-                  strokeDashoffset="-45"
-                ></circle>
-                <circle
-                  cx="18"
-                  cy="18"
-                  r="15.9"
-                  fill="transparent"
-                  stroke="#f59e0b"
-                  strokeWidth="4"
-                  strokeDasharray="15 100"
-                  strokeDashoffset="-75"
-                ></circle>
-                <circle
-                  cx="18"
-                  cy="18"
-                  r="15.9"
-                  fill="transparent"
-                  stroke="#7c3aed"
-                  strokeWidth="4"
-                  strokeDasharray="10 100"
-                  strokeDashoffset="-90"
-                ></circle>
+                {categories.map((cat, index) => {
+                  const offset = categories
+                    .slice(0, index)
+                    .reduce((acc, item) => acc + item.percentage, 0);
+
+                  return (
+                    <circle
+                      key={cat.name}
+                      cx="18"
+                      cy="18"
+                      r="15.9"
+                      fill="transparent"
+                      strokeWidth="4"
+                      strokeDasharray={`${cat.percentage} 100`}
+                      strokeDashoffset={`-${offset}`}
+                      stroke={
+                        cat.color === "bg-rose-600"
+                          ? "#E11D48"
+                          : cat.color === "bg-blue-600"
+                            ? "#2563eb"
+                            : cat.color === "bg-amber-500"
+                              ? "#f59e0b"
+                              : "#7c3aed"
+                      }
+                      onMouseEnter={() => setTooltip(cat)}
+                      onMouseLeave={() => setTooltip(null)}
+                      className="cursor-pointer"
+                    />
+                  );
+                })}
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                 <span className="text-4xl font-black text-slate-800 tracking-tighter">
-                  1.2k
+                  {totalUploads}
                 </span>
                 <span className="text-[9px] uppercase text-slate-400 font-black tracking-[0.2em]">
                   Total Uploads
@@ -284,6 +337,13 @@ const AdminDash = () => {
                 </div>
               ))}
             </div>
+            {tooltip && (
+              <div className="absolute top-0 right-0 bg-white shadow-lg rounded-xl p-3 text-xs border z-50">
+                <p className="font-bold">{tooltip.name}</p>
+                <p>{tooltip.percentage}%</p>
+                <p>{tooltip.count} uploads</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -349,19 +409,21 @@ const AdminDash = () => {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="bg-primary text-white px-6 py-4 font-bold text-sm flex justify-between items-center">
-          <div className="flex items-center gap-2">
+        <div className="p-6 border-b bg-primary border-gray-50 flex justify-between items-center">
+          <div className="flex items-center gap-2 text-white">
             <Calendar size={16} />
 
-            <span>Recent Activities</span>
+            <span className="text-lg font-bold font-poppins">
+              Recent Activities
+            </span>
           </div>
 
           <div className="flex gap-2">
-            <button className="flex items-center gap-1.5 bg-green-800 px-3 py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors">
+            <button className="flex items-center gap-1.5 bg-green-800 px-4 py-1.5 rounded-lg text-sm text-white hover:bg-green-700 transition-colors">
               <Filter size={12} /> Filter
             </button>
 
-            <button className="flex items-center gap-1.5 bg-green-800 px-3 py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors">
+            <button className="flex items-center gap-1.5 bg-green-800 px-4 py-1.5 rounded-lg text-sm text-white hover:bg-green-700 transition-colors">
               <Download size={12} /> Export
             </button>
           </div>
