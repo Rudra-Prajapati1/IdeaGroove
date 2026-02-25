@@ -1,6 +1,13 @@
 // import React, { useEffect, useState } from "react";
 // import { useDispatch } from "react-redux";
+<<<<<<< HEAD
+// import {
+//   updateStudentProfile,
+//   deleteStudentAccount,
+// } from "../redux/slice/studentsSlice";
+=======
 // import { updateStudentProfile, deleteStudentAccount } from "../redux/slice/studentsSlice";
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 // import {
 //   User,
 //   Pencil,
@@ -20,10 +27,19 @@
 // import defaultProfilePic from "/DarkLogo.png";
 // import toast from "react-hot-toast";
 // import { ConfirmationBox } from "../components/common/ConfirmationBox";
+<<<<<<< HEAD
+// import { selectAuth } from "../redux/slice/authSlice";
+// import { updateStudentProfile } from "../redux/slice/studentsSlice";
+
+// const ProfileInformation = () => {
+//   const navigate = useNavigate();
+//   const { isAuthenticated, user } = useSelector(selectAuth);
+=======
 
 // const ProfileInformation = () => {
 //   const navigate = useNavigate();
 //   const { isAuthenticated, user } = useSelector((state) => state.auth);
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 
 //   // --- STATES ---
 //   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,6 +77,38 @@
 
 //   const dispatch = useDispatch();
 
+<<<<<<< HEAD
+//   const handleSave = async () => {
+//     try {
+//       const payload = {
+//         student_id: user.id,
+//         username: formData.Username ?? null,
+//         name: formData.Name ?? null,
+//         roll_no: formData.Roll_No ?? null,
+//         college_id: user.College_ID ?? null,
+//         degree_id: user.Degree_ID ?? null,
+//         year: formData.Year ?? null,
+//         email: formData.Email ?? null,
+//         profile_pic: user.Profile_Pic ?? null,
+//         hobbies: formData.Hobbies ?? [],
+//       };
+
+//       console.log("Sending data:", payload);
+
+//       const updatedUserFromBackend = await dispatch(
+//         updateStudentProfile(payload),
+//       ).unwrap();
+
+//       dispatch(updateUserInAuth(updatedUserFromBackend));
+
+//       toast.success("Profile Updated Successfully!");
+//       setIsEditing(false);
+//     } catch (err) {
+//       console.error(err);
+//       toast.error(typeof err === "string" ? err : "Update failed");
+//     }
+//   };
+=======
 // const handleSave = async () => {
 //   try {
 //     const payload = {
@@ -86,6 +134,7 @@
 //     toast.error(err);
 //   }
 // };
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 
 //   const handleCancel = () => {
 //     // Revert to original user data
@@ -104,6 +153,16 @@
 //   };
 
 //   const handleDeleteAccount = async () => {
+<<<<<<< HEAD
+//     try {
+//       await dispatch(deleteStudentAccount(user.S_ID)).unwrap();
+//       toast.success("Profile Deleted Successfully!");
+//       navigate("/auth");
+//     } catch (err) {
+//       toast.error(err);
+//     }
+//   };
+=======
 //   try {
 //     await dispatch(deleteStudentAccount(user.S_ID)).unwrap();
 //     toast.success("Profile Deleted Successfully!");
@@ -112,6 +171,7 @@
 //     toast.error(err);
 //   }
 // };
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 
 //   const formatBatchYear = (yearId) => {
 //     if (!yearId || yearId.toString().length !== 4) return yearId || "N/A";
@@ -306,16 +366,52 @@
 //       {/* Delete Confirmation Modal */}
 //       {isModalOpen && (
 //         <ConfirmationBox
+<<<<<<< HEAD
+//           onClose={() => setIsModalOpen(false)}
+//           onConfirm={handleDeleteAccount}
+//           type="Account"
+//         />
+=======
 //         onClose={() => setIsModalOpen(false)}
 //         onConfirm={handleDeleteAccount}
 //         type = "Account"
 //       />
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 //       )}
 //     </div>
 //   );
 // };
 
 // export default ProfileInformation;
+<<<<<<< HEAD
+
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux"; // Combined imports
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import {
+  User,
+  Pencil,
+  Mail,
+  Hash,
+  GraduationCap,
+  Calendar,
+  Camera,
+  Trash2,
+  Check,
+  RotateCcw,
+} from "lucide-react";
+
+// --- REDUX IMPORTS ---
+import {
+  updateStudentProfile,
+  deleteStudentAccount,
+} from "../redux/slice/studentsSlice"; // Import only once
+import { selectAuth, updateUserInAuth } from "../redux/slice/authSlice";
+
+import defaultProfilePic from "/DarkLogo.png";
+import { ConfirmationBox } from "../components/common/ConfirmationBox";
+=======
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -335,10 +431,15 @@ import {
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import defaultProfilePic from "/DarkLogo.png";
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 
 const ProfileInformation = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+<<<<<<< HEAD
+  const dispatch = useDispatch();
+  const { isAuthenticated, user } = useSelector(selectAuth);
+=======
 
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const currentStudent = useSelector(selectCurrentStudent);
@@ -346,6 +447,7 @@ const ProfileInformation = () => {
   const masterColleges = useSelector(selectAllColleges) || [];
   const masterDegrees = useSelector(selectAllDegrees) || [];
   const masterHobbies = useSelector(selectAllHobbiesMaster) || [];
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(null);
@@ -401,6 +503,63 @@ const ProfileInformation = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+<<<<<<< HEAD
+  const handleSave = async () => {
+    try {
+      const payload = {
+        student_id: user.id || user.S_ID, // Handle both ID cases
+        username: formData.Username ?? null,
+        name: formData.Name ?? null,
+        roll_no: formData.Roll_No ?? null,
+        college_id: user.College_ID ?? null,
+        degree_id: user.Degree_ID ?? null,
+        year: formData.Year ?? null,
+        email: formData.Email ?? null,
+        profile_pic: user.Profile_Pic ?? null,
+        hobbies: formData.Hobbies ?? [],
+      };
+
+      console.log("Sending data:", payload);
+
+      // 1. Call API
+      const response = await dispatch(updateStudentProfile(payload)).unwrap();
+
+      // 2. Update Auth State (UI)
+      // Note: We check if response has 'updatedUser' key or is the user object itself
+      const userData = response.updatedUser || response;
+      dispatch(updateUserInAuth(userData));
+
+      toast.success("Profile Updated Successfully!");
+      setIsEditing(false);
+    } catch (err) {
+      console.error(err);
+      toast.error(typeof err === "string" ? err : "Update failed");
+    }
+  };
+
+  const handleCancel = () => {
+    setFormData({
+      Name: user.Name,
+      Username: user.Username,
+      Email: user.Email,
+      Roll_No: user.Roll_No,
+      College: user.College,
+      Degree: user.Degree,
+      Year: user.Year,
+      Hobbies: user.Hobbies,
+    });
+    setIsEditing(false);
+    toast.error("Changes Discarded");
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      await dispatch(deleteStudentAccount(user.id || user.S_ID)).unwrap();
+      toast.success("Profile Deleted Successfully!");
+      navigate("/auth");
+    } catch (err) {
+      toast.error(err);
+=======
   const handleSearchableSelect = (type, value) => {
     if (type === "College") {
       const match = masterColleges.find(c => c.College_Name === value);
@@ -460,6 +619,7 @@ const ProfileInformation = () => {
       setIsEditing(false);
     } catch (err) {
       toast.error("Failed to update profile");
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
     }
   };
 
@@ -572,9 +732,35 @@ const ProfileInformation = () => {
                 </div>
               </div>
             </div>
+<<<<<<< HEAD
+
+            {/* Danger Zone */}
+            {!isEditing && (
+              <div className="mt-12 pt-8 border-t border-gray-100">
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex items-center gap-2 text-red-500 hover:text-red-700 font-bold text-sm transition-colors px-2 py-1"
+                >
+                  <Trash2 size={16} /> Delete My Account
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {isModalOpen && (
+        <ConfirmationBox
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={handleDeleteAccount}
+          type="Account"
+        />
+      )}
+=======
+          </div>
+        </div>
+      </div>
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
     </div>
   );
 };

@@ -6,7 +6,11 @@
 // import api from "../../api/axios"; // Assuming you have this for API calls
 
 // const studentsAdapter = createEntityAdapter({
+<<<<<<< HEAD
+//   selectId: (student) => student.student_id,
+=======
 //   selectId: (student) => student.S_ID,
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 //   sortComparer: (a, b) => a.Name.localeCompare(b.Name), // Alphabetical sort
 // });
 
@@ -42,8 +46,11 @@
 //   },
 // );
 
+<<<<<<< HEAD
+=======
 
 
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 // // 🔹 Update Student
 // export const updateStudentProfile = createAsyncThunk(
 //   "students/updateStudentProfile",
@@ -53,10 +60,17 @@
 //       return data.data;
 //     } catch (err) {
 //       return rejectWithValue(
+<<<<<<< HEAD
+//         err.response?.data?.error || "Failed to update profile",
+//       );
+//     }
+//   },
+=======
 //         err.response?.data?.error || "Failed to update profile"
 //       );
 //     }
 //   }
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 // );
 
 // // 🔹 Delete Student
@@ -68,6 +82,14 @@
 //       return id;
 //     } catch (err) {
 //       return rejectWithValue(
+<<<<<<< HEAD
+//         err.response?.data?.error || "Failed to delete account",
+//       );
+//     }
+//   },
+// );
+
+=======
 //         err.response?.data?.error || "Failed to delete account"
 //       );
 //     }
@@ -75,6 +97,7 @@
 // );
 
 
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 // const studentsSlice = createSlice({
 //   name: "students",
 //   initialState,
@@ -107,8 +130,11 @@
 //   },
 // });
 
+<<<<<<< HEAD
+=======
 
 
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 // export default studentsSlice.reducer;
 
 // export const { selectAll: selectAllStudents, selectById: selectStudentById } =
@@ -128,14 +154,23 @@ import {
   createSlice,
 } from "@reduxjs/toolkit";
 import api from "../../api/axios";
+<<<<<<< HEAD
+=======
 
 /* ===============================
    ENTITY ADAPTER
 ================================= */
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 
+// 1. Adapter Configuration
 const studentsAdapter = createEntityAdapter({
+<<<<<<< HEAD
+  selectId: (student) => student.student_id || student.S_ID, // Handle varied ID names
+  sortComparer: (a, b) => (a.Name || "").localeCompare(b.Name || ""),
+=======
   selectId: (student) => student.S_ID,
   sortComparer: (a, b) => a.Name.localeCompare(b.Name),
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 });
 
 /* ===============================
@@ -160,11 +195,15 @@ const initialState = studentsAdapter.getInitialState({
   hobbies: [],
 });
 
+<<<<<<< HEAD
+// 🔹 Fetch Students
+=======
 /* ===============================
    THUNKS
 ================================= */
 
 // 🔹 Fetch Students (Search Page)
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 export const fetchStudents = createAsyncThunk(
   "students/fetchStudents",
   async (
@@ -190,6 +229,9 @@ export const fetchStudents = createAsyncThunk(
   }
 );
 
+<<<<<<< HEAD
+// 🔹 Update Student (FIXED)
+=======
 // 🔹 Fetch Logged-in Student Profile
 export const fetchCurrentStudent = createAsyncThunk(
   "students/fetchCurrentStudent",
@@ -206,18 +248,27 @@ export const fetchCurrentStudent = createAsyncThunk(
 );
 
 // 🔹 Update Student
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 export const updateStudentProfile = createAsyncThunk(
   "students/updateStudentProfile",
   async (updatedData, { rejectWithValue }) => {
     try {
+<<<<<<< HEAD
+      const response = await api.post(`/students/update`, updatedData);
+
+      // FIXED: The backend returns { message: "...", updatedUser: {...} }
+      // We must return the user object, not "data.data" (which is undefined)
+      return response.data.updatedUser || response.data;
+=======
       const { data } = await api.post("/students/update", updatedData);
       return data;
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.error || "Failed to update profile"
+        err.response?.data?.error || "Failed to update profile",
       );
     }
-  }
+  },
 );
 
 // 🔹 Delete Student
@@ -229,12 +280,14 @@ export const deleteStudentAccount = createAsyncThunk(
       return id;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.error || "Failed to delete account"
+        err.response?.data?.error || "Failed to delete account",
       );
     }
-  }
+  },
 );
 
+<<<<<<< HEAD
+=======
 /* ===== MASTER LIST THUNKS ===== */
 
 export const fetchAllColleges = createAsyncThunk(
@@ -277,13 +330,18 @@ export const fetchAllHobbiesMaster = createAsyncThunk(
    SLICE
 ================================= */
 
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
 const studentsSlice = createSlice({
   name: "students",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
+<<<<<<< HEAD
+      // Fetch
+=======
       /* ===== FETCH STUDENTS ===== */
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
       .addCase(fetchStudents.pending, (state) => {
         state.status = "loading";
         state.error = null;
@@ -300,6 +358,17 @@ const studentsSlice = createSlice({
         state.error = action.payload;
       })
 
+<<<<<<< HEAD
+      // Update
+      .addCase(updateStudentProfile.fulfilled, (state, action) => {
+        // Upsert requires a valid entity object with an ID
+        if (action.payload) {
+          studentsAdapter.upsertOne(state, action.payload);
+        }
+      })
+
+      // Delete
+=======
       /* ===== FETCH CURRENT STUDENT ===== */
       .addCase(fetchCurrentStudent.pending, (state) => {
         state.currentStatus = "loading";
@@ -329,6 +398,7 @@ const studentsSlice = createSlice({
       })
 
       /* ===== DELETE STUDENT ===== */
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7
       .addCase(deleteStudentAccount.fulfilled, (state, action) => {
         studentsAdapter.removeOne(state, action.payload);
         if (
@@ -370,6 +440,8 @@ export const selectStudentsPagination = (state) => ({
   totalPages: state.students.totalPages,
   total: state.students.total,
 });
+<<<<<<< HEAD
+=======
 
 export const selectCurrentStudent = (state) => state.students.currentStudent;
 export const selectCurrentStudentStatus = (state) => state.students.currentStatus;
@@ -379,3 +451,4 @@ export const selectCurrentStudentError = (state) => state.students.currentError;
 export const selectAllColleges = (state) => state.students.colleges;
 export const selectAllDegrees = (state) => state.students.degrees;
 export const selectAllHobbiesMaster = (state) => state.students.hobbies;
+>>>>>>> 956b3b8ed8a4583780208093e954fbe1ec9e65f7

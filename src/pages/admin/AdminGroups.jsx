@@ -97,6 +97,8 @@ const AdminGroups = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [degreeFilter, setDegreeFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [debouncedDegree, setDebouncedDegree] = useState(degreeFilter);
+  const [degreeOptions, setDegreeOptions] = useState([]);
 
   // --- MODAL STATE ---
   const [modalOpen, setModalOpen] = useState(false);
@@ -105,6 +107,16 @@ const AdminGroups = () => {
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedDegree(degreeFilter);
+    }, 500); // 500ms delay
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [degreeFilter]);
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -148,7 +160,31 @@ const AdminGroups = () => {
     fetchGroups();
   }, []);
 
-  const degreeOptions = ["B.Tech", "BCA", "MCA", "M.Tech"];
+  useEffect(() => {
+    const fetchDegrees = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:8080/api/degreeSubject/allDegreeSubject",
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch degrees");
+        }
+
+        const data = await response.json();
+
+        const formattedDegrees = [
+          ...new Set(data.degreeSubject.map((degree) => degree.degree_name)),
+        ];
+        setDegreeOptions(formattedDegrees);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchDegrees();
+  }, []);
+
   const categoryOptions = [
     "Competitive Programming",
     "Academics",
@@ -209,7 +245,7 @@ const AdminGroups = () => {
       <AdminGroupsGrid
         groups={groups}
         searchTerm={searchTerm}
-        filterDegree={degreeFilter}
+        filterDegree={debouncedDegree}
         filterCategory={categoryFilter}
         onModerate={handleModerateRequest}
       />
