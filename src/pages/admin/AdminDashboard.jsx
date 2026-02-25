@@ -36,9 +36,9 @@ const AdminDashboard = () => {
   const [degreeFilter, setDegreeFilter] = useState("all");
   const [yearFilter, setYearFilter] = useState("all");
   const [error, setError] = useState(null);
-
-  const degreeOptions = ["B.Tech", "BCA", "MCA"];
-  const yearOptions = ["1", "2", "3", "4"];
+  const [stats, setStats] = useState(dashboardUserStats);
+  const [degreeOptions, setDegreeOptions] = useState([]);
+  const [yearOptions, setYearOptions] = useState([]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAction, setSelectedAction] = useState(null);
@@ -58,9 +58,28 @@ const AdminDashboard = () => {
         const data = await response.json();
         const activeCount = data.filter((u) => u.is_Active === 1).length;
         const inactiveCount = data.filter((u) => u.is_Active !== 1).length;
-        dashboardUserStats[0].value = data.length;
-        dashboardUserStats[1].value = activeCount;
-        dashboardUserStats[2].value = inactiveCount;
+        const formattedYears = [
+          ...new Set(
+            data.map((d) => {
+              const year = String(d.Year);
+
+              if (year.length === 4) {
+                const start = "20" + year.slice(0, 2);
+                const end = "20" + year.slice(2, 4);
+                return `${start}-${end}`;
+              }
+
+              return year; // fallback if already formatted
+            }),
+          ),
+        ];
+
+        setYearOptions(formattedYears);
+        setStats([
+          { ...stats[0], value: data.length },
+          { ...stats[1], value: activeCount },
+          { ...stats[2], value: inactiveCount },
+        ]);
 
         setUsers(data);
       } catch (err) {
@@ -71,6 +90,33 @@ const AdminDashboard = () => {
     };
 
     fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    const fetchDegree = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/degreeSubject/allDegreeSubject`,
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch degrees");
+        }
+
+        const data = await response.json();
+        const formattedDegrees = [
+          ...new Set(data.degreeSubject.map((d) => d.degree_name)),
+        ];
+        console.log(formattedDegrees);
+
+        setDegreeOptions(formattedDegrees);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDegree();
   }, []);
 
   const handleModerateRequest = (type, userId) => {
@@ -123,7 +169,7 @@ const AdminDashboard = () => {
         secondTitle="All Years"
       />
 
-      <StatsRow stats={dashboardUserStats} />
+      <StatsRow stats={stats} />
 
       <DashboardUsers
         users={users}

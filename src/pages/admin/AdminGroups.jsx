@@ -95,10 +95,8 @@ export const groupsStats = [
 const AdminGroups = () => {
   const [groups, setGroups] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [degreeFilter, setDegreeFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [debouncedDegree, setDebouncedDegree] = useState(degreeFilter);
-  const [degreeOptions, setDegreeOptions] = useState([]);
+  const [hobbyFilter, setHobbyFilter] = useState("all");
+  const [hobbyOptions, setHobbyOptions] = useState([]);
 
   // --- MODAL STATE ---
   const [modalOpen, setModalOpen] = useState(false);
@@ -107,16 +105,6 @@ const AdminGroups = () => {
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedDegree(degreeFilter);
-    }, 500); // 500ms delay
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [degreeFilter]);
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -161,36 +149,25 @@ const AdminGroups = () => {
   }, []);
 
   useEffect(() => {
-    const fetchDegrees = async () => {
+    const fetchHobbies = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:8080/api/degreeSubject/allDegreeSubject",
-        );
+        const response = await fetch("http://localhost:8080/api/hobbies");
 
         if (!response.ok) {
-          throw new Error("Failed to fetch degrees");
+          throw new Error("Failed to fetch hobbies");
         }
 
         const data = await response.json();
 
-        const formattedDegrees = [
-          ...new Set(data.degreeSubject.map((degree) => degree.degree_name)),
-        ];
-        setDegreeOptions(formattedDegrees);
+        const hobbyNames = data.hobbies.map((hobby) => hobby.Hobby_Name);
+        setHobbyOptions(hobbyNames);
       } catch (err) {
         console.error(err);
       }
     };
 
-    fetchDegrees();
+    fetchHobbies();
   }, []);
-
-  const categoryOptions = [
-    "Competitive Programming",
-    "Academics",
-    "Artificial Intelligence",
-    "Web Development",
-  ];
 
   const handleModerateRequest = (type, groupId) => {
     setSelectedAction(type);
@@ -234,19 +211,16 @@ const AdminGroups = () => {
         subtitle="Manage student groups and monitor engagement"
         searchValue={searchTerm}
         onSearch={setSearchTerm}
-        degreeOptions={degreeOptions}
-        subjectOptions={categoryOptions}
-        onDegreeFilter={setDegreeFilter}
-        onSubjectFilter={setCategoryFilter}
-        secondTitle="All Hobbies"
+        hobbyOptions={hobbyOptions}
+        onHobbyFilter={setHobbyFilter}
+        thirdTitle="All Hobbies"
       />
 
       <StatsRow stats={groupsStats} />
       <AdminGroupsGrid
         groups={groups}
         searchTerm={searchTerm}
-        filterDegree={debouncedDegree}
-        filterCategory={categoryFilter}
+        filterHobby={hobbyFilter}
         onModerate={handleModerateRequest}
       />
 

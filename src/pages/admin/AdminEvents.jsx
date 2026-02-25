@@ -141,7 +141,7 @@ const AdminEvents = () => {
     fetchEvents();
   }, []);
 
-  const filterOptions = ["Active", "Past"];
+  const filterOptions = ["Upcoming", "Past"];
 
   const handleModerateRequest = (type, eventId) => {
     setSelectedAction(type);
@@ -207,9 +207,9 @@ const AdminEvents = () => {
         subtitle="Filter events by degree, subject, or search terms"
         searchValue={searchTerm}
         onSearch={setSearchTerm}
-        degreeOptions={filterOptions}
-        onDegreeFilter={setEventFilter}
-        firstTitle="All Events"
+        subjectOptions={filterOptions}
+        onSubjectFilter={setEventFilter}
+        secondTitle="All Events"
       />
 
       <StatsRow stats={eventsStats} />
