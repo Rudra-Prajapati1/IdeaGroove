@@ -73,6 +73,13 @@ const DashboardUsers = ({
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
+  const formattedUserYear = (year) => {
+    const y = String(year);
+    if (y.length === 4) {
+      return `20${y.slice(0, 2)}-20${y.slice(2, 4)}`;
+    }
+    return y;
+  };
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const s = searchTerm.toLowerCase();
@@ -88,8 +95,7 @@ const DashboardUsers = ({
         filterDegree === "all" || user?.Degree?.Degree_Name === filterDegree;
 
       const matchesYear =
-        filterYear === "all" || user?.Year?.toString() === filterYear;
-
+        filterYear === "all" || formattedUserYear(user?.Year) === filterYear;
       return matchesSearch && matchesDegree && matchesYear;
     });
   }, [users, searchTerm, filterDegree, filterYear]);

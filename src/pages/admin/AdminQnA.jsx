@@ -137,6 +137,10 @@ const AdminQnA = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
+  const [degreeOptions, setDegreeOptions] = useState([]);
+  const [degreeSubjectMap, setDegreeSubjectMap] = useState({});
+  const [subjectOptions, setSubjectOptions] = useState([]);
+
   useEffect(() => {
     const fetchQnA = async () => {
       try {
@@ -177,7 +181,59 @@ const AdminQnA = () => {
     fetchQnA();
   }, []);
 
-  console.log(qnas);
+  useEffect(() => {
+    const fetchDegree = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/degreeSubject/allDegreeSubject`,
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch degrees");
+        }
+
+        const data = await response.json();
+
+        const map = {};
+
+        data.degreeSubject.forEach((item) => {
+          const degree = item.degree_name;
+          const subject = item.subject_name;
+
+          if (!map[degree]) {
+            map[degree] = [];
+          }
+
+          map[degree].push(subject);
+        });
+
+        // Remove duplicates
+        Object.keys(map).forEach((degree) => {
+          map[degree] = [...new Set(map[degree])];
+        });
+
+        setDegreeSubjectMap(map);
+        setDegreeOptions(Object.keys(map));
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchDegree();
+  }, []);
+
+  useEffect(() => {
+    if (degreeFilter === "all") {
+      // Show all subjects
+      const allSubjects = [...new Set(Object.values(degreeSubjectMap).flat())];
+
+      setSubjectOptions(allSubjects);
+    } else {
+      setSubjectOptions(degreeSubjectMap[degreeFilter] || []);
+    }
+
+    setSubjectFilter("all"); // Reset subject when degree changes
+  }, [degreeFilter, degreeSubjectMap]);
 
   // Trigger modal for Question
   const handleModerateRequest = (type, questionId) => {
@@ -249,17 +305,12 @@ const AdminQnA = () => {
   return (
     <section className="flex flex-col gap-6 relative min-h-screen">
       <AdminPageHeader
-        title="QnA Moderation"
-        subtitle="Manage questions and user compliance"
+        title="Notes Moderation"
+        subtitle="Review and manage user uploads"
         searchValue={searchTerm}
         onSearch={setSearchTerm}
-        degreeOptions={["B.Tech", "BCA", "MCA"]}
-        subjectOptions={[
-          "Web Development",
-          "Linear Algebra",
-          "Thermodynamics",
-          "Data Structures",
-        ]}
+        degreeOptions={degreeOptions}
+        subjectOptions={subjectOptions}
         onDegreeFilter={setDegreeFilter}
         onSubjectFilter={setSubjectFilter}
       />
