@@ -9,6 +9,7 @@ import authReducer from "./slice/authSlice";
 import studentsReducer from "./slice/studentsSlice";
 import degreeSubjectReducer from "./slice/degreeSubjectSlice";
 import hobbyReducer from "./slice/hobbySlice";
+import complaintReducer from "./slice/complaintsSlice";
 
 export default configureStore({
   reducer: {
@@ -21,6 +22,7 @@ export default configureStore({
     students: studentsReducer,
     degreeSubject: degreeSubjectReducer,
     hobby: hobbyReducer,
+    complaints: complaintReducer,
   },
   devTools: import.meta.env.DEV,
 });

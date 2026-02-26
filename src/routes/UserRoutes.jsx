@@ -28,7 +28,7 @@ const UserRoutes = (
     <Route path="dashboard/:id" element={<Dashboard />} />
     <Route path="auth" element={<Auth />} />
     <Route path="profile" element={<ProfileInformation />} />
-    <Route path="complaints" element={<ComplaintDashboard />} />
+    {/* <Route path="complaints" element={<ComplaintDashboard />} /> */}
     <Route path="submit-complaint/:type?/:id?" element={<SubmitComplaint />} />
     <Route path="search" element={<SearchPage />} />
     <Route path="reset-password/:id/:token" element={<ResetPassword />} />
