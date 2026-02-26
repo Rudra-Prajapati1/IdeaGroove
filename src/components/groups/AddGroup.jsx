@@ -1,20 +1,20 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { X, Users, MessageSquare, Loader2, Hash } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 import { createGroup, updateGroup } from "../../redux/slice/chatRoomsSlice";
-
-const HOBBY_OPTIONS = [
-  { id: 1, name: "Photography" },
-  { id: 2, name: "Coding" },
-  { id: 3, name: "Gaming" },
-  { id: 4, name: "Music" },
-  { id: 5, name: "Sports" },
-];
+import {
+  fetchHobbies,
+  selectHobbies,
+  selectHobbiesStatus,
+} from "../../redux/slice/hobbySlice";
 
 const AddGroupOverlay = ({ onClose, initialData, onSuccess }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+
+  const hobbies = useSelector(selectHobbies);
+  const hobbiesStatus = useSelector(selectHobbiesStatus);
 
   const isEditMode = !!initialData;
 
@@ -25,6 +25,13 @@ const AddGroupOverlay = ({ onClose, initialData, onSuccess }) => {
   });
 
   const [loading, setLoading] = useState(false);
+
+  // Fetch hobbies on mount only if not already loaded
+  useEffect(() => {
+    if (hobbiesStatus === "idle") {
+      dispatch(fetchHobbies());
+    }
+  }, [dispatch, hobbiesStatus]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -54,7 +61,6 @@ const AddGroupOverlay = ({ onClose, initialData, onSuccess }) => {
 
     try {
       if (isEditMode) {
-        // ✅ EDIT: dispatch updateGroup thunk
         await dispatch(
           updateGroup({
             Room_ID: initialData.Room_ID,
@@ -66,7 +72,6 @@ const AddGroupOverlay = ({ onClose, initialData, onSuccess }) => {
 
         toast.success("Group updated successfully!");
       } else {
-        // ✅ CREATE: dispatch createGroup thunk
         await dispatch(
           createGroup({
             Room_Name: formData.Room_Name.trim(),
@@ -143,17 +148,26 @@ const AddGroupOverlay = ({ onClose, initialData, onSuccess }) => {
                   required
                   value={formData.Based_On}
                   onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all text-sm bg-white appearance-none cursor-pointer"
+                  disabled={hobbiesStatus === "loading"}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all text-sm bg-white appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <option value="">Select a Hobby</option>
-                  {HOBBY_OPTIONS.map((hobby) => (
-                    <option key={hobby.id} value={hobby.id}>
-                      {hobby.name}
+                  <option value="">
+                    {hobbiesStatus === "loading"
+                      ? "Loading hobbies..."
+                      : "Select a Hobby"}
+                  </option>
+                  {hobbies.map((hobby) => (
+                    <option key={hobby.Hobby_ID} value={hobby.Hobby_ID}>
+                      {hobby.Hobby_Name}
                     </option>
                   ))}
                 </select>
                 <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
-                  <Hash className="w-4 h-4" />
+                  {hobbiesStatus === "loading" ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Hash className="w-4 h-4" />
+                  )}
                 </div>
               </div>
             </div>

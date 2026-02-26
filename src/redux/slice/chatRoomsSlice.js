@@ -40,7 +40,7 @@ const initialState = groupsAdapter.getInitialState({
 export const fetchGroups = createAsyncThunk(
   "groups/fetchGroups",
   async (
-    { page = 1, limit = 9, search = "", filter = "all" } = {},
+    { page = 1, limit = 9, search = "", filter = "all", hobby = null } = {},
     { rejectWithValue },
   ) => {
     try {
@@ -49,6 +49,7 @@ export const fetchGroups = createAsyncThunk(
         limit,
         ...(search && { search }),
         ...(filter && filter !== "all" && { filter }),
+        ...(hobby && { hobby }),
       });
       const { data } = await api.get(`/groups?${params.toString()}`);
 
@@ -92,7 +93,6 @@ export const updateGroup = createAsyncThunk(
   "groups/updateGroup",
   async (payload, { rejectWithValue }) => {
     try {
-      // payload: { Room_ID, Room_Name, Based_On, Description }
       const { data } = await api.post("/groups/update", payload);
       return data;
     } catch (err) {
@@ -257,7 +257,7 @@ const groupsSlice = createSlice({
         state.updateError = action.payload;
       })
 
-      /* DELETE — optimistic remove from adapter */
+      /* DELETE */
       .addCase(deleteGroup.fulfilled, (state, action) => {
         groupsAdapter.removeOne(state, action.payload.Room_ID);
       })

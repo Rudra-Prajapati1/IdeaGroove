@@ -31,7 +31,6 @@ const Groups = () => {
   const [addGroup, setAddGroup] = useState(false);
   const [editingGroup, setEditingGroup] = useState(null);
 
-  // Search/filter state
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -55,7 +54,6 @@ const Groups = () => {
     setCurrentPage(1);
   };
 
-  /* ===== FETCH — reruns on page/search/filter change ===== */
   useEffect(() => {
     dispatch(
       fetchGroups({
@@ -88,7 +86,6 @@ const Groups = () => {
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
       <PageHeader title="Groups" />
 
-      {/* Thin progress bar during search/filter refetches */}
       {isRefetching && (
         <div className="fixed top-0 left-0 w-full z-50">
           <div className="h-1 bg-green-200">
@@ -115,7 +112,7 @@ const Groups = () => {
             setSearch={handleSearchChange}
             filter={filter}
             setFilter={handleFilterChange}
-            searchPlaceholder="Search groups..."
+            searchPlaceholder="Search by name or hobby..."
             filterOptions={{
               All: "all",
               "Newest to Oldest": "newest_to_oldest",
@@ -133,17 +130,14 @@ const Groups = () => {
         </div>
 
         <div className="max-w-7xl m-auto mt-12 px-12 py-12 rounded-2xl">
-          {/* Full-page spinner only on very first load */}
           {showFullPageLoader && <Loading text="Loading groups..." />}
 
           {groupsStatus === "failed" && (
             <p className="text-red-500 text-center">{groupsError}</p>
           )}
 
-          {/* Keep groups mounted after first load so search stays focused */}
           {(groupsStatus === "succeeded" || isRefetching) && (
             <>
-              {/* Subtle dim during refetch */}
               <div
                 className={`transition-opacity duration-200 ${
                   isRefetching
