@@ -17,12 +17,15 @@ import {
   Filter,
 } from "lucide-react";
 import { useEffect } from "react";
+import StudentProfile from "../../components/admin/StudentProfile";
 
 const AdminDash = () => {
   const [statsData, setStatsData] = useState({});
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [tooltip, setTooltip] = useState(null);
+  const [contributorData, setContributorData] = useState([]);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -47,6 +50,30 @@ const AdminDash = () => {
     };
 
     fetchStats();
+  }, []);
+
+  useEffect(() => {
+    const fetchContributor = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/admin/top-contributor`,
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch contributor");
+        }
+
+        const data = await res.json();
+        setContributorData(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContributor();
   }, []);
 
   const stats = [
@@ -155,7 +182,7 @@ const AdminDash = () => {
       item.name === "Notes"
         ? "bg-rose-600"
         : item.name === "Questions"
-          ? "bg-blue-600"
+          ? "bg-[#25eb63]"
           : item.name === "Events"
             ? "bg-amber-500"
             : "bg-purple-600",
@@ -290,8 +317,8 @@ const AdminDash = () => {
                       stroke={
                         cat.color === "bg-rose-600"
                           ? "#E11D48"
-                          : cat.color === "bg-blue-600"
-                            ? "#2563eb"
+                          : cat.color === "bg-[#25eb63]"
+                            ? "#25eb63"
                             : cat.color === "bg-amber-500"
                               ? "#f59e0b"
                               : "#7c3aed"
@@ -348,60 +375,73 @@ const AdminDash = () => {
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="bg-primary text-white px-6 py-4 font-bold text-sm flex items-center gap-2">
-            <TrendingUp size={16} className="text-emerald-400" />
-            Top Contributors
+          <div className="p-6 border-b bg-primary border-gray-50 flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <TrendingUp size={22} className="text-emerald-400" />
+              <span className="text-lg font-bold text-white font-poppins">
+                Top Contributors
+              </span>
+            </div>
           </div>
           <div className="p-4 space-y-4">
-            {[
-              {
-                name: "Alex Johnson",
-                dept: "CS Dept.",
-                pts: 980,
-                rank: 1,
-                color: "bg-yellow-400",
-              },
-              {
-                name: "Sarah Chen",
-                dept: "Business",
-                pts: 945,
-                rank: 2,
-                color: "bg-slate-300",
-              },
-              {
-                name: "Michael Brown",
-                dept: "Biotech",
-                pts: 910,
-                rank: 3,
-                color: "bg-orange-400",
-              },
-            ].map((student, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between p-3 rounded-2xl border border-slate-50 hover:bg-slate-50/50 hover:border-emerald-100 transition-all group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <img
-                      className="w-12 h-12 rounded-2xl object-cover ring-2 ring-white shadow-md group-hover:scale-110 transition-transform"
-                      src={`https://i.pravatar.cc/150?u=${student.name}`}
-                      alt="avatar"
-                    />
-                    <div
-                      className={`absolute -top-2 -right-2 w-6 h-6 ${student.color} text-white text-[10px] font-black rounded-lg flex items-center justify-center border-2 border-white shadow-sm`}
-                    >
-                      {student.rank}
+            {contributorData.map((student, index) => (
+              <div>
+                <div
+                  key={index}
+                  onClick={() => setIsProfileOpen(true)}
+                  className="flex items-center justify-between p-3 rounded-2xl border border-slate-50 hover:bg-slate-50/50 hover:border-emerald-100 transition-all group cursor-pointer"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      {student?.Profile_Pic ? (
+                        <img
+                          className="w-12 h-12 rounded-2xl object-cover ring-2 ring-white shadow-md group-hover:scale-110 transition-transform"
+                          src={`${student.Profile_Pic}`}
+                          alt="avatar"
+                        />
+                      ) : (
+                        <div
+                          className={`w-12 h-12 rounded-2xl object-cover ring-2 ring-white shadow-md group-hover:scale-110 transition-transform flex items-center justify-center`}
+                        >
+                          {student.Name?.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div
+                        className={`absolute -top-2 -right-2 w-6 h-6 ${index == 0 ? "bg-yellow-400" : index == 1 ? "bg-slate-300" : "bg-orange-400"} text-white text-[10px] font-black rounded-lg flex items-center justify-center border-2 border-white shadow-sm`}
+                      >
+                        {index + 1}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="font-black text-sm text-slate-800 tracking-tight">
+                        {student.Name?.charAt(0).toUpperCase() +
+                          student.Name?.slice(1)}
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                        {student.Degree_Name}
+                      </p>
                     </div>
                   </div>
-                  <div>
-                    <p className="font-black text-sm text-slate-800 tracking-tight">
-                      {student.name}
-                    </p>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
-                      {student.dept}
-                    </p>
+                  <div className="font-bold text-emerald-600">
+                    {student.grand_total}
                   </div>
                 </div>
+                {/* Modal Overlay */}
+                {isProfileOpen && (
+                  <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+                    onClick={(e) =>
+                      e.target === e.currentTarget && setIsProfileOpen(false)
+                    }
+                  >
+                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+                      <StudentProfile
+                        id={student?.S_ID}
+                        onClose={() => setIsProfileOpen(false)}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
