@@ -108,29 +108,24 @@ const AdminEventCard = ({ event, onModerate }) => {
         {/* Action Footer */}
         <div className="px-4 py-3 border-t border-gray-50 flex gap-2 bg-gray-50/40">
           <button
-            onClick={() => onModerate("block", event.id)}
+            onClick={() => onModerate(isActive ? "block" : "unblock", event.id)}
             disabled={!isActive}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all
               ${
                 isActive
                   ? "text-red-500 bg-red-50 hover:bg-red-500 hover:text-white"
-                  : "bg-gray-100 text-gray-300 cursor-not-allowed"
-              }`}
-          >
-            <Ban size={12} /> Block
-          </button>
-
-          <button
-            onClick={() => onModerate("unblock", event.id)}
-            disabled={isActive}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all
-              ${
-                isActive
-                  ? "bg-gray-100 text-gray-300 cursor-not-allowed"
                   : "bg-[#1B431C] text-white hover:bg-[#153416]"
               }`}
           >
-            <CheckCircle size={12} /> Unblock
+            {isActive ? (
+              <>
+                <Ban size={14} /> Block Event
+              </>
+            ) : (
+              <>
+                <CheckCircle size={14} /> Unblock Event
+              </>
+            )}
           </button>
         </div>
       </div>
