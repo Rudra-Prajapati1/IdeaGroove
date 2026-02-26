@@ -1,4 +1,4 @@
-import { Route } from "react-router-dom";
+import { Navigate, Route } from "react-router-dom";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import NotFound from "../pages/NotFound";
 import AdminNotes from "../pages/admin/AdminNotes";
@@ -10,7 +10,7 @@ import AdminDash from "../pages/admin/AdminDash";
 
 const AdminRoutes = (
   <>
-    <Route index element={<AdminDash />} />
+    <Route index element={<Navigate to="/admin/dashboard" replace />} />
     <Route path="dashboard" element={<AdminDash />} />
 
     <Route path="users" element={<AdminDashboard />} />

@@ -10,7 +10,12 @@ import {
 } from "lucide-react";
 
 export const sidebarLinks = [
-  { id: 1, title: "Dashboard", icon: LayoutDashboardIcon, to: "/admin" },
+  {
+    id: 1,
+    title: "Dashboard",
+    icon: LayoutDashboardIcon,
+    to: "/admin/dashboard",
+  },
   { id: 2, title: "User", icon: User, to: "/admin/users" },
   { id: 3, title: "Notes", icon: NotebookPen, to: "/admin/notes" },
   { id: 4, title: "Events", icon: Calendar, to: "/admin/events" },
