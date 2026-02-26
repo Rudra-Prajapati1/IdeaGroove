@@ -69,9 +69,6 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
                 />
               </button>
             </p>
-            <span className="flex items-center gap-1 text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-100 uppercase">
-              <GraduationCap size={12} /> {qna.degreeName}
-            </span>
             <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 uppercase">
               {qna.subjectName}
             </span>

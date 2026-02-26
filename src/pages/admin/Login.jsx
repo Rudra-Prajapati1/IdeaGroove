@@ -4,6 +4,7 @@ import { Eye, EyeClosed } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
+import api from "../../api/axios";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -36,11 +37,9 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        "http://localhost:3000/api/admin/login",
-        adminData,
-        { withCredentials: true },
-      );
+      const { data } = await api.post(`/admin/login`, adminData, {
+        withCredentials: true,
+      });
 
       if (data.success) {
         toast.success(data.message || "Login Successful!");

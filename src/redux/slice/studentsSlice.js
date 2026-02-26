@@ -11,8 +11,7 @@ import api from "../../api/axios";
 
 const studentsAdapter = createEntityAdapter({
   selectId: (student) => student.S_ID, // Standardized ID
-  sortComparer: (a, b) =>
-    (a.Name || "").localeCompare(b.Name || ""),
+  sortComparer: (a, b) => (a.Name || "").localeCompare(b.Name || ""),
 });
 
 /* ===============================
@@ -87,22 +86,16 @@ export const updateStudentProfile = createAsyncThunk(
   "students/updateStudentProfile",
   async (updatedData, { rejectWithValue }) => {
     try {
-      const response = await api.post(
-        "/students/update",
-        updatedData
-      );
+      const response = await api.post("/students/update", updatedData);
 
       // Backend returns { message, updatedUser }
-      return (
-        response.data.updatedUser || response.data
-      );
+      return response.data.updatedUser || response.data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.error ||
-          "Failed to update profile"
+        err.response?.data?.error || "Failed to update profile",
       );
     }
-  }
+  },
 );
 // 🔹 Delete Student
 export const deleteStudentAccount = createAsyncThunk(
@@ -113,11 +106,10 @@ export const deleteStudentAccount = createAsyncThunk(
       return id;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.error ||
-          "Failed to delete account"
+        err.response?.data?.error || "Failed to delete account",
       );
     }
-  }
+  },
 );
 
 /* ===== MASTER LIST THUNKS ===== */
@@ -126,14 +118,11 @@ export const fetchAllColleges = createAsyncThunk(
   "students/fetchAllColleges",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await api.get(
-        "/students/meta/colleges"
-      );
+      const { data } = await api.get("/students/meta/colleges");
       return data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.error ||
-          "Failed to fetch colleges"
+        err.response?.data?.error || "Failed to fetch colleges",
       );
     }
   },
@@ -143,14 +132,11 @@ export const fetchAllDegrees = createAsyncThunk(
   "students/fetchAllDegrees",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await api.get(
-        "/students/meta/degrees"
-      );
+      const { data } = await api.get("/students/meta/degrees");
       return data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.error ||
-          "Failed to fetch degrees"
+        err.response?.data?.error || "Failed to fetch degrees",
       );
     }
   },
@@ -160,14 +146,11 @@ export const fetchAllHobbiesMaster = createAsyncThunk(
   "students/fetchAllHobbiesMaster",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await api.get(
-        "/students/meta/hobbies"
-      );
+      const { data } = await api.get("/students/meta/hobbies");
       return data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.error ||
-          "Failed to fetch hobbies"
+        err.response?.data?.error || "Failed to fetch hobbies",
       );
     }
   },
@@ -194,10 +177,7 @@ const studentsSlice = createSlice({
         state.page = action.payload.page;
         state.totalPages = action.payload.totalPages;
         state.total = action.payload.total;
-        studentsAdapter.setAll(
-          state,
-          action.payload.data
-        );
+        studentsAdapter.setAll(state, action.payload.data);
       })
       .addCase(fetchStudents.rejected, (state, action) => {
         state.status = "failed";
@@ -218,35 +198,18 @@ const studentsSlice = createSlice({
         state.currentError = action.payload;
       })
 
-      /* ===== UPDATE STUDENT ===== */
-      .addCase(updateStudentProfile.fulfilled, (state, action) => {
-        if (action.payload) {
-          studentsAdapter.upsertOne(
-            state,
-            action.payload
-          );
-
-          if (
-            state.currentStudent &&
-            state.currentStudent.S_ID ===
-              action.payload.S_ID
-          ) {
-            state.currentStudent = action.payload;
-          }
-        }
+      .addCase(updateStudentProfile.fulfilled, (state) => {
+        // API returns {message: 'Update successful'}, not a student object
+        // Component calls loadProfileData() after save, so no update needed here
       })
 
       /* ===== DELETE STUDENT ===== */
       .addCase(deleteStudentAccount.fulfilled, (state, action) => {
-        studentsAdapter.removeOne(
-          state,
-          action.payload
-        );
+        studentsAdapter.removeOne(state, action.payload);
 
         if (
           state.currentStudent &&
-          state.currentStudent.S_ID ===
-            action.payload
+          state.currentStudent.S_ID === action.payload
         ) {
           state.currentStudent = null;
         }
@@ -271,18 +234,12 @@ export default studentsSlice.reducer;
    SELECTORS
 ================================= */
 
-export const {
-  selectAll: selectAllStudents,
-  selectById: selectStudentById,
-} = studentsAdapter.getSelectors(
-  (state) => state.students
-);
+export const { selectAll: selectAllStudents, selectById: selectStudentById } =
+  studentsAdapter.getSelectors((state) => state.students);
 
-export const selectStudentsStatus = (state) =>
-  state.students.status;
+export const selectStudentsStatus = (state) => state.students.status;
 
-export const selectStudentsError = (state) =>
-  state.students.error;
+export const selectStudentsError = (state) => state.students.error;
 
 export const selectStudentsPagination = (state) => ({
   page: state.students.page,
@@ -290,20 +247,15 @@ export const selectStudentsPagination = (state) => ({
   total: state.students.total,
 });
 
-export const selectCurrentStudent = (state) =>
-  state.students.currentStudent;
+export const selectCurrentStudent = (state) => state.students.currentStudent;
 
 export const selectCurrentStudentStatus = (state) =>
   state.students.currentStatus;
 
-export const selectCurrentStudentError = (state) =>
-  state.students.currentError;
+export const selectCurrentStudentError = (state) => state.students.currentError;
 
-export const selectAllColleges = (state) =>
-  state.students.colleges;
+export const selectAllColleges = (state) => state.students.colleges;
 
-export const selectAllDegrees = (state) =>
-  state.students.degrees;
+export const selectAllDegrees = (state) => state.students.degrees;
 
-export const selectAllHobbiesMaster = (state) =>
-  state.students.hobbies;
+export const selectAllHobbiesMaster = (state) => state.students.hobbies;
