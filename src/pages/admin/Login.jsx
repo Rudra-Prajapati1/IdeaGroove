@@ -37,7 +37,7 @@ const Login = () => {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:8080/api/admin/login",
+        "http://localhost:3000/api/admin/login",
         adminData,
         { withCredentials: true },
       );
