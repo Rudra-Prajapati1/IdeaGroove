@@ -1,7 +1,12 @@
 import { AlertTriangle, X } from "lucide-react";
 import React from "react";
 
-export const ConfirmationBox = ({ onClose, onConfirm, type }) => {
+export const ConfirmationBox = ({
+  onClose,
+  onConfirm,
+  type,
+  subType = "Delete My",
+}) => {
   return (
     <div>
       <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
@@ -32,7 +37,7 @@ export const ConfirmationBox = ({ onClose, onConfirm, type }) => {
                 onClick={onConfirm}
                 className="w-full py-4 bg-red-500 text-white rounded-2xl font-bold hover:bg-red-600 transition-colors shadow-lg shadow-red-200"
               >
-                Yes, Delete My {type}
+                Yes, {subType} {type}
               </button>
               <button
                 onClick={onClose}

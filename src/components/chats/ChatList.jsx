@@ -1,10 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchChatRoomMembers,
-  selectChatRoomMemberStatus,
-  selectRoomIdsForStudent,
-} from "../../redux/slice/chatRoomMembersSlice";
+
 import {
   fetchGroups,
   selectAllGroups,
@@ -21,27 +17,21 @@ const ChatList = ({ search, filter, onSelectRoom, activeRoom }) => {
   const rooms = useSelector(selectAllGroups);
   const roomStatus = useSelector(selectGroupsStatus);
   const roomError = useSelector(selectGroupsError);
-  const memberStatus = useSelector(selectChatRoomMemberStatus);
 
-  const roomIdsSelector = useMemo(
-    () => selectRoomIdsForStudent(LOGGED_IN_STUDENT_ID),
-    [],
-  );
+  // // const myRoomIds = useSelector(roomIdsSelector);
 
-  const myRoomIds = useSelector(roomIdsSelector);
+  // useEffect(() => {
+  //   if (roomStatus === "idle") {
+  //     dispatch(fetchGroups({ page: 1, limit: 50 }));
+  //   }
+  //   if (memberStatus === "idle") {
+  //     dispatch(fetchChatRoomMembers());
+  //   }
+  // }, [roomStatus, memberStatus, dispatch]);
 
-  useEffect(() => {
-    if (roomStatus === "idle") {
-      dispatch(fetchGroups({ page: 1, limit: 50 }));
-    }
-    if (memberStatus === "idle") {
-      dispatch(fetchChatRoomMembers());
-    }
-  }, [roomStatus, memberStatus, dispatch]);
-
-  const visibleRooms = rooms.filter(
-    (room) => myRoomIds.includes(room.Room_ID) && room.Is_Active === 1,
-  );
+  // const visibleRooms = rooms.filter(
+  //   (room) => myRoomIds.includes(room.Room_ID) && room.Is_Active === 1,
+  // );
 
   const filteredByType = visibleRooms.filter((room) => {
     if (filter === "groups") return room.Room_Type === "Group";

@@ -1,12 +1,25 @@
 import React, { useState } from "react";
-import { Eye, UserPlus, Users, Edit2, Trash2, Info } from "lucide-react";
+import {
+  Eye,
+  UserPlus,
+  Users,
+  Edit2,
+  Trash2,
+  Info,
+  MessageCircle,
+  LogOut,
+} from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectUser } from "../../redux/slice/authSlice";
 import { useNavigate } from "react-router-dom";
 import ViewMembers from "@/components/groups/ViewMembers";
 import ComplaintButton from "../ComplaintButton";
 import toast from "react-hot-toast";
-import { deleteGroup } from "../../redux/slice/chatRoomsSlice";
+import {
+  deleteGroup,
+  joinGroup,
+  leaveGroup,
+} from "../../redux/slice/chatRoomsSlice";
 import { ConfirmationBox } from "../common/ConfirmationBox";
 
 const GroupCard = ({ group, onEdit, onDeleteSuccess }) => {
@@ -17,10 +30,17 @@ const GroupCard = ({ group, onEdit, onDeleteSuccess }) => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isLeaveOpen, setIsLeaveOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
 
   const currentUserId = user?.id || user?.S_ID;
   const isOwner = group.Created_By === currentUserId;
+
+  const isMember = Array.isArray(group.Members)
+    ? group.Members.some((m) => m.Student_ID === currentUserId)
+    : false;
 
   const formattedDate = group.Created_On
     ? new Date(group.Created_On).toLocaleDateString("en-IN", {
@@ -36,13 +56,50 @@ const GroupCard = ({ group, onEdit, onDeleteSuccess }) => {
     try {
       await dispatch(deleteGroup(group.Room_ID)).unwrap();
       toast.success("Group deleted successfully!");
-      // Adapter removes it instantly; call onDeleteSuccess to sync pagination
       if (onDeleteSuccess) onDeleteSuccess();
     } catch (err) {
       toast.error(err || "Failed to delete group");
     } finally {
       setIsDeleting(false);
       setIsDeleteOpen(false);
+    }
+  };
+
+  /* =================== JOIN =================== */
+  const handleJoin = async (e) => {
+    e?.stopPropagation();
+    if (!isAuth) {
+      toast.error("Please login to join the group");
+      return;
+    }
+    setIsJoining(true);
+    try {
+      await dispatch(
+        joinGroup({ Room_ID: group.Room_ID, Student_ID: currentUserId }),
+      ).unwrap();
+      toast.success("You have successfully joined the group!");
+      setTimeout(() => navigate("/chats"), 500);
+    } catch (err) {
+      toast.error(err || "Failed to join group");
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
+  /* =================== LEAVE =================== */
+  const handleLeave = async () => {
+    setIsLeaving(true);
+    try {
+      await dispatch(
+        leaveGroup({ Room_ID: group.Room_ID, Student_ID: currentUserId }),
+      ).unwrap();
+      toast.success("You have left the group.");
+      if (onDeleteSuccess) onDeleteSuccess();
+    } catch (err) {
+      toast.error(err || "Failed to leave group");
+    } finally {
+      setIsLeaving(false);
+      setIsLeaveOpen(false);
     }
   };
 
@@ -98,6 +155,12 @@ const GroupCard = ({ group, onEdit, onDeleteSuccess }) => {
           {isOwner ? (
             <>
               <button
+                onClick={() => navigate("/chats")}
+                className="flex-1 bg-primary text-white rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-[#153416] transition-colors text-sm cursor-pointer"
+              >
+                Chat <MessageCircle className="w-4 h-4" />
+              </button>
+              <button
                 className="px-3 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors"
                 onClick={onEdit}
                 title="Edit Group"
@@ -113,22 +176,34 @@ const GroupCard = ({ group, onEdit, onDeleteSuccess }) => {
                 <Trash2 className="w-4 h-4" />
               </button>
             </>
+          ) : isMember ? (
+            <>
+              <button
+                onClick={() => navigate("/chats")}
+                className="flex-1 bg-primary text-white rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-[#153416] transition-colors text-sm cursor-pointer"
+              >
+                Go to Chat <MessageCircle className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setIsLeaveOpen(true)}
+                disabled={isLeaving}
+                title="Leave Group"
+                className="px-3 bg-red-50 text-red-500 rounded-lg border border-red-100 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </>
           ) : (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!isAuth) {
-                  toast.error("Please login to join the group");
-                  return;
-                }
-                toast.success("You have successfully joined the group");
-                navigate("/chats");
-              }}
-              className={`${
-                isAuth ? "cursor-pointer" : "cursor-not-allowed"
-              } flex-1 bg-primary text-white rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-[#153416] transition-colors text-sm`}
+              onClick={handleJoin}
+              disabled={isJoining}
+              className={`flex-1 bg-primary text-white rounded-lg font-bold flex items-center justify-center gap-2 transition-colors text-sm
+                ${isAuth ? "cursor-pointer hover:bg-[#153416]" : "cursor-not-allowed opacity-60"}
+                ${isJoining ? "opacity-60 cursor-not-allowed" : ""}
+              `}
             >
-              Join <UserPlus className="w-4 h-4" />
+              {isJoining ? "Joining..." : "Join"}
+              {!isJoining && <UserPlus className="w-4 h-4" />}
             </button>
           )}
         </div>
@@ -139,6 +214,9 @@ const GroupCard = ({ group, onEdit, onDeleteSuccess }) => {
           group={group}
           setIsModalOpen={setIsModalOpen}
           isOwner={isOwner}
+          isMember={isMember}
+          onJoin={handleJoin}
+          isJoining={isJoining}
         />
       )}
 
@@ -147,6 +225,15 @@ const GroupCard = ({ group, onEdit, onDeleteSuccess }) => {
           type="Group"
           onClose={() => setIsDeleteOpen(false)}
           onConfirm={handleDelete}
+        />
+      )}
+
+      {isLeaveOpen && (
+        <ConfirmationBox
+          type="Leave Group"
+          subType=""
+          onClose={() => setIsLeaveOpen(false)}
+          onConfirm={handleLeave}
         />
       )}
     </>
