@@ -32,6 +32,11 @@ const AdminNotesGrid = ({
       const matchesSubject =
         filterSubject === "all" || note.subject === filterSubject;
 
+      // 🎯 IMPORTANT LOGIC
+      if (filterDegree !== "all" && filterSubject !== "all") {
+        return matchesSearch && matchesSubject;
+      }
+
       return matchesSearch && matchesDegree && matchesSubject;
     });
   }, [notes, searchTerm, filterDegree, filterSubject]);

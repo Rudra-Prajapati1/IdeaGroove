@@ -3,12 +3,11 @@ import { ChevronDown } from "lucide-react";
 
 const SimpleDropdown = ({
   icon: Icon,
-  options,
-  value, // ✅ controlled value
+  options = [],
+  value,
   onChange,
   placeholder,
-  accent = "blue",
-  allowReset = true, // ✅ allow "All" option
+  allowReset = true,
 }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -24,32 +23,39 @@ const SimpleDropdown = ({
   }, []);
 
   return (
-    <div ref={ref} className="relative">
-      {/* Trigger */}
+    <div ref={ref} className="relative min-w-[160px] flex-shrink-0">
+      {/* Trigger styled like SearchableDropdown input */}
       <div
-        onClick={() => setOpen((p) => !p)}
-        className="flex items-center gap-2 bg-white border border-gray-200 rounded-2xl px-3 py-2.5 shadow-sm cursor-pointer hover:border-gray-300 transition-all min-w-[180px]"
+        onClick={() => setOpen((prev) => !prev)}
+        className="relative w-full bg-white border border-gray-200 rounded-2xl py-2.5 pl-12 pr-10 text-sm font-medium cursor-pointer hover:border-gray-300 transition-all"
       >
-        {Icon && <Icon size={16} className="text-gray-400" />}
+        {Icon && (
+          <Icon
+            size={16}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+          />
+        )}
 
-        <span className="text-[10px] font-black uppercase tracking-widest text-gray-700 flex-1">
-          {value || placeholder}
+        <span className="text-gray-700">
+          {value && value !== "all" ? value : placeholder}
         </span>
 
-        <ChevronDown className="w-4 h-4 text-gray-400" />
+        <ChevronDown
+          size={16}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+        />
       </div>
 
-      {/* Options */}
+      {/* Dropdown options */}
       {open && (
-        <div className="absolute top-[110%] left-0 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
-          {/* Reset / All option */}
+        <div className="absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-2xl shadow-lg max-h-48 overflow-y-auto">
           {allowReset && (
             <div
               onClick={() => {
                 onChange("all");
                 setOpen(false);
               }}
-              className="px-4 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer text-gray-500 hover:bg-gray-100 transition-colors"
+              className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
             >
               {placeholder}
             </div>
@@ -62,8 +68,7 @@ const SimpleDropdown = ({
                 onChange(opt);
                 setOpen(false);
               }}
-              className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider cursor-pointer
-                hover:bg-${accent}-50 hover:text-${accent}-600 transition-colors`}
+              className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
             >
               {opt}
             </div>

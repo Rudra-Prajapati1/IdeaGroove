@@ -91,15 +91,17 @@ const AdminNotes = () => {
   const [targetId, setTargetId] = useState(null);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
-  const degreeOptions = ["B.Tech", "BCA", "MCA", "M.Tech"];
-  const subjectOptions = ["OS", "DBMS", "CN", "Web Dev", "AI"];
+  const [degreeOptions, setDegreeOptions] = useState([]);
+  const [degreeSubjectMap, setDegreeSubjectMap] = useState({});
+  const [subjectOptions, setSubjectOptions] = useState([]);
+
   useEffect(() => {
     const fetchNotes = async () => {
       try {
         setLoading(true);
 
         const response = await fetch(
-          "http://localhost:8080/api/notes?page=1&limit=50",
+          `${import.meta.env.VITE_API_BASE_URL}/notes?page=1&limit=50`,
         );
 
         if (!response.ok) throw new Error("Failed to fetch notes");
@@ -135,6 +137,60 @@ const AdminNotes = () => {
 
     fetchNotes();
   }, []);
+
+  useEffect(() => {
+    const fetchDegree = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/degreeSubject/allDegreeSubject`,
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch degrees");
+        }
+
+        const data = await response.json();
+
+        const map = {};
+
+        data.degreeSubject.forEach((item) => {
+          const degree = item.degree_name;
+          const subject = item.subject_name;
+
+          if (!map[degree]) {
+            map[degree] = [];
+          }
+
+          map[degree].push(subject);
+        });
+
+        // Remove duplicates
+        Object.keys(map).forEach((degree) => {
+          map[degree] = [...new Set(map[degree])];
+        });
+
+        setDegreeSubjectMap(map);
+        setDegreeOptions(Object.keys(map));
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchDegree();
+  }, []);
+
+  useEffect(() => {
+    if (degreeFilter === "all") {
+      // Show all subjects
+      const allSubjects = [...new Set(Object.values(degreeSubjectMap).flat())];
+
+      setSubjectOptions(allSubjects);
+    } else {
+      setSubjectOptions(degreeSubjectMap[degreeFilter] || []);
+    }
+
+    setSubjectFilter("all"); // Reset subject when degree changes
+  }, [degreeFilter, degreeSubjectMap]);
 
   const handleModerateRequest = (type, noteId) => {
     setSelectedAction(type);

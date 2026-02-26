@@ -46,7 +46,7 @@ export const fetchStudents = createAsyncThunk(
   "students/fetchStudents",
   async (
     { q = "", department = "All Departments", page = 1, limit = 20 } = {},
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const { data } = await api.get("/students/search", {
@@ -61,10 +61,10 @@ export const fetchStudents = createAsyncThunk(
       };
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.error || "Failed to fetch students"
+        err.response?.data?.error || "Failed to fetch students",
       );
     }
-  }
+  },
 );
 
 // 🔹 Fetch Logged-in Student
@@ -76,10 +76,10 @@ export const fetchCurrentStudent = createAsyncThunk(
       return data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.error || "Failed to fetch profile"
+        err.response?.data?.error || "Failed to fetch profile",
       );
     }
-  }
+  },
 );
 
 // 🔹 Update Student
@@ -104,13 +104,12 @@ export const updateStudentProfile = createAsyncThunk(
     }
   }
 );
-
 // 🔹 Delete Student
 export const deleteStudentAccount = createAsyncThunk(
   "students/deleteStudentAccount",
   async (id, { rejectWithValue }) => {
     try {
-      await api.get(`/students/delete/${id}`);
+      await api.delete(`/students/${id}`);
       return id;
     } catch (err) {
       return rejectWithValue(
@@ -137,7 +136,7 @@ export const fetchAllColleges = createAsyncThunk(
           "Failed to fetch colleges"
       );
     }
-  }
+  },
 );
 
 export const fetchAllDegrees = createAsyncThunk(
@@ -154,7 +153,7 @@ export const fetchAllDegrees = createAsyncThunk(
           "Failed to fetch degrees"
       );
     }
-  }
+  },
 );
 
 export const fetchAllHobbiesMaster = createAsyncThunk(
@@ -171,7 +170,7 @@ export const fetchAllHobbiesMaster = createAsyncThunk(
           "Failed to fetch hobbies"
       );
     }
-  }
+  },
 );
 
 /* ===============================

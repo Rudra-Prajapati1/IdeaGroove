@@ -1,8 +1,6 @@
-import React, { useState } from "react";
-import { Search, GraduationCap, BookOpen } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { Search, GraduationCap, BookOpen, Heart } from "lucide-react";
 import SimpleDropdown from "./SimpleDropdown";
-import { useEffect } from "react";
-import { useMemo } from "react";
 import SearchableDropdown from "./SearchableDropdown";
 
 const AdminPageHeader = ({
@@ -10,19 +8,28 @@ const AdminPageHeader = ({
   subtitle,
   onSearch,
   searchValue,
+
   degreeOptions = [],
   subjectOptions = [],
+  hobbyOptions = [],
+
   onDegreeFilter,
   onSubjectFilter,
+  onHobbyFilter,
+
   firstTitle = "All Degrees",
   secondTitle = "All Subjects",
+  thirdTitle = "All Hobbies",
 }) => {
   const [selectedDegree, setSelectedDegree] = useState("all");
   const [selectedSubject, setSelectedSubject] = useState("all");
+  const [selectedHobby, setSelectedHobby] = useState("all");
+
   const [debouncedDegree, setDebouncedDegree] = useState(selectedDegree);
   const [degreeSearch, setDegreeSearch] = useState("");
   const [debouncedDegreeSearch, setDebouncedDegreeSearch] = useState("");
 
+  // Debounce degree search
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedDegreeSearch(degreeSearch);
@@ -31,6 +38,7 @@ const AdminPageHeader = ({
     return () => clearTimeout(timer);
   }, [degreeSearch]);
 
+  // Debounce degree filter
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedDegree(selectedDegree);
@@ -43,8 +51,9 @@ const AdminPageHeader = ({
     if (onDegreeFilter) {
       onDegreeFilter(debouncedDegree);
     }
-  }, [debouncedDegree]);
+  }, [debouncedDegree, onDegreeFilter]);
 
+  // Filter degree options
   const filteredDegreeOptions = useMemo(() => {
     if (!debouncedDegreeSearch) return degreeOptions;
 
@@ -66,7 +75,8 @@ const AdminPageHeader = ({
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 lg:gap-4">
+        {/* Search */}
         {onSearch && (
           <div className="relative group flex-1 min-w-[250px]">
             <Search
@@ -83,8 +93,9 @@ const AdminPageHeader = ({
           </div>
         )}
 
-        {degreeOptions.length > 0 && (
-          <div className="relative min-w-[200px]">
+        {/* Degree Dropdown (only if provided) */}
+        {degreeOptions?.length > 0 && (
+          <div className="min-w-[160px] max-w-[180px]">
             <SearchableDropdown
               icon={GraduationCap}
               options={filteredDegreeOptions}
@@ -93,24 +104,45 @@ const AdminPageHeader = ({
               accent="blue"
               onChange={(val) => {
                 setSelectedDegree(val);
-                onDegreeFilter(val);
+                if (onDegreeFilter) onDegreeFilter(val);
               }}
             />
           </div>
         )}
 
-        {subjectOptions.length > 0 && (
-          <SimpleDropdown
-            icon={BookOpen}
-            options={subjectOptions}
-            value={selectedSubject !== "all" ? selectedSubject : null}
-            placeholder={secondTitle}
-            accent="emerald"
-            onChange={(val) => {
-              setSelectedSubject(val);
-              onSubjectFilter(val);
-            }}
-          />
+        {/* Subject Dropdown (only if provided) */}
+        {subjectOptions?.length > 0 && (
+          <div className="min-w-[160px] max-w-[200px]">
+            <SimpleDropdown
+              icon={BookOpen}
+              options={subjectOptions}
+              value={selectedSubject !== "all" ? selectedSubject : null}
+              placeholder={secondTitle}
+              accent="emerald"
+              onChange={(val) => {
+                setSelectedSubject(val);
+                if (onSubjectFilter) onSubjectFilter(val);
+              }}
+            />
+          </div>
+        )}
+
+        {/* Hobby Dropdown (only if provided) */}
+        {hobbyOptions?.length > 0 && (
+          <div className="min-w-[160px] max-w-[180px]">
+            <SearchableDropdown
+              icon={Heart}
+              options={hobbyOptions}
+              value={selectedHobby !== "all" ? selectedHobby : null}
+              placeholder={thirdTitle}
+              accent="rose"
+              text="All Hobbies"
+              onChange={(val) => {
+                setSelectedHobby(val);
+                if (onHobbyFilter) onHobbyFilter(val);
+              }}
+            />
+          </div>
         )}
       </div>
     </div>

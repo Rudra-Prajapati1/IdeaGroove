@@ -86,6 +86,11 @@ const AdminQnAGrid = ({
       const matchesSubject =
         filterSubject === "all" || qna.subjectName === filterSubject;
 
+      // 🎯 IMPORTANT LOGIC
+      if (filterDegree !== "all" && filterSubject !== "all") {
+        return matchesSearch && matchesSubject;
+      }
+
       return matchesSearch && matchesDegree && matchesSubject;
     });
   }, [qnas, searchTerm, filterDegree, filterSubject]);

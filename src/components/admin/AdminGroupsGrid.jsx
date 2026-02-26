@@ -68,13 +68,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const GROUPS_PER_PAGE = 6;
 
-const AdminGroupsGrid = ({
-  groups,
-  searchTerm,
-  filterDegree,
-  filterCategory,
-  onModerate,
-}) => {
+const AdminGroupsGrid = ({ groups, searchTerm, filterHobby, onModerate }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
   // ✅ Filter logic
@@ -87,15 +81,12 @@ const AdminGroupsGrid = ({
         (group.Creator_Name?.toLowerCase() ?? "").includes(searchStr) ||
         (group.Room_Type?.toLowerCase() ?? "").includes(searchStr);
 
-      const matchesDegree =
-        filterDegree === "all" || group.Degree === filterDegree;
-
       const matchesCategory =
-        filterCategory === "all" || group.Based_On === filterCategory;
+        filterHobby === "all" || group.Based_On === filterHobby;
 
-      return matchesSearch && matchesDegree && matchesCategory;
+      return matchesSearch && matchesCategory;
     });
-  }, [groups, searchTerm, filterDegree, filterCategory]);
+  }, [groups, searchTerm, filterHobby]);
 
   // ✅ Reset page when filters change
   useEffect(() => {
