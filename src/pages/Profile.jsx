@@ -320,16 +320,19 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   updateStudentProfile,
+  deleteStudentAccount,
   fetchCurrentStudent,
   deleteStudentAccount,
   selectCurrentStudent,
   fetchAllColleges,
   fetchAllDegrees,
   fetchAllHobbiesMaster,
+  selectCurrentStudent,
   selectAllColleges,
   selectAllDegrees,
   selectAllHobbiesMaster,
 } from "../redux/slice/studentsSlice";
+
 import {
   User,
   Pencil,
@@ -343,6 +346,7 @@ import {
   RotateCcw,
   Search,
 } from "lucide-react";
+
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import defaultProfilePic from "/DarkLogo.png";
@@ -364,8 +368,8 @@ const ProfileInformation = () => {
   const [hobbySearch, setHobbySearch] = useState("");
 
   /* ===============================
-       1. DATA FETCHING
-  ================================= */
+     LOAD DATA
+  =============================== */
   const loadProfileData = () => {
     const loggedInId = user?.S_ID || user?.id;
     if (isAuthenticated && loggedInId) {
@@ -385,8 +389,8 @@ const ProfileInformation = () => {
   }, [isAuthenticated, navigate]);
 
   /* ===============================
-       2. SYNC EXISTING DATA
-  ================================= */
+     SYNC DATA
+  =============================== */
   useEffect(() => {
     if (currentStudent) {
       setFormData({
@@ -408,8 +412,9 @@ const ProfileInformation = () => {
     return <div className="p-20 text-center font-bold">Loading...</div>;
 
   /* ===============================
-       3. HANDLERS
-  ================================= */
+     HANDLERS
+  =============================== */
+
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -454,6 +459,7 @@ const ProfileInformation = () => {
       Degree_ID: currentStudent.Degree_ID,
       Hobbies: currentStudent.hobbies?.map((h) => h.Hobby_ID) || [],
     });
+
     setIsEditing(false);
     toast.error("Changes discarded");
   };
@@ -503,9 +509,13 @@ const ProfileInformation = () => {
   };
 
   const formatBatchYear = (yearId) => {
-    if (!yearId || yearId.toString().length !== 4) return yearId || "N/A";
+    if (!yearId || yearId.toString().length !== 4)
+      return yearId || "N/A";
     const yearStr = yearId.toString();
-    return `20${yearStr.substring(0, 2)}-20${yearStr.substring(2, 4)}`;
+    return `20${yearStr.substring(0, 2)}-20${yearStr.substring(
+      2,
+      4
+    )}`;
   };
 
   const infoFields = [
@@ -531,7 +541,9 @@ const ProfileInformation = () => {
         </div>
       </section>
 
-      <div className="max-w-4xl mx-auto bg-white relative z-20 rounded-[2.5rem] shadow-2xl -mt-20 overflow-hidden">
+      {/* Profile Card */}
+      <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] shadow-2xl -mt-20 overflow-hidden">
+        {/* Header */}
         <div className="px-10 py-8 flex justify-between items-center border-b">
           <div className="flex items-center gap-3 text-[#1A3C20]">
             <User size={20} strokeWidth={2.5} />
@@ -539,6 +551,7 @@ const ProfileInformation = () => {
               Personal Information
             </h2>
           </div>
+
           <div className="flex gap-2">
             {/* Delete Button (only when not editing) */}
             {!isEditing && (
@@ -558,16 +571,29 @@ const ProfileInformation = () => {
                 <RotateCcw size={18} />
               </button>
             )}
+
             <button
-              onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
-              className={`p-2.5 rounded-full transition-all shadow-sm ${isEditing ? "bg-green-600 text-white" : "bg-[#f0f9f1] text-[#1A3C20]"} hover:scale-110`}
+              onClick={() =>
+                isEditing ? handleSave() : setIsEditing(true)
+              }
+              className={`p-2.5 rounded-full ${
+                isEditing
+                  ? "bg-green-600 text-white"
+                  : "bg-[#f0f9f1] text-[#1A3C20]"
+              }`}
             >
-              {isEditing ? <Check size={18} /> : <Pencil size={18} />}
+              {isEditing ? (
+                <Check size={18} />
+              ) : (
+                <Pencil size={18} />
+              )}
             </button>
           </div>
         </div>
 
+        {/* Body */}
         <div className="px-10 py-10 flex flex-col md:flex-row gap-12">
+          {/* Avatar */}
           <div className="flex flex-col items-center min-w-[180px]">
             <div className="w-44 h-44 rounded-4xl bg-[#FFAB8F] overflow-hidden border-[6px] border-[#e8f5e9] shadow-inner">
               <img
@@ -582,8 +608,9 @@ const ProfileInformation = () => {
             <p className="text-gray-400 text-sm">@{formData.Username}</p>
           </div>
 
+          {/* Info */}
           <div className="flex-1">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {infoFields.map((field, idx) => (
                 <div
                   key={idx}
