@@ -86,9 +86,9 @@ export const updateStudentProfile = createAsyncThunk(
   "students/updateStudentProfile",
   async (updatedData, { rejectWithValue }) => {
     try {
-      const response = await api.post("/students/update", updatedData);
-
-      // Backend returns { message, updatedUser }
+      const response = await api.post("/students/update", updatedData, {
+        headers: { "Content-Type": "multipart/form-data" }, // ✅ add this
+      });
       return response.data.updatedUser || response.data;
     } catch (err) {
       return rejectWithValue(
@@ -97,6 +97,7 @@ export const updateStudentProfile = createAsyncThunk(
     }
   },
 );
+
 // 🔹 Delete Student
 export const deleteStudentAccount = createAsyncThunk(
   "students/deleteStudentAccount",
@@ -198,9 +199,15 @@ const studentsSlice = createSlice({
         state.currentError = action.payload;
       })
 
-      .addCase(updateStudentProfile.fulfilled, (state) => {
-        // API returns {message: 'Update successful'}, not a student object
-        // Component calls loadProfileData() after save, so no update needed here
+      /* ===== UPDATE STUDENT ===== */
+      .addCase(updateStudentProfile.fulfilled, (state, action) => {
+        if (action.payload && action.payload.S_ID) {
+          studentsAdapter.upsertOne(state, action.payload);
+          if (state.currentStudent?.S_ID === action.payload.S_ID) {
+            state.currentStudent = action.payload;
+          }
+        }
+        // if no S_ID, silently ignore — component re-fetches via loadProfileData()
       })
 
       /* ===== DELETE STUDENT ===== */

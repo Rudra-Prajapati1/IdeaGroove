@@ -93,11 +93,9 @@ export const createEvent = createAsyncThunk(
   async (formData, { rejectWithValue }) => {
     try {
       const { data } = await api.post("/events/create", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      return data; // { status: true, message: ... }
+      return data;
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.error || "Failed to create event",
@@ -115,7 +113,7 @@ export const updateEvent = createAsyncThunk(
       const { data } = await api.put(`/events/update/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      return data; // { status, message, data: updatedEvent }
+      return data;
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.error || "Failed to update event",
@@ -131,10 +129,27 @@ export const deleteEvent = createAsyncThunk(
   async (eventId, { rejectWithValue }) => {
     try {
       const { data } = await api.get(`/events/delete/${eventId}`);
-      return { eventId, ...data }; // Return eventId so we can remove it locally if needed
+      return { eventId, ...data };
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.error || "Failed to delete event",
+      );
+    }
+  },
+);
+
+/* ================= REACT TO EVENT ================= */
+
+export const reactToEvent = createAsyncThunk(
+  "events/reactToEvent",
+  async ({ E_ID, type, action }, { rejectWithValue }) => {
+    try {
+      await api.post("/events/react", { E_ID, type, action });
+      // Return the info needed to update state optimistically
+      return { E_ID, type, action };
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to update reaction",
       );
     }
   },
@@ -157,7 +172,6 @@ const eventsSlice = createSlice({
         state.page = action.payload.page;
         state.totalPages = action.payload.totalPages;
         state.total = action.payload.total;
-
         eventsAdapter.setAll(state, action.payload.data);
       })
       .addCase(fetchEvents.rejected, (state, action) => {
@@ -198,9 +212,8 @@ const eventsSlice = createSlice({
         state.createStatus = "loading";
         state.createError = null;
       })
-      .addCase(createEvent.fulfilled, (state, action) => {
+      .addCase(createEvent.fulfilled, (state) => {
         state.createStatus = "succeeded";
-        // No addOne since no data returned; parent will refetch
       })
       .addCase(createEvent.rejected, (state, action) => {
         state.createStatus = "failed";
@@ -215,13 +228,14 @@ const eventsSlice = createSlice({
       .addCase(updateEvent.fulfilled, (state, action) => {
         state.updateStatus = "succeeded";
         if (action.payload?.data) {
-          eventsAdapter.upsertOne(state, action.payload.data); // ← Instant UI update
+          eventsAdapter.upsertOne(state, action.payload.data);
         }
       })
       .addCase(updateEvent.rejected, (state, action) => {
         state.updateStatus = "failed";
         state.updateError = action.payload;
       })
+
       /* ===== DELETE EVENT ===== */
       .addCase(deleteEvent.pending, (state) => {
         state.deleteStatus = "loading";
@@ -229,12 +243,29 @@ const eventsSlice = createSlice({
       })
       .addCase(deleteEvent.fulfilled, (state, action) => {
         state.deleteStatus = "succeeded";
-        // Optional: remove from state immediately (optimistic update)
         eventsAdapter.removeOne(state, action.payload.eventId);
       })
       .addCase(deleteEvent.rejected, (state, action) => {
         state.deleteStatus = "failed";
         state.deleteError = action.payload;
+      })
+
+      /* ===== REACT TO EVENT (optimistic update) ===== */
+      .addCase(reactToEvent.fulfilled, (state, action) => {
+        const { E_ID, type, action: reactionAction } = action.payload;
+        const event = state.entities[E_ID];
+        if (!event) return;
+
+        const delta = reactionAction === "add" ? 1 : -1;
+
+        if (type === "interested") {
+          event.Interested = Math.max(0, (event.Interested || 0) + delta);
+        } else if (type === "not_interested") {
+          event.Not_Interested = Math.max(
+            0,
+            (event.Not_Interested || 0) + delta,
+          );
+        }
       });
   },
 });
@@ -257,15 +288,12 @@ export const selectEventsPagination = createSelector(
 );
 
 export const selectPreviewEvents = (state) => state.events.previewEvents;
-
 export const selectPreviewStatus = (state) => state.events.previewStatus;
-
 export const selectPreviewError = (state) => state.events.previewError;
 
 export const selectUserEvents = (state) => state.events.userEvents;
-
 export const selectUserEventsStatus = (state) => state.events.userStatus;
-
 export const selectUserEventsError = (state) => state.events.userError;
+
 export const selectDeleteStatus = (state) => state.events.deleteStatus;
 export const selectDeleteError = (state) => state.events.deleteError;
