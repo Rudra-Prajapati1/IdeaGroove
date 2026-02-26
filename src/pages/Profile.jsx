@@ -705,13 +705,17 @@ const ProfileInformation = () => {
         formDataPayload.append("profile_pic", profilePicFile);
       }
 
-      await dispatch(updateStudentProfile(formDataPayload)).unwrap();
+      const result = await dispatch(
+        updateStudentProfile(formDataPayload),
+      ).unwrap();
+      console.log("Update result:", result); // 👈 check what comes back
       toast.success("Profile Updated Successfully!");
       setIsEditing(false);
       setProfilePicFile(null);
       setProfilePicPreview(null);
       loadProfileData();
-    } catch {
+    } catch (err) {
+      console.error("Update failed:", err);
       toast.error("Failed to update profile");
     }
   };
@@ -771,8 +775,9 @@ const ProfileInformation = () => {
                 <img
                   src={
                     profilePicPreview ||
-                    currentStudent.Profile_Pic ||
-                    defaultProfilePic
+                    (currentStudent.Profile_Pic
+                      ? currentStudent.Profile_Pic
+                      : defaultProfilePic)
                   }
                   alt="Profile"
                   className="w-full h-full object-cover"
