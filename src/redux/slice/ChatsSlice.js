@@ -20,17 +20,17 @@ export const fetchChats = createAsyncThunk(
   "chats/fetchChats",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await api.get(
-        `/collections/${
-          import.meta.env.VITE_MOCKMAN_API_KEY
-        }/69465f4fb6dbbbd14cf931bf/documents`
-      );
+      // const { data } = await api.get(
+      //   `/collections/${
+      //     import.meta.env.VITE_MOCKMAN_API_KEY
+      //   }/69465f4fb6dbbbd14cf931bf/documents`
+      // );
 
       return data.map((d) => d.data);
     } catch (error) {
       return rejectWithValue(error?.message || "Failed to fetch chats");
     }
-  }
+  },
 );
 
 const chatsSlice = createSlice({
@@ -62,7 +62,9 @@ export const {
 
 export const selectChatsByRoomId = (roomId) =>
   createSelector([selectAllChats], (chats) =>
-    chats.filter((chat) => chat.Room_ID === roomId && chat.Is_Deleted === false)
+    chats.filter(
+      (chat) => chat.Room_ID === roomId && chat.Is_Deleted === false,
+    ),
   );
 
 export const selectChatsStatus = (state) => state.chats.status;
