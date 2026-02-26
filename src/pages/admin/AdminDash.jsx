@@ -25,7 +25,7 @@ const AdminDash = () => {
   const [loading, setLoading] = useState(false);
   const [tooltip, setTooltip] = useState(null);
   const [contributorData, setContributorData] = useState([]);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -388,7 +388,7 @@ const AdminDash = () => {
               <div>
                 <div
                   key={index}
-                  onClick={() => setIsProfileOpen(true)}
+                  onClick={() => setSelectedStudentId(student.S_ID)}
                   className="flex items-center justify-between p-3 rounded-2xl border border-slate-50 hover:bg-slate-50/50 hover:border-emerald-100 transition-all group cursor-pointer"
                 >
                   <div className="flex items-center gap-4">
@@ -426,18 +426,18 @@ const AdminDash = () => {
                     {student.grand_total}
                   </div>
                 </div>
-                {/* Modal Overlay */}
-                {isProfileOpen && (
+
+                {selectedStudentId && (
                   <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
                     onClick={(e) =>
-                      e.target === e.currentTarget && setIsProfileOpen(false)
+                      e.target === e.currentTarget && setSelectedStudentId(null)
                     }
                   >
-                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden">
                       <StudentProfile
-                        id={student?.S_ID}
-                        onClose={() => setIsProfileOpen(false)}
+                        id={selectedStudentId}
+                        onClose={() => setSelectedStudentId(null)}
                       />
                     </div>
                   </div>
