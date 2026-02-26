@@ -83,28 +83,24 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
         </div>
         <div className="flex flex-col gap-2 min-w-[130px]">
           <button
-            onClick={() => onModerate("block", group.id)}
+            onClick={() => onModerate(isActive ? "block" : "unblock", qna.id)}
             disabled={!isActive}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all
                         ${
-                          !isActive
-                            ? "bg-gray-100 text-gray-300 cursor-not-allowed"
-                            : "text-red-500 bg-red-50 hover:bg-red-500 hover:text-white"
-                        }`}
-          >
-            <Ban size={12} /> Block
-          </button>
-          <button
-            onClick={() => onModerate("unblock", group.id)}
-            disabled={isActive}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all
-                        ${
                           isActive
-                            ? "bg-gray-100 text-gray-300 cursor-not-allowed"
+                            ? "text-red-500 bg-red-50 hover:bg-red-500 hover:text-white"
                             : "bg-[#1B431C] text-white hover:bg-[#153416]"
                         }`}
           >
-            <CheckCircle size={12} /> Unblock
+            {isActive ? (
+              <>
+                <Ban size={12} /> Block
+              </>
+            ) : (
+              <>
+                <CheckCircle size={12} /> Unblock
+              </>
+            )}
           </button>
         </div>
       </div>
