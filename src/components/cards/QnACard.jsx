@@ -32,10 +32,10 @@ const QnACard = ({ post, isAuth, onEdit, onDelete }) => {
   if (!post) return null;
 
   const { user } = useSelector(selectAuth);
-  const isOwner = post.Author_Id === user.id;
+  const isOwner = post.Author_Id === user?.id;
 
   // Single source of truth for current user's display name
-  const currentUsername = user.username || user.Username || user.name || "";
+  const currentUsername = user?.username || user?.Username || user?.name || "";
 
   const askedDate = post.Added_On
     ? new Date(post.Added_On).toLocaleDateString("en-IN", {
@@ -74,9 +74,6 @@ const QnACard = ({ post, isAuth, onEdit, onDelete }) => {
         }),
       ).unwrap();
 
-      // ✅ FIX: fetch real answers from backend to get the actual A_ID
-      // Using Date.now() as A_ID caused 404 on edit because the fake ID
-      // doesn't exist in the DB
       const { data } = await api.get(`/qna/answers/${post.Q_ID}`);
       if (data?.answers) {
         setLocalAnswers(data.answers);
