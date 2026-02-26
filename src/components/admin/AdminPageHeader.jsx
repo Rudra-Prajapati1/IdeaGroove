@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Search, GraduationCap, BookOpen, Heart } from "lucide-react";
 import SimpleDropdown from "./SimpleDropdown";
-import SearchableDropdown from "./SearchableDropdown";
+import SearchableDropdown from "../common/SearchableDropdown";
 
 const AdminPageHeader = ({
   title,
