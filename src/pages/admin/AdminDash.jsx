@@ -152,36 +152,6 @@ const AdminDash = () => {
     (statsData?.upcomingEvents || 0) +
     (statsData?.activeGroups || 0);
 
-  // --- Data for Recent Activities Table ---
-  // const recentActivities = [
-  //   {
-  //     id: 1,
-  //     user: "Elena Gilbert",
-  //     action: 'Created new study group: "Finals Prep"',
-  //     category: "Groups",
-  //     timestamp: "2 mins ago",
-  //     avatar: "https://i.pravatar.cc/150?u=Elena",
-  //   },
-  //   {
-  //     id: 2,
-  //     user: "Tyler Lockwood",
-  //     action: 'Reported a post in "Social"',
-  //     category: "COMPLAINT",
-  //     timestamp: "14 mins ago",
-  //     status: "Pending Review",
-  //     avatar: "https://i.pravatar.cc/150?u=Tyler",
-  //   },
-  //   {
-  //     id: 3,
-  //     user: "Damon Salvatore",
-  //     action: 'Uploaded a notes "Python"',
-  //     category: "Notes",
-  //     timestamp: "45 mins ago",
-  //     status: "Live",
-  //     avatar: "https://i.pravatar.cc/150?u=Damon",
-  //   },
-  // ];
-
   const categories = [
     {
       name: "Notes",
