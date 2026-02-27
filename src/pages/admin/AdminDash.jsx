@@ -26,6 +26,7 @@ const AdminDash = () => {
   const [tooltip, setTooltip] = useState(null);
   const [contributorData, setContributorData] = useState([]);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [recentActivities, setRecentActivities] = useState([]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -76,6 +77,30 @@ const AdminDash = () => {
     fetchContributor();
   }, []);
 
+  useEffect(() => {
+    const fetchRecentActivity = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/admin/recent-activity`,
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch recent activity.");
+        }
+        const data = await res.json();
+        console.log(data);
+        setRecentActivities(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecentActivity();
+  }, []);
+
   const stats = [
     {
       label: "Total Users",
@@ -107,7 +132,7 @@ const AdminDash = () => {
     },
     {
       label: "Upcoming Events",
-      value: statsData?.totalEvents || 0,
+      value: statsData?.upcomingEvents || 0,
       color: "amber",
       icon: Calendar,
       desc: "Next 7 days",
@@ -124,38 +149,8 @@ const AdminDash = () => {
   const totalUploads =
     (statsData?.totalNotes || 0) +
     (statsData?.totalQuestions || 0) +
-    (statsData?.totalEvents || 0) +
+    (statsData?.upcomingEvents || 0) +
     (statsData?.activeGroups || 0);
-
-  // --- Data for Recent Activities Table ---
-  const recentActivities = [
-    {
-      id: 1,
-      user: "Elena Gilbert",
-      action: 'Created new study group: "Finals Prep"',
-      category: "Groups",
-      timestamp: "2 mins ago",
-      avatar: "https://i.pravatar.cc/150?u=Elena",
-    },
-    {
-      id: 2,
-      user: "Tyler Lockwood",
-      action: 'Reported a post in "Social"',
-      category: "COMPLAINT",
-      timestamp: "14 mins ago",
-      status: "Pending Review",
-      avatar: "https://i.pravatar.cc/150?u=Tyler",
-    },
-    {
-      id: 3,
-      user: "Damon Salvatore",
-      action: 'Uploaded a notes "Python"',
-      category: "Notes",
-      timestamp: "45 mins ago",
-      status: "Live",
-      avatar: "https://i.pravatar.cc/150?u=Damon",
-    },
-  ];
 
   const categories = [
     {
@@ -168,7 +163,7 @@ const AdminDash = () => {
     },
     {
       name: "Events",
-      count: statsData?.totalEvents || 0,
+      count: statsData?.upcomingEvents || 0,
     },
     {
       name: "Groups",
@@ -488,76 +483,59 @@ const AdminDash = () => {
             </thead>
 
             <tbody className="text-sm divide-y divide-gray-50">
-              {[
-                {
-                  user: "Elena Gilbert",
-                  action: 'Created new study group: "Finals Prep"',
-                  cat: "ACADEMIC",
-                  catColor: "bg-blue-50 text-blue-600 border-blue-100",
-                  time: "2 mins ago",
-                  status: "Live",
-                  statusColor: "text-green-600",
-                },
-
-                {
-                  user: "Tyler Lockwood",
-                  action: 'Reported a post in "Social"',
-                  cat: "COMPLAINT",
-                  catColor: "bg-red-50 text-red-600 border-red-100",
-                  time: "14 mins ago",
-                  status: "Pending",
-                  statusColor: "text-orange-500",
-                },
-
-                {
-                  user: "Damon Salvatore",
-                  action: 'Updated portfolio in "Career Hub"',
-                  cat: "CAREER",
-                  catColor: "bg-emerald-50 text-emerald-600 border-emerald-100",
-                  time: "45 mins ago",
-                  status: "Live",
-                  statusColor: "text-green-600",
-                },
-              ].map((row, i) => (
+              {recentActivities.map((row, i) => (
                 <tr
                   key={i}
                   className="hover:bg-gray-50/50 transition-colors group"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <img
-                        className="w-8 h-8 rounded-full bg-gray-100 border border-gray-200"
-                        src={`https://i.pravatar.cc/100?u=${row.user}`}
-                        alt=""
-                      />
+                      {row?.profile_pic ? (
+                        <img
+                          className="w-12 h-12 rounded-2xl object-cover ring-2 ring-white shadow-md group-hover:scale-110 transition-transform"
+                          src={`${row.profile_pic}`}
+                          alt=""
+                        />
+                      ) : (
+                        <div
+                          className={`w-12 h-12 rounded-2xl object-cover ring-2 ring-white shadow-md group-hover:scale-110 transition-transform flex items-center justify-center`}
+                        >
+                          {row.student_name?.charAt(0).toUpperCase()}
+                        </div>
+                      )}
 
                       <span className="font-bold text-slate-700">
-                        {row.user}
+                        {row.student_name}
                       </span>
                     </div>
                   </td>
 
                   <td className="px-6 py-4 text-gray-500 font-medium">
-                    {row.action}
+                    {row.title_or_action}
                   </td>
 
                   <td className="px-6 py-4">
                     <span
                       className={`text-[10px] font-black px-2 py-1 rounded-md border ${row.catColor}`}
                     >
-                      {row.cat}
+                      {row.activity_type}
                     </span>
                   </td>
 
                   <td className="px-6 py-4 text-gray-400 text-xs font-medium">
-                    {row.time}
+                    {new Date(row.created_at).toLocaleDateString("en-IN", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </td>
 
                   <td className="px-6 py-4">
                     <div
-                      className={`flex items-center gap-1.5 font-bold text-xs ${row.statusColor}`}
+                      className={`flex items-center gap-1.5 font-bold text-xs ${row.status == 1 ? "text-green-300" : "text-red-300"}`}
                     >
-                      <Circle size={8} fill="currentColor" /> {row.status}
+                      <Circle size={8} fill="currentColor" />{" "}
+                      {row.status ? "Active" : "Blocked"}
                     </div>
                   </td>
 
