@@ -27,9 +27,6 @@ const QnA = () => {
   const [selectedDegree, setSelectedDegree] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-
-  // ✅ Track whether we've ever loaded successfully at least once
-  // so we never unmount DiscussionForum after the first load
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
   const updateDebouncedSearch = useCallback(
@@ -81,7 +78,6 @@ const QnA = () => {
     selectedSubject,
   ]);
 
-  // Mark first successful load so we stop showing the full-page spinner
   useEffect(() => {
     if (status === "succeeded") {
       setHasLoadedOnce(true);
@@ -100,17 +96,14 @@ const QnA = () => {
       }),
     );
 
-  // ✅ Only show full-page spinner on the very first load
   const showFullPageLoader = status === "loading" && !hasLoadedOnce;
 
-  // ✅ After first load, show a subtle top bar while refetching
   const isRefetching = status === "loading" && hasLoadedOnce;
 
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
       <PageHeader title="QnA" />
 
-      {/* ✅ Thin progress bar at top — visible during search/filter refetches */}
       {isRefetching && (
         <div className="fixed top-0 left-0 w-full z-50">
           <div className="h-1 bg-green-200">
@@ -120,15 +113,12 @@ const QnA = () => {
       )}
 
       <div className="mx-auto px-6 relative z-30 mt-10">
-        {/* Full page spinner — only on very first load */}
         {showFullPageLoader && <Loading text="Loading discussions..." />}
 
         {status === "failed" && (
           <p className="text-red-500 text-center">{error}</p>
         )}
 
-        {/* ✅ DiscussionForum stays mounted once hasLoadedOnce is true
-            so search input never loses focus during refetches */}
         {(status === "succeeded" || isRefetching) && (
           <>
             <DiscussionForum

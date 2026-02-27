@@ -9,47 +9,44 @@ import {
 } from "../../redux/slice/chatRoomsSlice";
 import Loading from "../common/Loading";
 
-const LOGGED_IN_STUDENT_ID = 101;
-
 const ChatList = ({ search, filter, onSelectRoom, activeRoom }) => {
   const dispatch = useDispatch();
 
-  const rooms = useSelector(selectAllGroups);
-  const roomStatus = useSelector(selectGroupsStatus);
-  const roomError = useSelector(selectGroupsError);
+  // const rooms = useSelector(selectAllGroups);
+  // const roomStatus = useSelector(selectGroupsStatus);
+  // const roomError = useSelector(selectGroupsError);
 
-  // // const myRoomIds = useSelector(roomIdsSelector);
+  // // // const myRoomIds = useSelector(roomIdsSelector);
 
-  // useEffect(() => {
-  //   if (roomStatus === "idle") {
-  //     dispatch(fetchGroups({ page: 1, limit: 50 }));
-  //   }
-  //   if (memberStatus === "idle") {
-  //     dispatch(fetchChatRoomMembers());
-  //   }
-  // }, [roomStatus, memberStatus, dispatch]);
+  // // useEffect(() => {
+  // //   if (roomStatus === "idle") {
+  // //     dispatch(fetchGroups({ page: 1, limit: 50 }));
+  // //   }
+  // //   if (memberStatus === "idle") {
+  // //     dispatch(fetchChatRoomMembers());
+  // //   }
+  // // }, [roomStatus, memberStatus, dispatch]);
 
-  // const visibleRooms = rooms.filter(
-  //   (room) => myRoomIds.includes(room.Room_ID) && room.Is_Active === 1,
-  // );
+  // const visibleRooms = rooms
+  //   .filter
+  //   // (room) => myRoomIds.includes(room.Room_ID) && room.Is_Active === 1,
+  //   ();
 
-  const filteredByType = visibleRooms.filter((room) => {
-    if (filter === "groups") return room.Room_Type === "Group";
-    if (filter === "individuals") return room.Room_Type === "Direct";
-    return true;
-  });
+  // const filteredByType = visibleRooms.filter((room) => {
+  //   // if (filter === "groups") return room.Room_Type === "Group";
+  //   // if (filter === "individuals") return room.Room_Type === "Direct";
+  //   // return true;
+  // });
 
-  const filteredRooms = filteredByType.filter((room) => {
-    if (!search.trim()) return true;
-
-    const name = room.Room_Type === "Group" ? room.Room_Name : "Direct Chat";
-
-    return name?.toLowerCase().includes(search.toLowerCase());
-  });
+  // const filteredRooms = filteredByType.filter((room) => {
+  //   // if (!search.trim()) return true;
+  //   // const name = room.Room_Type === "Group" ? room.Room_Name : "Direct Chat";
+  //   // return name?.toLowerCase().includes(search.toLowerCase());
+  // });
 
   return (
     <div className="flex-1 overflow-y-auto px-3 py-4">
-      {roomStatus === "loading" && (
+      {/* {roomStatus === "loading" && (
         <div className="flex justify-center">
           <Loading text="loading chats" />
         </div>
@@ -95,7 +92,7 @@ const ChatList = ({ search, filter, onSelectRoom, activeRoom }) => {
               </p>
             </div>
           </div>
-        ))}
+        ))} */}
     </div>
   );
 };

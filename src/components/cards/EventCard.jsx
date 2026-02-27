@@ -97,7 +97,7 @@ const EventCard = ({ event, onEdit }) => {
       setUserReaction(null);
       localStorage.removeItem(storageKey);
       dispatch(reactToEvent({ E_ID: event.E_ID, type, action: "remove" }));
-      toast("Reaction removed");
+      toast.success("Reaction removed");
     } else {
       setCounts((prev) => ({
         ...prev,
@@ -124,7 +124,7 @@ const EventCard = ({ event, onEdit }) => {
       if (type === "interested") {
         toast.success("Marked as Interested!");
       } else {
-        toast("Marked as Not Interested");
+        toast.success("Marked as Not Interested");
       }
     }
   };

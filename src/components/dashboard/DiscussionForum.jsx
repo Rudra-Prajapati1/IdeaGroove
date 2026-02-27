@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BookOpen, Filter, GraduationCap, Plus } from "lucide-react";
+import { Filter, Plus, GraduationCap, BookOpen } from "lucide-react";
 import Controls from "../common/Controls";
 import AskQuestionModal from "../qna/AskQuestion";
 import QnACard from "../cards/QnACard";
@@ -8,10 +8,12 @@ import ActionButton from "../common/ActionButton";
 import { useSelector, useDispatch } from "react-redux";
 import {
   selectAllDegrees,
+  selectAllSubjects,
   selectSubjectsByDegree,
 } from "../../redux/slice/degreeSubjectSlice";
 import { updateQuestion } from "../../redux/slice/qnaSlice";
 import toast from "react-hot-toast";
+import SearchableDropdown from "../common/SearchableDropdown";
 
 const DiscussionForum = ({
   discussions,
@@ -24,7 +26,7 @@ const DiscussionForum = ({
   onDegreeChange,
   onSubjectChange,
   onRefetch,
-  isRefetching, // ✅ subtle loading signal — no unmounting
+  isRefetching,
 }) => {
   const dispatch = useDispatch();
   const isAuth = useSelector(selectIsAuthenticated);
@@ -35,10 +37,47 @@ const DiscussionForum = ({
   const [editing, setEditing] = useState(null);
 
   const degrees = useSelector(selectAllDegrees);
-  const subjects = useSelector(
+  const subjectsByDegree = useSelector(
     selectSubjectsByDegree(Number(selectedDegree) || 0),
   );
+  const allSubjects = useSelector(selectAllSubjects);
+  const subjects = selectedDegree ? subjectsByDegree : allSubjects;
 
+  const degreeNames = degrees.map((d) => d.degree_name);
+
+  const handleDegreeSelect = (value) => {
+    if (value === "all") {
+      onDegreeChange("");
+      onSubjectChange(""); // reset subject when degree is cleared
+    } else {
+      const matched = degrees.find((d) => d.degree_name === value);
+      onDegreeChange(matched ? String(matched.Degree_ID) : "");
+      onSubjectChange(""); // reset subject when degree changes
+    }
+  };
+
+  // Derive the current degree name for the dropdown's display value
+  const selectedDegreeName =
+    degrees.find((d) => String(d.Degree_ID) === selectedDegree)?.degree_name ||
+    "";
+
+  // ── Subject dropdown helpers ────────────────
+  const subjectNames = subjects.map((s) => s.subject_name);
+
+  const handleSubjectSelect = (value) => {
+    if (value === "all") {
+      onSubjectChange("");
+    } else {
+      const matched = subjects.find((s) => s.subject_name === value);
+      onSubjectChange(matched ? String(matched.Subject_ID) : "");
+    }
+  };
+
+  const selectedSubjectName =
+    subjects.find((s) => String(s.Subject_ID) === selectedSubject)
+      ?.subject_name || "";
+
+  // ── QnA handlers ────────────────────────────
   const handleQuestionSubmit = async (data) => {
     if (editing) {
       try {
@@ -84,7 +123,6 @@ const DiscussionForum = ({
         />
       )}
 
-      {/* Header Controls */}
       <div className="relative z-40">
         <div className="max-w-6xl mx-auto px-4 -mt-8 flex justify-between items-center mb-8">
           <Controls
@@ -92,7 +130,7 @@ const DiscussionForum = ({
             setSearch={onSearchChange}
             filter={filter}
             setFilter={onFilterChange}
-            searchPlaceholder="Search questions or answers..."
+            searchPlaceholder="Search by question or subject..."
             filterOptions={{
               All: "all",
               "Newest to Oldest": "newest_to_oldest",
@@ -110,7 +148,7 @@ const DiscussionForum = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* LEFT SIDEBAR (FILTERS) */}
+        {/* LEFT SIDEBAR */}
         <div className="lg:col-span-3 space-y-6">
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm sticky top-8">
             <div className="flex items-center gap-2 mb-6 text-slate-800 font-semibold border-b border-slate-100 pb-4">
@@ -119,43 +157,35 @@ const DiscussionForum = ({
             </div>
 
             <div className="space-y-6">
+              {/* Degree Filter */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                   <GraduationCap className="w-3 h-3" /> Degree
                 </label>
-                <select
-                  value={selectedDegree}
-                  onChange={(e) => onDegreeChange(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700"
-                >
-                  <option value="">All Degrees</option>
-                  {degrees.map((deg) => (
-                    <option key={deg.Degree_ID} value={deg.Degree_ID}>
-                      {deg.degree_name}
-                    </option>
-                  ))}
-                </select>
+                <SearchableDropdown
+                  options={degreeNames}
+                  value={selectedDegreeName}
+                  onChange={handleDegreeSelect}
+                  placeholder="Search degree..."
+                  text="All Degrees"
+                  icon={GraduationCap}
+                />
               </div>
 
-              {selectedDegree && subjects.length > 0 && (
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                    <BookOpen className="w-3 h-3" /> Subject
-                  </label>
-                  <select
-                    value={selectedSubject}
-                    onChange={(e) => onSubjectChange(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700"
-                  >
-                    <option value="">All Subjects</option>
-                    {subjects.map((sub) => (
-                      <option key={sub.Subject_ID} value={sub.Subject_ID}>
-                        {sub.subject_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+              {/* Subject Filter */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                  <BookOpen className="w-3 h-3" /> Subject
+                </label>
+                <SearchableDropdown
+                  options={subjectNames}
+                  value={selectedSubjectName}
+                  onChange={handleSubjectSelect}
+                  placeholder="Search subject..."
+                  text="All Subjects"
+                  icon={BookOpen}
+                />
+              </div>
 
               {(selectedDegree || selectedSubject) && (
                 <button
@@ -172,8 +202,7 @@ const DiscussionForum = ({
           </div>
         </div>
 
-        {/* RIGHT CONTENT (FEED) */}
-        {/* ✅ Subtle opacity transition while refetching — no unmount, no focus loss */}
+        {/* RIGHT CONTENT */}
         <div
           className={`lg:col-span-9 space-y-6 transition-opacity duration-200 ${
             isRefetching ? "opacity-50 pointer-events-none" : "opacity-100"

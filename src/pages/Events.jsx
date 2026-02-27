@@ -9,7 +9,6 @@ import {
   selectEventsPagination,
 } from "../redux/slice/eventsSlice";
 
-// Components
 import EventCard from "../components/cards/EventCard";
 import Loading from "../components/common/Loading";
 import { UploadIcon } from "lucide-react";
@@ -38,7 +37,7 @@ const Events = () => {
   const updateDebouncedSearch = useCallback(
     debounce((value) => {
       setDebouncedSearch(value);
-      setCurrentPage(1); // reset to page 1 on new search
+      setCurrentPage(1);
     }, 300),
     [],
   );

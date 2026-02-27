@@ -3,11 +3,13 @@ import { X, UploadCloud, FileText, Loader2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { createPortal } from "react-dom";
 import { toast } from "react-hot-toast";
+import { GraduationCap, BookOpen } from "lucide-react";
 import {
   selectAllDegrees,
   selectSubjectsByDegree,
 } from "../../redux/slice/degreeSubjectSlice";
 import { createNote, updateNote } from "../../redux/slice/notesSlice";
+import SearchableDropdown from "../common/SearchableDropdown";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_PDF_TYPE = "application/pdf";
@@ -25,6 +27,7 @@ const AddNotes = ({ onClose, onSuccess, editing }) => {
   });
 
   const degrees = useSelector(selectAllDegrees);
+  // Subject stays dependent on degree here — must pick degree before subject when uploading
   const subjects = useSelector(
     selectSubjectsByDegree(Number(formData.Degree_ID) || 0),
   );
@@ -43,6 +46,46 @@ const AddNotes = ({ onClose, onSuccess, editing }) => {
     }
   }, [editing]);
 
+  // ── Degree dropdown helpers ─────────────────
+  const degreeNames = degrees.map((d) => d.degree_name);
+
+  const handleDegreeSelect = (value) => {
+    if (value === "all") {
+      setFormData((prev) => ({ ...prev, Degree_ID: "", Subject_ID: "" }));
+    } else {
+      const matched = degrees.find((d) => d.degree_name === value);
+      setFormData((prev) => ({
+        ...prev,
+        Degree_ID: matched ? String(matched.Degree_ID) : "",
+        Subject_ID: "", // reset subject when degree changes
+      }));
+    }
+  };
+
+  const selectedDegreeName =
+    degrees.find((d) => String(d.Degree_ID) === String(formData.Degree_ID))
+      ?.degree_name || "";
+
+  // ── Subject dropdown helpers ────────────────
+  const subjectNames = subjects.map((s) => s.subject_name);
+
+  const handleSubjectSelect = (value) => {
+    if (value === "all") {
+      setFormData((prev) => ({ ...prev, Subject_ID: "" }));
+    } else {
+      const matched = subjects.find((s) => s.subject_name === value);
+      setFormData((prev) => ({
+        ...prev,
+        Subject_ID: matched ? String(matched.Subject_ID) : "",
+      }));
+    }
+  };
+
+  const selectedSubjectName =
+    subjects.find((s) => String(s.Subject_ID) === String(formData.Subject_ID))
+      ?.subject_name || "";
+
+  // ── Existing handlers (unchanged) ──────────
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -54,7 +97,6 @@ const AddNotes = ({ onClose, onSuccess, editing }) => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-      ...(name === "Degree_ID" && { Subject_ID: "" }),
     }));
   };
 
@@ -146,50 +188,38 @@ const AddNotes = ({ onClose, onSuccess, editing }) => {
           >
             {/* Degree */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Degree Program <span className="text-red-500">*</span>
               </label>
-              <select
-                name="Degree_ID"
-                value={formData.Degree_ID}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all text-sm bg-white cursor-pointer"
-                required
-              >
-                <option value="">Select Degree</option>
-                {degrees.map((deg) => (
-                  <option key={deg.Degree_ID} value={deg.Degree_ID}>
-                    {deg.degree_name}
-                  </option>
-                ))}
-              </select>
+              <SearchableDropdown
+                options={degreeNames}
+                value={selectedDegreeName}
+                onChange={handleDegreeSelect}
+                placeholder="Search degree..."
+                text="All Degrees"
+                icon={GraduationCap}
+              />
             </div>
 
-            {/* Subject */}
+            {/* Subject — only shown after degree is picked, same as before */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Subject <span className="text-red-500">*</span>
               </label>
-              <select
-                name="Subject_ID"
-                value={formData.Subject_ID}
-                onChange={handleChange}
-                disabled={!formData.Degree_ID}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all text-sm bg-white disabled:bg-slate-50 disabled:text-slate-400 cursor-pointer"
-                required
-              >
-                <option value="">
-                  {formData.Degree_ID
-                    ? "Select Subject"
-                    : "Select Degree First"}
-                </option>
-                {formData.Degree_ID &&
-                  subjects.map((sub) => (
-                    <option key={sub.Subject_ID} value={sub.Subject_ID}>
-                      {sub.subject_name}
-                    </option>
-                  ))}
-              </select>
+              {formData.Degree_ID ? (
+                <SearchableDropdown
+                  options={subjectNames}
+                  value={selectedSubjectName}
+                  onChange={handleSubjectSelect}
+                  placeholder="Search subject..."
+                  text="All Subjects"
+                  icon={BookOpen}
+                />
+              ) : (
+                <div className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-400 bg-slate-50 cursor-not-allowed">
+                  Select Degree First
+                </div>
+              )}
             </div>
 
             {/* Description */}

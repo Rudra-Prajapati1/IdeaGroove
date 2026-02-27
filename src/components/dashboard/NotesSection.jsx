@@ -19,8 +19,10 @@ import ActionButton from "../common/ActionButton";
 import AddNotes from "../notes/AddNotes";
 import {
   selectAllDegrees,
+  selectAllSubjects,
   selectSubjectsByDegree,
 } from "../../redux/slice/degreeSubjectSlice";
+import SearchableDropdown from "../common/SearchableDropdown";
 
 const STYLE_VARIANTS = [
   { color: "bg-blue-600", icon: Code2 },
@@ -51,9 +53,48 @@ const NotesSection = ({
   const [editing, setEditing] = useState(null);
 
   const degrees = useSelector(selectAllDegrees);
-  const subjects = useSelector(
+
+  // If degree is selected → show only subjects for that degree
+  // If no degree selected → show all subjects (independent filter)
+  const subjectsByDegree = useSelector(
     selectSubjectsByDegree(Number(selectedDegree) || 0),
   );
+  const allSubjects = useSelector(selectAllSubjects);
+  const subjects = selectedDegree ? subjectsByDegree : allSubjects;
+
+  // ── Degree dropdown helpers ─────────────────
+  const degreeNames = degrees.map((d) => d.degree_name);
+
+  const handleDegreeSelect = (value) => {
+    if (value === "all") {
+      onDegreeChange("");
+      onSubjectChange(""); // reset subject when degree is cleared
+    } else {
+      const matched = degrees.find((d) => d.degree_name === value);
+      onDegreeChange(matched ? String(matched.Degree_ID) : "");
+      onSubjectChange(""); // reset subject when degree changes
+    }
+  };
+
+  const selectedDegreeName =
+    degrees.find((d) => String(d.Degree_ID) === selectedDegree)?.degree_name ||
+    "";
+
+  // ── Subject dropdown helpers ────────────────
+  const subjectNames = subjects.map((s) => s.subject_name);
+
+  const handleSubjectSelect = (value) => {
+    if (value === "all") {
+      onSubjectChange("");
+    } else {
+      const matched = subjects.find((s) => s.subject_name === value);
+      onSubjectChange(matched ? String(matched.Subject_ID) : "");
+    }
+  };
+
+  const selectedSubjectName =
+    subjects.find((s) => String(s.Subject_ID) === selectedSubject)
+      ?.subject_name || "";
 
   return (
     <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
@@ -106,43 +147,35 @@ const NotesSection = ({
             </div>
 
             <div className="space-y-6">
+              {/* Degree Filter */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                   <GraduationCap className="w-3 h-3" /> Select Degree
                 </label>
-                <select
-                  value={selectedDegree}
-                  onChange={(e) => onDegreeChange(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700"
-                >
-                  <option value="">All Degrees</option>
-                  {degrees.map((deg) => (
-                    <option key={deg.Degree_ID} value={deg.Degree_ID}>
-                      {deg.degree_name}
-                    </option>
-                  ))}
-                </select>
+                <SearchableDropdown
+                  options={degreeNames}
+                  value={selectedDegreeName}
+                  onChange={handleDegreeSelect}
+                  placeholder="Search degree..."
+                  text="All Degrees"
+                  icon={GraduationCap}
+                />
               </div>
 
-              {selectedDegree && (
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                    <BookOpen className="w-3 h-3" /> Select Subject
-                  </label>
-                  <select
-                    value={selectedSubject}
-                    onChange={(e) => onSubjectChange(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700"
-                  >
-                    <option value="">All Subjects</option>
-                    {subjects.map((sub) => (
-                      <option key={sub.Subject_ID} value={sub.Subject_ID}>
-                        {sub.subject_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+              {/* Subject Filter — always visible, list adapts to degree */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                  <BookOpen className="w-3 h-3" /> Select Subject
+                </label>
+                <SearchableDropdown
+                  options={subjectNames}
+                  value={selectedSubjectName}
+                  onChange={handleSubjectSelect}
+                  placeholder="Search subject..."
+                  text="All Subjects"
+                  icon={BookOpen}
+                />
+              </div>
 
               {(selectedDegree || selectedSubject) && (
                 <button
@@ -159,7 +192,7 @@ const NotesSection = ({
           </div>
         </div>
 
-        {/* RIGHT CONTENT — subtle dim while refetching */}
+        {/* RIGHT CONTENT */}
         <div
           className={`lg:col-span-9 space-y-4 transition-opacity duration-200 ${
             isRefetching ? "opacity-50 pointer-events-none" : "opacity-100"

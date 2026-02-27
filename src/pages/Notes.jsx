@@ -100,7 +100,6 @@ const Notes = () => {
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
       <PageHeader title="Notes" />
 
-      {/* Thin progress bar on refetches — no full-page takeover */}
       {isRefetching && (
         <div className="fixed top-0 left-0 w-full z-50">
           <div className="h-1 bg-green-200">
@@ -116,7 +115,6 @@ const Notes = () => {
           <p className="text-red-500 text-center">{notesError}</p>
         )}
 
-        {/* Keep NotesSection mounted after first load so search stays focused */}
         {(notesStatus === "succeeded" || isRefetching) && (
           <>
             <NotesSection

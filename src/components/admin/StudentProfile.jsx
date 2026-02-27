@@ -70,7 +70,7 @@ const StudentProfile = ({ id, onClose }) => {
     const fetchProfile = async () => {
       try {
         const res = await fetch(
-          `http://localhost:8080/api/students/profile/${id}`,
+          `${import.meta.env.VITE_API_BASE_URL}/students/profile/${id}`,
         );
         const data = await res.json();
         setProfile(data);
@@ -89,7 +89,7 @@ const StudentProfile = ({ id, onClose }) => {
       try {
         setLoadingActivities(true);
         const res = await fetch(
-          `http://localhost:8080/api/students/${id}/activities?type=${filter}`,
+          `${import.meta.env.VITE_API_BASE_URL}/students/${id}/activities?type=${filter}`,
         );
         const data = await res.json();
         setActivities(data);
@@ -102,10 +102,6 @@ const StudentProfile = ({ id, onClose }) => {
 
     fetchActivities();
   }, [filter, id]);
-
-  // const filteredActivities = activities.filter(
-  //   (a) => filter === "none" || a.type === filter,
-  // );
 
   useEffect(() => {
     const activeTab = tabRefs.current[filter];
@@ -447,7 +443,7 @@ const StudentProfile = ({ id, onClose }) => {
                         </p>
                         <p className="text-xs text-gray-400 mt-1 font-medium">
                           Category:{" "}
-                          {/* <span className="text-gray-600">{item.type}</span> • */}
+                          <span className="text-gray-600">{item.type}</span> •
                           Course:{" "}
                           <span className="uppercase text-gray-600 font-bold">
                             {item.course}
