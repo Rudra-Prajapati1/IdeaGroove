@@ -1,16 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const SOCKET_URL =
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:8080";
+const API_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
-
 export function useChat(studentId) {
   const socketRef = useRef(null);
+
   const [isConnected, setIsConnected] = useState(false);
+  const [rooms, setRooms] = useState([]);
   const [messages, setMessages] = useState({});
   const [typingUsers, setTypingUsers] = useState({});
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [unreadCounts, setUnreadCounts] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const typingTimeouts = useRef({});
 
   useEffect(() => {
@@ -40,6 +45,17 @@ export function useChat(studentId) {
         ...prev,
         [roomId]: (prev[roomId] || 0) + 1,
       }));
+      setRooms((prev) =>
+        prev.map((room) =>
+          room.Room_ID === roomId
+            ? {
+                ...room,
+                Last_Message: message.Message,
+                Last_Message_At: message.Sent_On,
+              }
+            : room,
+        ),
+      );
     });
 
     socket.on("message:more", ({ roomId, messages: msgs }) => {
@@ -65,12 +81,145 @@ export function useChat(studentId) {
       });
     });
 
+    socket.on("message:seen_update", ({ roomId, seenBy }) => {
+      setMessages((prev) => ({
+        ...prev,
+        [roomId]: (prev[roomId] || []).map((msg) =>
+          msg.Sender_ID !== seenBy ? { ...msg, Is_Seen: 1 } : msg,
+        ),
+      }));
+    });
+
     socket.on("rooms:unread_counts", (counts) => {
       setUnreadCounts(counts);
     });
 
     return () => socket.disconnect();
   }, [studentId]);
+
+  const fetchRooms = useCallback(async () => {
+    if (!studentId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/rooms/${studentId}`);
+      const data = await res.json();
+      setRooms(data.rooms || []);
+
+      // After fetching rooms, get unread counts for all of them
+      const roomIds = data.rooms.map((r) => r.Room_ID);
+      if (roomIds.length > 0) {
+        socketRef.current?.emit("rooms:unread_counts", { roomIds });
+      }
+    } catch (err) {
+      setError("Failed to load rooms");
+      console.error("fetchRooms error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [studentId]);
+
+  // ─── REST: Fetch members of a room ───────────────────────────────────────
+  const fetchRoomMembers = useCallback(async (roomId) => {
+    try {
+      const res = await fetch(`${API_URL}/rooms/${roomId}/members`);
+      const data = await res.json();
+      return data.members || [];
+    } catch (err) {
+      console.error("fetchRoomMembers error:", err);
+      return [];
+    }
+  }, []);
+
+  // ─── REST: Create direct room ─────────────────────────────────────────────
+  const createDirectRoom = useCallback(
+    async (studentId2) => {
+      setError(null);
+      try {
+        const res = await fetch(`${API_URL}/direct`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ studentId1: studentId, studentId2 }),
+        });
+        const data = await res.json();
+        // Refresh rooms list
+        await fetchRooms();
+        return data.roomId;
+      } catch (err) {
+        setError("Failed to create direct room");
+        console.error("createDirectRoom error:", err);
+      }
+    },
+    [studentId, fetchRooms],
+  );
+
+  // ─── REST: Create group room ──────────────────────────────────────────────
+  const createGroupRoom = useCallback(
+    async ({ roomName, description, basedOn, memberIds }) => {
+      setError(null);
+      try {
+        const res = await fetch(`${API_URL}/group`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            creatorId: studentId,
+            roomName,
+            description,
+            basedOn,
+            memberIds,
+          }),
+        });
+        const data = await res.json();
+        // Refresh rooms list
+        await fetchRooms();
+        return data.roomId;
+      } catch (err) {
+        setError("Failed to create group room");
+        console.error("createGroupRoom error:", err);
+      }
+    },
+    [studentId, fetchRooms],
+  );
+
+  // ─── REST: Delete room ────────────────────────────────────────────────────
+  const deleteRoom = useCallback(
+    async (roomId) => {
+      setError(null);
+      try {
+        await fetch(`${API_URL}/rooms/${roomId}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ studentId }),
+        });
+        // Remove from local state
+        setRooms((prev) => prev.filter((r) => r.Room_ID !== roomId));
+      } catch (err) {
+        setError("Failed to delete room");
+        console.error("deleteRoom error:", err);
+      }
+    },
+    [studentId],
+  );
+
+  // ─── REST: Leave group room ───────────────────────────────────────────────
+  const leaveGroupRoom = useCallback(
+    async (roomId) => {
+      setError(null);
+      try {
+        await fetch(`${API_URL}/rooms/${roomId}/leave`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ studentId }),
+        });
+        // Remove from local state
+        setRooms((prev) => prev.filter((r) => r.Room_ID !== roomId));
+      } catch (err) {
+        setError("Failed to leave room");
+        console.error("leaveGroupRoom error:", err);
+      }
+    },
+    [studentId],
+  );
 
   const joinRoom = useCallback(
     (roomId) => {
@@ -116,10 +265,21 @@ export function useChat(studentId) {
 
   return {
     isConnected,
+    rooms,
     messages,
     typingUsers,
     onlineUsers,
     unreadCounts,
+    loading,
+    error,
+
+    fetchRooms,
+    fetchRoomMembers,
+    createDirectRoom,
+    createGroupRoom,
+    deleteRoom,
+    leaveGroupRoom,
+
     joinRoom,
     leaveRoom,
     sendMessage,
