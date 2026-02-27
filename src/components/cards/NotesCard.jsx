@@ -140,7 +140,7 @@ const NotesCard = ({
           {isAuth && !isOwner && (
             <div className="absolute top-3 left-3 z-10">
               <ComplaintButton
-                onClick={() => navigate(`/submitComplaint/notes/${note.N_ID}`)}
+                onClick={() => navigate(`/submit-complaint/notes/${note.N_ID}/${note.Description}`)}
                 element="notes"
               />
             </div>

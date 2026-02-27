@@ -5,7 +5,7 @@ import api from "../../api/axios";
 
 export const fetchUserComplaints = createAsyncThunk(
   "complaints/fetchUserComplaints",
-  async ({ userId, page = 1, limit = 5 }, { rejectWithValue }) => {
+  async ({ userId, page = 1, limit = 10 }, { rejectWithValue }) => {
     try {
       const { data } = await api.get(
         `/complaints/user/${userId}?page=${page}&limit=${limit}`
@@ -48,35 +48,35 @@ export const fetchContentOptions = createAsyncThunk(
           response = await api.get("/notes?limit=100");
           return (response.data.notes || []).map((note) => ({
             id: note.N_ID,
-            label: `"${note.Description}" by "${note.Author}"`,
+            label: `${note.Description}|${note.Author}`,
           }));
 
         case "Events":
           response = await api.get("/events?limit=100");
           return (response.data.data || []).map((event) => ({
             id: event.E_ID,
-            label: `"${event.Description}" by "${event.Organizer_Name}"`,
+            label: `${event.Description}|${event.Organizer_Name}`,
           }));
 
         case "Groups":
           response = await api.get("/groups?limit=100");
           return (response.data.data || []).map((group) => ({
             id: group.Room_ID,
-            label: `"${group.Room_Name}" by "${group.Creator_Name}"`,
+            label: `${group.Room_Name}|${group.Creator_Name}`,
           }));
 
         case "QnA":
           response = await api.get("/qna?limit=100");
           return (response.data.QnA || []).map((q) => ({
             id: q.Q_ID,
-            label: `"${q.Question}" by "${q.Question_Author}"`,
+            label: `${q.Question}|${q.Question_Author}`,
           }));
 
         case "User":
           response = await api.get("/students/all");
           return (response.data || []).map((user) => ({
             id: user.S_ID,
-            label: `"@${user.Username}"`,
+            label: `@${user.Username}`,
           }));
 
         default:

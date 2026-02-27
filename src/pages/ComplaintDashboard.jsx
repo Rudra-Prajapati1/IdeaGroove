@@ -207,4 +207,4 @@
 //   );
 // };
 
-// export default ComplaintDashboard;
+export default ComplaintDashboard;
