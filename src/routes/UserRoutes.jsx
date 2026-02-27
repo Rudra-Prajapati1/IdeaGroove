@@ -8,7 +8,6 @@ import QnA from "../pages/QnA";
 import Dashboard from "../pages/Dashboard";
 import Auth from "../pages/Auth";
 import ProfileInformation from "../pages/Profile";
-import ComplaintDashboard from "../pages/ComplaintDashboard";
 import SubmitComplaint from "../pages/SubmitComplaint";
 import SearchPage from "../pages/SearchPage";
 import NotFound from "../pages/NotFound";
@@ -28,8 +27,7 @@ const UserRoutes = (
     <Route path="dashboard/:id" element={<Dashboard />} />
     <Route path="auth" element={<Auth />} />
     <Route path="profile" element={<ProfileInformation />} />
-    {/* <Route path="complaints" element={<ComplaintDashboard />} /> */}
-    <Route path="submit-complaint/:type?/:id?" element={<SubmitComplaint />} />
+    <Route path="submit-complaint/:type?/:id?/:text?" element={<SubmitComplaint />} />
     <Route path="search" element={<SearchPage />} />
     <Route path="reset-password/:id/:token" element={<ResetPassword />} />
     <Route path="terms" element={<TermsAndConditions />} />
