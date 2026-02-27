@@ -4,9 +4,28 @@ import ChatHeader from "../components/chats/ChatHeader";
 import ChatBody from "../components/chats/ChatBody";
 import ChatInput from "../components/chats/ChatInput";
 import PageHeader from "../components/common/PageHeader";
+import { useSelector } from "react-redux";
+import { selectUser } from "../redux/slice/authSlice";
+import { useChat } from "../hooks/useChat";
 
 const Chats = () => {
+  const currentUser = useSelector(selectUser);
   const [activeRoom, setActiveRoom] = useState(null);
+
+  const {
+    isConnected,
+    messages,
+    typingUsers,
+    onlineUsers,
+    unreadCounts,
+    joinRoom,
+    leaveRoom,
+    sendMessage,
+    markSeen,
+    startTyping,
+    stopTyping,
+    loadMore,
+  } = useChat(currentUser.id);
 
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins">
