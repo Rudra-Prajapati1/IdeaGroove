@@ -289,7 +289,7 @@ const AdminGroupCard = ({ group, onModerate }) => {
             className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-semibold transition-all
               ${
                 isActive
-                  ? "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white"
+                  ? "text-red-500 bg-red-50 hover:bg-red-500 hover:text-white"
                   : "bg-[#1B431C] text-white hover:bg-[#153416]"
               }`}
           >

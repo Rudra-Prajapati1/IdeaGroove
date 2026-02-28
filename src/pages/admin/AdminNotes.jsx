@@ -55,30 +55,6 @@ import EmailConfirmationModal from "../../components/admin/EmailConfirmationModa
 //   },
 // ];
 
-export const notesStats = [
-  {
-    title: "Total Notes Uploaded",
-    value: "",
-    infoText: "+12% this month",
-    color: "green",
-    type: "total",
-  },
-  {
-    title: "Active Notes",
-    value: "",
-    infoText: "Currently Acitve",
-    color: "yellow",
-    type: "pending",
-  },
-  {
-    title: "InActive Notes",
-    value: "",
-    infoText: "Blocked & Deleted Notes",
-    color: "red",
-    type: "blocked",
-  },
-];
-
 const AdminNotes = () => {
   const [notes, setNotes] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -95,46 +71,85 @@ const AdminNotes = () => {
   const [degreeSubjectMap, setDegreeSubjectMap] = useState({});
   const [subjectOptions, setSubjectOptions] = useState([]);
 
+  const [notesStats, setNotesStats] = useState([
+    {
+      title: "Total Notes Uploaded",
+      value: 0,
+      infoText: "+12% this month",
+      color: "green",
+      type: "total",
+    },
+    {
+      title: "Active Notes",
+      value: 0,
+      infoText: "Currently Active",
+      color: "yellow",
+      type: "pending",
+    },
+    {
+      title: "InActive Notes",
+      value: 0,
+      infoText: "Blocked & Deleted Notes",
+      color: "red",
+      type: "blocked",
+    },
+  ]);
+
+  // ✅ Move fetchNotes outside useEffect so handleActionSubmit can call it
+  const fetchNotes = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/notes?page=1&limit=50`,
+      );
+      if (!response.ok) throw new Error("Failed to fetch notes");
+      const data = await response.json();
+
+      const formattedNotes = data.notes.map((n) => ({
+        id: n.N_ID,
+        title: n.Description,
+        degree: n.Degree_Name,
+        subject: n.Subject_Name,
+        uploadedBy: n.Author,
+        userId: n.Author_ID,
+        file: n.File_Name || n.Note_File,
+        status: n.Is_Active === 1 ? "active" : "blocked",
+      }));
+
+      setNotesStats([
+        {
+          title: "Total Notes Uploaded",
+          value: data.total,
+          infoText: "+12% this month",
+          color: "green",
+          type: "total",
+        },
+        {
+          title: "Active Notes",
+          value: formattedNotes.filter((n) => n.status === "active").length,
+          infoText: "Currently Active",
+          color: "yellow",
+          type: "pending",
+        },
+        {
+          title: "InActive Notes",
+          value: formattedNotes.filter((n) => n.status === "blocked").length,
+          infoText: "Blocked & Deleted Notes",
+          color: "red",
+          type: "blocked",
+        },
+      ]);
+
+      setNotes(formattedNotes);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // useEffect just calls it
   useEffect(() => {
-    const fetchNotes = async () => {
-      try {
-        setLoading(true);
-
-        const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/notes?page=1&limit=50`,
-        );
-
-        if (!response.ok) throw new Error("Failed to fetch notes");
-
-        const data = await response.json();
-
-        const formattedNotes = data.notes.map((n) => ({
-          id: n.N_ID,
-          title: n.Description,
-          degree: n.Degree_Name,
-          subject: n.Subject_Name,
-          uploadedBy: n.Author,
-          userId: n.Author_ID,
-          file: n.Note_File,
-          status: n.Is_Active === 1 ? "active" : "blocked",
-        }));
-
-        notesStats[0].value = data.total;
-        notesStats[1].value = formattedNotes.filter(
-          (n) => n.status === "active",
-        ).length;
-        notesStats[2].value = formattedNotes.filter(
-          (n) => n.status === "blocked",
-        ).length;
-
-        setNotes(formattedNotes);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchNotes();
   }, []);
 
@@ -207,23 +222,61 @@ const AdminNotes = () => {
     e.preventDefault();
     setLoading(true);
 
-    setTimeout(() => {
-      setNotes((prev) =>
-        prev.map((n) =>
-          n.id === targetId
-            ? {
-                ...n,
-                status: selectedAction === "block" ? "blocked" : "active",
-              }
-            : n,
-        ),
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/toggle-block`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "note",
+            id: targetId,
+            reason: reason,
+          }),
+        },
       );
 
-      toast.success(`Note ${selectedAction}ed successfully!`);
-      setModalOpen(false);
+      const data = await res.json();
+
+      if (data.status) {
+        // Update local state — no need to refetch
+        setNotes((prev) =>
+          prev.map((n) =>
+            n.id === targetId
+              ? {
+                  ...n,
+                  status: selectedAction === "block" ? "blocked" : "active",
+                }
+              : n,
+          ),
+        );
+
+        // Update stats counts
+        notesStats[1].value = notes.filter((n) =>
+          n.id === targetId
+            ? selectedAction !== "block"
+            : n.status === "active",
+        ).length;
+        notesStats[2].value = notes.filter((n) =>
+          n.id === targetId
+            ? selectedAction === "block"
+            : n.status === "blocked",
+        ).length;
+
+        toast.success(
+          `Note ${selectedAction}ed successfully! Email sent to student.`,
+        );
+        setModalOpen(false);
+        setReason("");
+      } else {
+        toast.error(data.message || "Action failed");
+      }
+    } catch (err) {
+      console.error("Moderation error:", err);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
-      setReason("");
-    }, 1000);
+    }
   };
 
   return (

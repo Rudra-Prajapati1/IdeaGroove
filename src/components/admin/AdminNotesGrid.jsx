@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import AdminNoteCard from "../cards/AdminNoteCard";
 
-const NOTES_PER_PAGE = 3;
+const NOTES_PER_PAGE = 6;
 
 const AdminNotesGrid = ({
   notes,
