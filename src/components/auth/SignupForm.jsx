@@ -1,7 +1,8 @@
 // src/components/auth/SignupForm.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import debounce from "lodash/debounce";
 import {
   sendOTP,
   verifyOTP,
@@ -9,9 +10,14 @@ import {
   selectAuthLoading,
   selectAuthError,
 } from "../../redux/slice/authSlice";
+import {
+  fetchHobbies,
+  selectHobbies,
+  selectHobbiesStatus,
+} from "../../redux/slice/hobbySlice"; // ← NEW: hobbies from Redux
 import toast from "react-hot-toast";
 import { Eye, EyeClosed, ChevronDown, Search, AlertCircle } from "lucide-react";
-import api from "../../api/axios"; // Use configured api for resources
+import api from "../../api/axios";
 
 import SectionWrapper from "./SectionWrapper";
 import Input from "./Input";
@@ -143,8 +149,17 @@ const SignupForm = ({ onLogin }) => {
 
   const authLoading = useSelector(selectAuthLoading);
   const serverError = useSelector(selectAuthError);
-
   const { isAuthenticated } = useSelector((state) => state.auth);
+
+  // ─── Hobbies from Redux ────────────────────────────────────────────
+  const hobbies = useSelector(selectHobbies);
+  const hobbiesStatus = useSelector(selectHobbiesStatus);
+
+  useEffect(() => {
+    if (hobbiesStatus === "idle") {
+      dispatch(fetchHobbies());
+    }
+  }, [hobbiesStatus, dispatch]);
 
   const toastShown = useRef(false);
 
@@ -162,11 +177,10 @@ const SignupForm = ({ onLogin }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Resources
+  // Resources (colleges & degrees still from /api/search)
   const [resources, setResources] = useState({
     colleges: [],
     degrees: [],
-    hobbies: [],
   });
   const [resourceLoading, setResourceLoading] = useState(true);
 
@@ -190,7 +204,6 @@ const SignupForm = ({ onLogin }) => {
   const [otp, setOtp] = useState(["", "", "", ""]);
   const otpRefs = [useRef(), useRef(), useRef(), useRef()];
 
-  // ─── Fetch Resources ───────────────────────────────────────────────
   useEffect(() => {
     const fetchResources = async () => {
       setResourceLoading(true);
@@ -199,7 +212,6 @@ const SignupForm = ({ onLogin }) => {
         setResources({
           colleges: data.colleges || [],
           degrees: data.degrees || [],
-          hobbies: data.hobbies || [],
         });
       } catch (err) {
         console.error("Resource Fetch Error:", err);
@@ -212,6 +224,57 @@ const SignupForm = ({ onLogin }) => {
     fetchResources();
   }, []);
 
+  // ─── Debounced Availability Check ─────────────────────────────────
+  const checkAvailability = async (field, value) => {
+    if (!value || value.trim().length === 0) return;
+    try {
+      const { data } = await api.get("/auth/check-availability", {
+        params: { field, value: value.trim() },
+      });
+      if (!data.available) {
+        setErrors((prev) => ({
+          ...prev,
+          [field === "username" ? "Username" : "Email"]:
+            field === "username"
+              ? "Username is already taken"
+              : "Email is already registered",
+        }));
+      } else {
+        // Clear the availability error if it was previously set
+        setErrors((prev) => {
+          const next = { ...prev };
+          const key = field === "username" ? "Username" : "Email";
+          if (
+            next[key] === "Username is already taken" ||
+            next[key] === "Email is already registered"
+          ) {
+            delete next[key];
+          }
+          return next;
+        });
+      }
+    } catch (err) {
+      console.error("Availability check failed:", err);
+    }
+  };
+
+  const debouncedCheckUsername = useCallback(
+    debounce((value) => checkAvailability("username", value), 500),
+    [],
+  );
+
+  const debouncedCheckEmail = useCallback(
+    debounce((value) => checkAvailability("email", value), 500),
+    [],
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedCheckUsername.cancel();
+      debouncedCheckEmail.cancel();
+    };
+  }, [debouncedCheckUsername, debouncedCheckEmail]);
+
   // ─── Helpers ───────────────────────────────────────────────────────
   const handleData = (field, value) => {
     setSignupData((prev) => ({ ...prev, [field]: value }));
@@ -221,6 +284,13 @@ const SignupForm = ({ onLogin }) => {
         delete next[field];
         return next;
       });
+    }
+
+    if (field === "Username") {
+      debouncedCheckUsername(value);
+    }
+    if (field === "Email") {
+      debouncedCheckEmail(value);
     }
   };
 
@@ -245,6 +315,13 @@ const SignupForm = ({ onLogin }) => {
 
     if (signupData.Password !== signupData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    if (errors.Username === "Username is already taken") {
+      newErrors.Username = errors.Username;
+    }
+    if (errors.Email === "Email is already registered") {
+      newErrors.Email = errors.Email;
     }
 
     setErrors(newErrors);
@@ -333,7 +410,6 @@ const SignupForm = ({ onLogin }) => {
     const result = await dispatch(sendOTP(signupData.Email));
 
     if (sendOTP.fulfilled.match(result)) {
-      // OTP sent → move to OTP step
       setStep("otp");
     }
   };
@@ -349,7 +425,6 @@ const SignupForm = ({ onLogin }) => {
 
     if (!verifyOTP.fulfilled.match(verifyResult)) return;
 
-    // OTP verified → proceed to signup
     const formData = new FormData();
 
     formData.append("Username", signupData.Username.trim());
@@ -488,12 +563,12 @@ const SignupForm = ({ onLogin }) => {
                   <MultiSearchableDropdown
                     label="Hobbies"
                     placeholder="Select hobbies..."
-                    options={resources.hobbies}
+                    options={hobbies}
                     selectedValues={signupData.Hobbies}
                     onChange={(newHobbies) => handleData("Hobbies", newHobbies)}
                     idKey="Hobby_ID"
                     labelKey="Hobby_Name"
-                    loading={resourceLoading}
+                    loading={hobbiesStatus === "loading"}
                     className={errors.Hobbies ? "border-red-500" : ""}
                   />
                   <FloatingError
