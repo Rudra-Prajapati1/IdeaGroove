@@ -202,6 +202,7 @@ const SignupForm = ({ onLogin }) => {
 
   // OTP
   const [otp, setOtp] = useState(["", "", "", ""]);
+  const [otpToken, setOtpToken] = useState(null); // ← token returned from sendOTP
   const otpRefs = [useRef(), useRef(), useRef(), useRef()];
 
   // ─── Fetch Colleges & Degrees (hobbies now come from Redux) ────────
@@ -209,7 +210,7 @@ const SignupForm = ({ onLogin }) => {
     const fetchResources = async () => {
       setResourceLoading(true);
       try {
-        const { data } = await api.get("/api/search");
+        const { data } = await api.get("/search");
         setResources({
           colleges: data.colleges || [],
           degrees: data.degrees || [],
@@ -414,6 +415,7 @@ const SignupForm = ({ onLogin }) => {
     const result = await dispatch(sendOTP(signupData.Email));
 
     if (sendOTP.fulfilled.match(result)) {
+      setOtpToken(result.payload.token); // ← store the JWT token for verification
       setStep("otp");
     }
   };
@@ -425,7 +427,9 @@ const SignupForm = ({ onLogin }) => {
       return;
     }
 
-    const verifyResult = await dispatch(verifyOTP({ otp: fullOtp }));
+    const verifyResult = await dispatch(
+      verifyOTP({ otp: fullOtp, token: otpToken }),
+    );
 
     if (!verifyOTP.fulfilled.match(verifyResult)) return;
 
