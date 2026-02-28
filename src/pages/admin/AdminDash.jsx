@@ -28,6 +28,21 @@ const AdminDash = () => {
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [recentActivities, setRecentActivities] = useState([]);
 
+  const ACTIVITIES_PER_PAGE = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset page when activities change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [recentActivities]);
+
+  // Paginated slice
+  const totalPages = Math.ceil(recentActivities.length / ACTIVITIES_PER_PAGE);
+  const paginatedActivities = recentActivities.slice(
+    (currentPage - 1) * ACTIVITIES_PER_PAGE,
+    currentPage * ACTIVITIES_PER_PAGE,
+  );
+
   useEffect(() => {
     const fetchStats = async () => {
       setLoading(true);
@@ -223,6 +238,23 @@ const AdminDash = () => {
       },
     };
     return themes[color] || themes.emerald;
+  };
+
+  const getActivityBadgeColor = (type) => {
+    switch (type?.toUpperCase()) {
+      case "EVENT":
+        return "bg-amber-100 text-amber-600 border-amber-200";
+      case "QUESTION":
+        return "bg-[#25eb63]/20 text-green-700 border-green-200";
+      case "NOTE":
+        return "bg-rose-100 text-rose-600 border-rose-200";
+      case "GROUP":
+        return "bg-purple-100 text-purple-600 border-purple-200";
+      case "COMPLAINT":
+        return "bg-red-100 text-red-600 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-600 border-gray-200";
+    }
   };
 
   return (
@@ -483,7 +515,7 @@ const AdminDash = () => {
             </thead>
 
             <tbody className="text-sm divide-y divide-gray-50">
-              {recentActivities.map((row, i) => (
+              {paginatedActivities.map((row, i) => (
                 <tr
                   key={i}
                   className="hover:bg-gray-50/50 transition-colors group"
@@ -516,7 +548,7 @@ const AdminDash = () => {
 
                   <td className="px-6 py-4">
                     <span
-                      className={`text-[10px] font-black px-2 py-1 rounded-md border ${row.catColor}`}
+                      className={`text-[10px] font-black px-2 py-1 rounded-md border ${getActivityBadgeColor(row.activity_type)}`}
                     >
                       {row.activity_type}
                     </span>
@@ -549,25 +581,60 @@ const AdminDash = () => {
             </tbody>
           </table>
         </div>
-        <div className="p-4 flex justify-between items-center border-t border-gray-100 bg-gray-50/30">
-          <span className="text-[11px] text-gray-400 font-bold uppercase tracking-tight">
-            Showing 3 of 1,200 activities
-          </span>
+        {paginatedActivities.length > 0 && (
+          <div className="p-4 flex justify-between items-center border-t border-gray-100 bg-gray-50/30">
+            <span className="text-[11px] text-gray-400 font-bold uppercase tracking-tight">
+              Showing{" "}
+              <span className="text-gray-600">
+                {(currentPage - 1) * ACTIVITIES_PER_PAGE + 1}–
+                {Math.min(
+                  currentPage * ACTIVITIES_PER_PAGE,
+                  recentActivities.length,
+                )}
+              </span>{" "}
+              of{" "}
+              <span className="text-gray-600">{recentActivities.length}</span>{" "}
+              activities
+            </span>
 
-          <div className="flex gap-2">
-            <button className="p-1.5 border border-gray-200 rounded-lg text-gray-400 hover:bg-white hover:text-gray-600 transition-all">
-              <ChevronLeft size={16} />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-1.5 border border-gray-200 rounded-lg text-gray-400 hover:bg-white hover:text-gray-600 transition-all disabled:opacity-30"
+              >
+                <ChevronLeft size={16} />
+              </button>
 
-            <button className="px-3 py-1 bg-green-900 text-white rounded-lg text-xs font-bold shadow-sm shadow-green-200">
-              1
-            </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`h-8 w-8 flex items-center justify-center rounded-lg text-xs font-bold
+            ${
+              currentPage === page
+                ? "bg-green-900 text-white shadow-sm shadow-green-200"
+                : "text-gray-500 hover:bg-gray-100 border border-gray-200"
+            }`}
+                  >
+                    {page}
+                  </button>
+                ),
+              )}
 
-            <button className="p-1.5 border border-gray-200 rounded-lg text-gray-400 hover:bg-white hover:text-gray-600 transition-all">
-              <ChevronRight size={16} />
-            </button>
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="p-1.5 border border-gray-200 rounded-lg text-gray-400 hover:bg-white hover:text-gray-600 transition-all disabled:opacity-30"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );
