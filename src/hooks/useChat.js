@@ -43,7 +43,6 @@ export function useChat(studentId) {
     socket.on("connect", () => {
       dispatch(setIsConnected(true));
       socket.emit("user:online", { studentId });
-      // Refresh rooms on reconnect
       dispatch(fetchRooms(studentId));
     });
 
@@ -80,7 +79,6 @@ export function useChat(studentId) {
     return () => socket.disconnect();
   }, [studentId, dispatch]);
 
-  // ─── Socket Actions ─────────────────────────────────────────────────────
   const joinRoom = useCallback(
     (roomId) => {
       socketRef.current?.emit("room:join", { roomId, studentId });
