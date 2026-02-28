@@ -204,6 +204,7 @@ const SignupForm = ({ onLogin }) => {
   const [otp, setOtp] = useState(["", "", "", ""]);
   const otpRefs = [useRef(), useRef(), useRef(), useRef()];
 
+  // ─── Fetch Colleges & Degrees (hobbies now come from Redux) ────────
   useEffect(() => {
     const fetchResources = async () => {
       setResourceLoading(true);
@@ -225,31 +226,25 @@ const SignupForm = ({ onLogin }) => {
   }, []);
 
   // ─── Debounced Availability Check ─────────────────────────────────
+  const AVAILABILITY_MAP = {
+    username: { key: "Username", msg: "Username is already taken" },
+    email: { key: "Email", msg: "Email is already registered" },
+    roll_no: { key: "Roll_No", msg: "Roll No is already registered" },
+  };
+
   const checkAvailability = async (field, value) => {
     if (!value || value.trim().length === 0) return;
+    const { key, msg } = AVAILABILITY_MAP[field];
     try {
       const { data } = await api.get("/auth/check-availability", {
         params: { field, value: value.trim() },
       });
       if (!data.available) {
-        setErrors((prev) => ({
-          ...prev,
-          [field === "username" ? "Username" : "Email"]:
-            field === "username"
-              ? "Username is already taken"
-              : "Email is already registered",
-        }));
+        setErrors((prev) => ({ ...prev, [key]: msg }));
       } else {
-        // Clear the availability error if it was previously set
         setErrors((prev) => {
           const next = { ...prev };
-          const key = field === "username" ? "Username" : "Email";
-          if (
-            next[key] === "Username is already taken" ||
-            next[key] === "Email is already registered"
-          ) {
-            delete next[key];
-          }
+          if (next[key] === msg) delete next[key];
           return next;
         });
       }
@@ -258,22 +253,30 @@ const SignupForm = ({ onLogin }) => {
     }
   };
 
+  // Create stable debounced functions (recreated only on mount)
   const debouncedCheckUsername = useCallback(
-    debounce((value) => checkAvailability("username", value), 500),
+    debounce((value) => checkAvailability("username", value), 600),
     [],
   );
 
   const debouncedCheckEmail = useCallback(
-    debounce((value) => checkAvailability("email", value), 500),
+    debounce((value) => checkAvailability("email", value), 600),
     [],
   );
 
+  const debouncedCheckRollNo = useCallback(
+    debounce((value) => checkAvailability("roll_no", value), 600),
+    [],
+  );
+
+  // Cleanup debounced functions on unmount
   useEffect(() => {
     return () => {
       debouncedCheckUsername.cancel();
       debouncedCheckEmail.cancel();
+      debouncedCheckRollNo.cancel();
     };
-  }, [debouncedCheckUsername, debouncedCheckEmail]);
+  }, [debouncedCheckUsername, debouncedCheckEmail, debouncedCheckRollNo]);
 
   // ─── Helpers ───────────────────────────────────────────────────────
   const handleData = (field, value) => {
@@ -286,12 +289,9 @@ const SignupForm = ({ onLogin }) => {
       });
     }
 
-    if (field === "Username") {
-      debouncedCheckUsername(value);
-    }
-    if (field === "Email") {
-      debouncedCheckEmail(value);
-    }
+    if (field === "Username") debouncedCheckUsername(value);
+    if (field === "Email") debouncedCheckEmail(value);
+    if (field === "Roll_No") debouncedCheckRollNo(value);
   };
 
   const validatePersonal = () => {
@@ -317,11 +317,15 @@ const SignupForm = ({ onLogin }) => {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
+    // Preserve any existing availability errors (username/email taken)
     if (errors.Username === "Username is already taken") {
       newErrors.Username = errors.Username;
     }
     if (errors.Email === "Email is already registered") {
       newErrors.Email = errors.Email;
+    }
+    if (errors.Roll_No === "Roll No is already registered") {
+      newErrors.Roll_No = errors.Roll_No;
     }
 
     setErrors(newErrors);
