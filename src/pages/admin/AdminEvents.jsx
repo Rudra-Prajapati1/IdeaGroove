@@ -64,30 +64,6 @@ import { useEffect } from "react";
 //   },
 // ];
 
-export const eventsStats = [
-  {
-    title: "Total Events",
-    value: "",
-    infoText: "+6 new events",
-    color: "green",
-    type: "total",
-  },
-  {
-    title: "Active Events",
-    value: "",
-    infoText: "Currently ongoing",
-    color: "yellow",
-    type: "pending",
-  },
-  {
-    title: "Expired Events",
-    value: "",
-    infoText: "Completed",
-    color: "red",
-    type: "blocked",
-  },
-];
-
 const AdminEvents = () => {
   const [events, setEvents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -100,6 +76,31 @@ const AdminEvents = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [eventFilter, setEventFilter] = useState("all");
+
+  // ✅ Moved stats into state so React tracks updates
+  const [eventsStats, setEventsStats] = useState([
+    {
+      title: "Total Events",
+      value: 0,
+      infoText: "All events in system",
+      color: "green",
+      type: "total",
+    },
+    {
+      title: "Active Events",
+      value: 0,
+      infoText: "Currently ongoing/upcoming",
+      color: "yellow",
+      type: "pending",
+    },
+    {
+      title: "Blocked Events",
+      value: 0,
+      infoText: "Blocked/Removed events",
+      color: "red",
+      type: "blocked",
+    },
+  ]);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -123,13 +124,19 @@ const AdminEvents = () => {
 
         console.log(formattedEvents);
 
-        eventsStats[0].value = data.total;
-        eventsStats[1].value = formattedEvents.filter(
-          (ev) => ev.Event_Date >= new Date().toISOString().split("T")[0],
-        ).length;
-        eventsStats[2].value = formattedEvents.filter(
-          (ev) => ev.Event_Date < new Date().toISOString().split("T")[0],
-        ).length;
+        setEventsStats([
+          { ...eventsStats[0], value: data.total || formattedEvents.length },
+          {
+            ...eventsStats[1],
+            value: formattedEvents.filter((ev) => ev.status === "active")
+              .length,
+          },
+          {
+            ...eventsStats[2],
+            value: formattedEvents.filter((ev) => ev.status === "blocked")
+              .length,
+          },
+        ]);
         setEvents(formattedEvents);
       } catch (err) {
         setError(err.message);
@@ -158,23 +165,63 @@ const AdminEvents = () => {
     e.preventDefault();
     setLoading(true);
 
-    setTimeout(() => {
-      setEvents((prev) =>
-        prev.map((ev) =>
-          ev.id === targetId
-            ? {
-                ...ev,
-                status: selectedAction === "block" ? "blocked" : "active",
-              }
-            : ev,
-        ),
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/toggle-block`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "event", // Backend expects type
+            id: targetId,
+            reason: reason,
+          }),
+        },
       );
 
-      toast.success(`Event ${selectedAction}ed successfully!`);
-      setModalOpen(false);
+      const data = await res.json();
+
+      if (data.status) {
+        // Update local state
+        setEvents((prev) =>
+          prev.map((ev) =>
+            ev.id === targetId
+              ? {
+                  ...ev,
+                  status: selectedAction === "block" ? "blocked" : "active",
+                }
+              : ev,
+          ),
+        );
+
+        // Update stats directly without refetching
+        setEventsStats((prevStats) => {
+          const newStats = [...prevStats];
+          newStats[1].value = events.filter((ev) =>
+            ev.id === targetId
+              ? selectedAction !== "block"
+              : ev.status === "active",
+          ).length;
+          newStats[2].value = events.filter((ev) =>
+            ev.id === targetId
+              ? selectedAction === "block"
+              : ev.status === "blocked",
+          ).length;
+          return newStats;
+        });
+
+        toast.success(`Event ${selectedAction}ed successfully! Email sent.`);
+        setModalOpen(false);
+        setReason("");
+      } else {
+        toast.error(data.message || "Action failed");
+      }
+    } catch (err) {
+      console.error("Moderation error:", err);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
-      setReason("");
-    }, 1000);
+    }
   };
 
   const filteredEvents = useMemo(() => {
@@ -224,7 +271,7 @@ const AdminEvents = () => {
         onClose={() => setModalOpen(false)}
         onSubmit={handleActionSubmit}
         actionType={selectedAction}
-        targetType="Notes"
+        targetType="Event"
         reason={reason}
         setReason={setReason}
         loading={loading}

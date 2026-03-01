@@ -6,92 +6,6 @@ import StatsRow from "../../components/admin/StatsRow";
 import AdminGroupsGrid from "../../components/admin/AdminGroupsGrid";
 import EmailConfirmationModal from "../../components/admin/EmailConfirmationModal";
 
-// const initialGroups = [
-//   {
-//     id: 1,
-//     Room_Name: "DSA Warriors",
-//     Room_Type: "group",
-//     Based_On: "Competitive Programming",
-//     Degree: "B.Tech",
-//     Created_By: 101,
-//     Created_By_Name: "Ankit Patel",
-//     Created_On: "2025-01-10T10:00:00",
-//     status: "active",
-//   },
-
-//   {
-//     id: 2,
-//     Room_Name: "Final Year Projects",
-//     Room_Type: "group",
-//     Based_On: "Academics",
-//     Degree: "B.Tech",
-//     Created_By: 102,
-//     Created_By_Name: "College Admin",
-//     Created_On: "2024-11-02T09:30:00",
-//     status: "active",
-//   },
-
-//   {
-//     id: 3,
-//     Room_Name: "Old Syllabus Help",
-//     Room_Type: "group",
-//     Based_On: "Academics",
-//     Degree: "B.Tech",
-//     Created_By: 103,
-//     Created_By_Name: "Unknown",
-//     Created_On: "2024-05-18T14:45:00",
-//     status: "blocked",
-//   },
-
-//   {
-//     id: 4,
-//     Room_Name: "AI Enthusiasts",
-//     Room_Type: "group",
-//     Based_On: "Artificial Intelligence",
-//     Degree: "B.Tech",
-//     Created_By: 104,
-//     Created_By_Name: "Neha Patel",
-//     Created_On: "2025-03-01T16:10:00",
-//     status: "active",
-//   },
-
-//   {
-//     id: 5,
-//     Room_Name: "Web Dev Circle",
-//     Room_Type: "group",
-//     Based_On: "Web Development",
-//     Degree: "BCA",
-//     Created_By: 105,
-//     Created_By_Name: "Rohan Sharma",
-//     Created_On: "2025-02-14T11:20:00",
-//     status: "blocked",
-//   },
-// ];
-
-export const groupsStats = [
-  {
-    title: "Total Groups",
-    value: "",
-    infoText: "+18 new groups",
-    color: "green",
-    type: "total",
-  },
-  {
-    title: "Active Groups",
-    value: "",
-    infoText: "Engaging groups",
-    color: "yellow",
-    type: "pending",
-  },
-  {
-    title: "Inactive Groups",
-    value: "",
-    infoText: "Blocked & Deleted",
-    color: "red",
-    type: "blocked",
-  },
-];
-
 const AdminGroups = () => {
   const [groups, setGroups] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -105,6 +19,30 @@ const AdminGroups = () => {
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+
+  const [groupsStats, setGroupsStats] = useState([
+    {
+      title: "Total Groups",
+      value: 0,
+      infoText: "+18 new groups",
+      color: "green",
+      type: "total",
+    },
+    {
+      title: "Active Groups",
+      value: 0,
+      infoText: "Engaging groups",
+      color: "yellow",
+      type: "pending",
+    },
+    {
+      title: "Inactive Groups",
+      value: 0,
+      infoText: "Blocked & Deleted",
+      color: "red",
+      type: "blocked",
+    },
+  ]);
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -130,13 +68,20 @@ const AdminGroups = () => {
           status: group.Is_Active === 1 ? "active" : "blocked",
         }));
 
-        groupsStats[0].value = data.pagination.total;
-        groupsStats[1].value = formattedGroups.filter(
-          (group) => group.status === "active",
-        ).length;
-        groupsStats[2].value = formattedGroups.filter(
-          (group) => group.status !== "active",
-        ).length;
+        setGroupsStats([
+          {
+            ...groupsStats[0],
+            value: data.pagination.total || formattedGroups.length,
+          },
+          {
+            ...groupsStats[1],
+            value: formattedGroups.filter((g) => g.status === "active").length,
+          },
+          {
+            ...groupsStats[2],
+            value: formattedGroups.filter((g) => g.status === "blocked").length,
+          },
+        ]);
         setGroups(formattedGroups);
       } catch (err) {
         setError(err.message);
@@ -184,24 +129,63 @@ const AdminGroups = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate API logic
-    setTimeout(() => {
-      setGroups((prev) =>
-        prev.map((g) =>
-          g.id === targetId
-            ? {
-                ...g,
-                status: selectedAction === "block" ? "blocked" : "active",
-              }
-            : g,
-        ),
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/toggle-block`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "group", // Backend expects this type
+            id: targetId,
+            reason: reason,
+          }),
+        },
       );
 
-      toast.success(`Group ${selectedAction}ed successfully!`);
-      setModalOpen(false);
+      const data = await res.json();
+
+      if (data.status) {
+        // Update local state directly
+        setGroups((prev) =>
+          prev.map((g) =>
+            g.id === targetId
+              ? {
+                  ...g,
+                  status: selectedAction === "block" ? "blocked" : "active",
+                }
+              : g,
+          ),
+        );
+
+        // Update stats directly without refetching
+        setGroupsStats((prevStats) => {
+          const newStats = [...prevStats];
+          newStats[1].value = groups.filter((g) =>
+            g.id === targetId
+              ? selectedAction !== "block"
+              : g.status === "active",
+          ).length;
+          newStats[2].value = groups.filter((g) =>
+            g.id === targetId
+              ? selectedAction === "block"
+              : g.status === "blocked",
+          ).length;
+          return newStats;
+        });
+
+        toast.success(`Group ${selectedAction}ed successfully! Email sent.`);
+        setModalOpen(false);
+        setReason("");
+      } else {
+        toast.error(data.message || "Action failed");
+      }
+    } catch (err) {
+      console.error("Moderation error:", err);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
-      setReason("");
-    }, 1000);
+    }
   };
 
   return (
@@ -229,7 +213,7 @@ const AdminGroups = () => {
         onClose={() => setModalOpen(false)}
         onSubmit={handleActionSubmit}
         actionType={selectedAction}
-        targetType="Notes"
+        targetType="Group"
         reason={reason}
         setReason={setReason}
         loading={loading}
