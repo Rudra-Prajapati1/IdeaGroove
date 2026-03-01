@@ -6,169 +6,6 @@ import toast from "react-hot-toast";
 import ComplaintEmail from "../../components/admin/ComplaintEmail";
 import { useEffect } from "react";
 
-const initialComplaintsData = [
-  {
-    Complaint_ID: 1,
-    Student_Name: "Alex Thompson",
-    complaintType: "Notes",
-    Complaint_Text: "Php notes by @khushal are not valid and contain errors.",
-    Date: "2025-10-24T10:30:00",
-    Status: "Pending",
-  },
-  {
-    Complaint_ID: 2,
-    Student_Name: "Sarah Jenkins",
-    complaintType: "QnA",
-    Complaint_Text: "QnA by @sejal contains incorrect mathematical formulas.",
-    Date: "2025-10-22T14:15:00",
-    Status: "In-Progress",
-  },
-  {
-    Complaint_ID: 3,
-    Student_Name: "Michael Chen",
-    complaintType: "Other",
-    Complaint_Text: "Some features are not accessible on mobile browsers.",
-    Date: "2025-10-20T16:45:00",
-    Status: "Resolved",
-  },
-  {
-    Complaint_ID: 4,
-    Student_Name: "Rohan Gupta",
-    complaintType: "Groups",
-    Complaint_Text: "Spam messages in the 'React Developers' group.",
-    Date: "2025-10-19T09:00:00",
-    Status: "Pending",
-  },
-  {
-    Complaint_ID: 5,
-    Student_Name: "Priya Das",
-    complaintType: "User",
-    Complaint_Text: "User @john_doe is using abusive language in threads.",
-    Date: "2025-10-18T11:20:00",
-    Status: "In-Progress",
-  },
-  {
-    Complaint_ID: 6,
-    Student_Name: "Kevin Hart",
-    complaintType: "Notes",
-    Complaint_Text: "The PDF for Biology notes is corrupted.",
-    Date: "2025-10-17T15:30:00",
-    Status: "Pending",
-  },
-  {
-    Complaint_ID: 7,
-    Student_Name: "Aisha Ray",
-    complaintType: "QnA",
-    Complaint_Text: "Duplicate questions appearing in the Java section.",
-    Date: "2025-10-16T12:00:00",
-    Status: "Resolved",
-  },
-  {
-    Complaint_ID: 8,
-    Student_Name: "Vikram Singh",
-    complaintType: "Groups",
-    Complaint_Text: "Unable to join the 'Placement Prep' group.",
-    Date: "2025-10-15T08:45:00",
-    Status: "In-Progress",
-  },
-  {
-    Complaint_ID: 9,
-    Student_Name: "Sana Mir",
-    complaintType: "User",
-    Complaint_Text: "Reporting fake profile of professor Smith.",
-    Date: "2025-10-14T14:10:00",
-    Status: "Pending",
-  },
-  {
-    Complaint_ID: 10,
-    Student_Name: "Liam Neeson",
-    complaintType: "Other",
-    Complaint_Text: "Profile picture upload failing repeatedly.",
-    Date: "2025-10-13T10:00:00",
-    Status: "Resolved",
-  },
-  {
-    Complaint_ID: 11,
-    Student_Name: "Deepak J.",
-    complaintType: "Notes",
-    Complaint_Text: "Maths notes are missing page 5 to 10.",
-    Date: "2025-10-12T17:20:00",
-    Status: "Pending",
-  },
-  {
-    Complaint_ID: 12,
-    Student_Name: "Meera K.",
-    complaintType: "QnA",
-    Complaint_Text: "Wrong answer marked as 'best' in C++ thread.",
-    Date: "2025-10-11T13:45:00",
-    Status: "In-Progress",
-  },
-  {
-    Complaint_ID: 13,
-    Student_Name: "Chris E.",
-    complaintType: "Groups",
-    Complaint_Text: "Admin of 'Gaming' group is inactive.",
-    Date: "2025-10-10T09:30:00",
-    Status: "Pending",
-  },
-  {
-    Complaint_ID: 14,
-    Student_Name: "Tom H.",
-    complaintType: "User",
-    Complaint_Text: "User @hacker123 trying to phish in DMs.",
-    Date: "2025-10-09T18:00:00",
-    Status: "Pending",
-  },
-  {
-    Complaint_ID: 15,
-    Student_Name: "Robert D.",
-    complaintType: "Other",
-    Complaint_Text: "Notification sound not working on Android.",
-    Date: "2025-10-08T11:15:00",
-    Status: "Resolved",
-  },
-  {
-    Complaint_ID: 16,
-    Student_Name: "Scarlett J.",
-    complaintType: "Notes",
-    Complaint_Text: "History notes are irrelevant to syllabus.",
-    Date: "2025-10-07T14:50:00",
-    Status: "In-Progress",
-  },
-  {
-    Complaint_ID: 17,
-    Student_Name: "Mark R.",
-    complaintType: "QnA",
-    Complaint_Text: "Search bar doesn't find old questions.",
-    Date: "2025-10-06T10:10:00",
-    Status: "Pending",
-  },
-  {
-    Complaint_ID: 18,
-    Student_Name: "Jeremy R.",
-    complaintType: "Groups",
-    Complaint_Text: "Group 'Study' should be private.",
-    Date: "2025-10-05T12:40:00",
-    Status: "Resolved",
-  },
-  {
-    Complaint_ID: 19,
-    Student_Name: "Elizabeth O.",
-    complaintType: "User",
-    Complaint_Text: "Unauthorized use of my project files by @user9.",
-    Date: "2025-10-04T16:25:00",
-    Status: "In-Progress",
-  },
-  {
-    Complaint_ID: 20,
-    Student_Name: "Paul B.",
-    complaintType: "Other",
-    Complaint_Text: "Request to add Dark Mode to the admin panel.",
-    Date: "2025-10-03T09:55:00",
-    Status: "Pending",
-  },
-];
-
 const AdminComplaints = () => {
   const [complaints, setComplaints] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -234,35 +71,70 @@ const AdminComplaints = () => {
   const handleStatusUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setComplaints((prev) =>
-        prev.map((c) =>
-          c.Complaint_ID === selectedComplaint.Complaint_ID
-            ? { ...c, Status: newStatus }
-            : c,
-        ),
+
+    try {
+      // 1. Update status in DB
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/complaints/update-status`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: selectedComplaint.Complaint_ID,
+            status: newStatus,
+            reason: reason,
+          }),
+        },
       );
 
-      setComplaintsStats((prevStats) => {
-        const newStats = [...prevStats];
-        const updatedList = complaints.map((c) =>
-          c.Complaint_ID === selectedComplaint.Complaint_ID
-            ? { ...c, Status: newStatus }
-            : c,
-        );
-        newStats[1].value = updatedList.filter(
-          (c) => c.Status === "Resolved",
-        ).length;
-        newStats[2].value = updatedList.filter(
-          (c) => c.Status === "Pending" || c.Status === "In-Progress",
-        ).length;
-        return newStats;
-      });
+      const data = await res.json();
 
-      toast.success("Status updated successfully");
-      setModalOpen(false);
+      if (data.message) {
+        // 2. Update local state
+        setComplaints((prev) =>
+          prev.map((c) =>
+            c.Complaint_ID === selectedComplaint.Complaint_ID
+              ? { ...c, Status: newStatus }
+              : c,
+          ),
+        );
+
+        // 3. Update stats
+        setComplaintsStats((prevStats) => {
+          const updatedList = complaints.map((c) =>
+            c.Complaint_ID === selectedComplaint.Complaint_ID
+              ? { ...c, Status: newStatus }
+              : c,
+          );
+          return [
+            { ...prevStats[0] },
+            {
+              ...prevStats[1],
+              value: updatedList.filter((c) => c.Status === "Resolved").length,
+            },
+            {
+              ...prevStats[2],
+              value: updatedList.filter(
+                (c) => c.Status === "Pending" || c.Status === "In-Progress",
+              ).length,
+            },
+          ];
+        });
+
+        toast.success(
+          `Complaint marked as ${newStatus} — email sent to student!`,
+        );
+        setModalOpen(false);
+        setReason("");
+      } else {
+        toast.error("Failed to update status");
+      }
+    } catch (err) {
+      console.error("Status update error:", err);
+      toast.error("Something went wrong");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (

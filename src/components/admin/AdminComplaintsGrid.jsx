@@ -4,7 +4,9 @@ import {
   ChevronLeft,
   ChevronRight,
   MessageCircle,
+  ExternalLink,
 } from "lucide-react";
+import StudentProfile from "./StudentProfile";
 
 const AdminComplaintsGrid = ({
   complaints,
@@ -15,6 +17,7 @@ const AdminComplaintsGrid = ({
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedId, setExpandedId] = useState(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const itemsPerPage = 8;
 
   const filteredComplaints = useMemo(() => {
@@ -126,7 +129,18 @@ const AdminComplaintsGrid = ({
                     />
                   </td>
                   <td className="px-8 py-5 text-sm font-medium text-gray-700">
-                    {item.Student_Name}
+                    <button
+                      onClick={() => setIsProfileOpen(true)}
+                      title="View student profile"
+                      className="group/author flex items-center gap-1.5 text-[11px] text-gray-400 hover:text-[#1B431C] transition-colors"
+                    >
+                      <span className="text-xs md:text-base">
+                        <span className="font-bold text-gray-800 group-hover/author:text-[#1B431C] underline underline-offset-4 decoration-dashed decoration-gray-300 group-hover/author:decoration-[#1B431C] transition-colors">
+                          {item.Student_Name || "Unknown"}
+                        </span>
+                      </span>
+                      <ExternalLink size={14} />
+                    </button>
                   </td>
                   {/* TYPE COLUMN */}
                   <td className="px-8 py-5 text-sm">
@@ -174,6 +188,23 @@ const AdminComplaintsGrid = ({
                       </div>
                     </td>
                   </tr>
+                )}
+
+                {/* Profile Modal */}
+                {isProfileOpen && (
+                  <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+                    onClick={(e) =>
+                      e.target === e.currentTarget && setIsProfileOpen(false)
+                    }
+                  >
+                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+                      <StudentProfile
+                        id={item.Student_ID}
+                        onClose={() => setIsProfileOpen(false)}
+                      />
+                    </div>
+                  </div>
                 )}
               </React.Fragment>
             ))}
