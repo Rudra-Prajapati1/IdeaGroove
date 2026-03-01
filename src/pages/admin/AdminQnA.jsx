@@ -384,7 +384,7 @@ const AdminQnA = () => {
   return (
     <section className="flex flex-col gap-6 relative min-h-screen">
       <AdminPageHeader
-        title="Notes Moderation"
+        title="Q&A Moderation"
         subtitle="Review and manage user uploads"
         searchValue={searchTerm}
         onSearch={setSearchTerm}
