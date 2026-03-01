@@ -124,7 +124,26 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
                       {/* Flow: Name -> Time -> Status Badge */}
                       <div className="flex items-center gap-6 mb-1">
                         <p className="text-xs font-bold text-gray-800">
-                          {ans.author}
+                          <button
+                            onClick={() => setIsProfileOpen(true)}
+                            title="View student profile"
+                            className="group/author flex items-center gap-1.5 hover:text-[#1B431C] transition-colors"
+                          >
+                            <User
+                              size={12}
+                              className="text-gray-400 group-hover/author:text-[#1B431C] transition-colors"
+                            />
+                            <span>
+                              Answered By{" "}
+                              <span className="font-bold text-gray-900 group-hover/author:text-[#1B431C] underline underline-offset-2 decoration-dashed decoration-gray-300 group-hover/author:decoration-[#1B431C] transition-colors">
+                                {ans.author}
+                              </span>
+                            </span>
+                            <ExternalLink
+                              size={12}
+                              className="text-gray-300 opacity-0 group-hover/author:opacity-100 transition-opacity"
+                            />
+                          </button>
                         </p>
                         <span className="text-[10px] text-gray-400 font-medium">
                           {new Date(ans.time).toLocaleDateString("en-IN", {

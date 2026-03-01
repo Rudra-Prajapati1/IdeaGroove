@@ -4,12 +4,7 @@ import StatsRow from "../../components/admin/StatsRow";
 import AdminComplaintsGrid from "../../components/admin/AdminComplaintsGrid";
 import toast from "react-hot-toast";
 import ComplaintEmail from "../../components/admin/ComplaintEmail";
-
-export const complaintsStats = [
-  { title: "Total Complaints", value: "1,284", color: "green", type: "total" },
-  { title: "Resolved", value: "42", color: "yellow", type: "pending" },
-  { title: "Pending", value: "1,242", color: "red", type: "blocked" },
-];
+import { useEffect } from "react";
 
 const initialComplaintsData = [
   {
@@ -175,16 +170,59 @@ const initialComplaintsData = [
 ];
 
 const AdminComplaints = () => {
-  const [complaints, setComplaints] = useState(initialComplaintsData);
+  const [complaints, setComplaints] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [complaintsStats, setComplaintsStats] = useState([
+    { title: "Total Complaints", value: "0", color: "green", type: "total" },
+    { title: "Resolved", value: "0", color: "yellow", type: "pending" },
+    { title: "Pending", value: "0", color: "red", type: "blocked" },
+  ]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [newStatus, setNewStatus] = useState("");
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/complaints`,
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        const complaintsArray = Array.isArray(data)
+          ? data
+          : data.complaints || data.data || [];
+        setComplaintsStats([
+          { ...complaintsStats[0], value: complaintsArray.length },
+          {
+            ...complaintsStats[1],
+            value: complaintsArray.filter((c) => c.Status === "Resolved")
+              .length,
+          },
+          {
+            ...complaintsStats[2],
+            value: complaintsArray.filter(
+              (c) => c.Status === "Pending" || c.Status === "In-Progress",
+            ).length,
+          },
+        ]);
+        setComplaints(complaintsArray);
+      } catch (err) {
+        console.error("Not able to fetch complaints: ", err);
+      }
+    };
+    fetchComplaints();
+  });
 
   const handleStatusRequest = (complaint) => {
     setSelectedComplaint(complaint);
@@ -204,6 +242,23 @@ const AdminComplaints = () => {
             : c,
         ),
       );
+
+      setComplaintsStats((prevStats) => {
+        const newStats = [...prevStats];
+        const updatedList = complaints.map((c) =>
+          c.Complaint_ID === selectedComplaint.Complaint_ID
+            ? { ...c, Status: newStatus }
+            : c,
+        );
+        newStats[1].value = updatedList.filter(
+          (c) => c.Status === "Resolved",
+        ).length;
+        newStats[2].value = updatedList.filter(
+          (c) => c.Status === "Pending" || c.Status === "In-Progress",
+        ).length;
+        return newStats;
+      });
+
       toast.success("Status updated successfully");
       setModalOpen(false);
       setLoading(false);
