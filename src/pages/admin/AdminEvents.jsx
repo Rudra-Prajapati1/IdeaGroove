@@ -77,7 +77,6 @@ const AdminEvents = () => {
   const [error, setError] = useState(false);
   const [eventFilter, setEventFilter] = useState("all");
 
-  // ✅ Moved stats into state so React tracks updates
   const [eventsStats, setEventsStats] = useState([
     {
       title: "Total Events",
@@ -121,8 +120,6 @@ const AdminEvents = () => {
           Poster_File: ev.Poster_File,
           status: ev.Is_Active,
         }));
-
-        console.log(formattedEvents);
 
         setEventsStats([
           { ...eventsStats[0], value: data.total || formattedEvents.length },

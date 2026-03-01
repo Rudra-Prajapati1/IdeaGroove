@@ -624,21 +624,24 @@ const AdminDash = () => {
                   </td>
 
                   <td className="px-6 py-4 text-center">
-                    <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all">
+                    <button
+                      className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
+                      onClick={() => setIsProfileOpen(true)}
+                    >
                       <Eye size={18} />
                     </button>
                   </td>
                   {/* Profile Modal */}
                   {isProfileOpen && (
                     <div
-                      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+                      className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm p-4"
                       onClick={(e) =>
                         e.target === e.currentTarget && setIsProfileOpen(false)
                       }
                     >
                       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
                         <StudentProfile
-                          id={event.Organizer_ID}
+                          id={row.student_id}
                           onClose={() => setIsProfileOpen(false)}
                         />
                       </div>

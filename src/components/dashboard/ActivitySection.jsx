@@ -73,6 +73,8 @@ const ActivitySection = ({ isPublic }) => {
     return matchesSearch;
   });
 
+  console.log(filteredEvents);
+
   useEffect(() => {
     console.log(eventsStatus);
     // dispatch(fetchUserEvents());
