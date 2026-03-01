@@ -2,7 +2,15 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import React, { useState } from "react";
 import ChatList from "./ChatList";
 
-const ChatsSidebar = ({ onSelectRoom, activeRoom }) => {
+const ChatsSidebar = ({
+  onSelectRoom,
+  activeRoom,
+  rooms,
+  roomsStatus,
+  unreadCounts,
+  onlineUsers,
+  currentUserId,
+}) => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
@@ -65,6 +73,11 @@ const ChatsSidebar = ({ onSelectRoom, activeRoom }) => {
         filter={filter}
         onSelectRoom={onSelectRoom}
         activeRoom={activeRoom}
+        rooms={rooms}
+        roomsStatus={roomsStatus}
+        unreadCounts={unreadCounts}
+        onlineUsers={onlineUsers}
+        currentUserId={currentUserId}
       />
     </aside>
   );

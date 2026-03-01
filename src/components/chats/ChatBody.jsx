@@ -1,25 +1,20 @@
 import React, { useEffect, useMemo, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import {
-  fetchChats,
   selectChatsByRoomId,
   selectChatsStatus,
 } from "../../redux/slice/chatsSlice";
 import Loading from "../common/Loading";
 import { CheckCheck } from "lucide-react";
 
-/* 🔥 TEMPORARY STATIC USER MAP (REMOVE LATER) */
-const USERNAME_MAP = {
-  101: "rudra",
-  102: "sejal",
-  103: "khushal",
-};
-
-const LOGGED_IN_STUDENT_ID = 101;
 const EMPTY_ARRAY = [];
 
-const ChatBody = ({ activeRoom = null }) => {
-  const dispatch = useDispatch();
+const ChatBody = ({
+  activeRoom = null,
+  currentUserId,
+  typingUsers = {},
+  loadMore,
+}) => {
   const containRef = useRef(null);
 
   const chatStatus = useSelector(selectChatsStatus);
@@ -33,14 +28,14 @@ const ChatBody = ({ activeRoom = null }) => {
 
   const chats = useSelector(chatsSelector);
 
-  /* Fetch chats */
-  useEffect(() => {
-    if (chatStatus === "idle") {
-      dispatch(fetchChats());
-    }
-  }, [chatStatus, dispatch]);
+  // Who is typing in this room (excluding current user)
+  const roomTypers = activeRoom
+    ? (typingUsers[activeRoom.Room_ID] || []).filter(
+        (id) => String(id) !== String(currentUserId),
+      )
+    : [];
 
-  /* Auto scroll to bottom */
+  /* Auto scroll to bottom on new messages */
   useEffect(() => {
     if (!containRef.current) return;
     containRef.current.scrollTop = containRef.current.scrollHeight;
@@ -61,7 +56,7 @@ const ChatBody = ({ activeRoom = null }) => {
 
   return (
     <div className="relative h-full w-full overflow-hidden">
-      {/* 🔹 ABSOLUTE BACKGROUND WATERMARK */}
+      {/* Background watermark */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <img
           src="/DarkLogo.png"
@@ -70,7 +65,7 @@ const ChatBody = ({ activeRoom = null }) => {
         />
       </div>
 
-      {/* 🔹 CHAT CONTENT */}
+      {/* Chat content */}
       <div
         ref={containRef}
         className="relative z-10 h-full overflow-y-auto px-6 py-4 space-y-4"
@@ -84,9 +79,9 @@ const ChatBody = ({ activeRoom = null }) => {
         )}
 
         {chats.map((msg) => {
-          const isMe = msg.Sender_ID === LOGGED_IN_STUDENT_ID;
+          const isMe = String(msg.Sender_ID) === String(currentUserId);
           const isGroup = activeRoom?.Room_Type === "group";
-          const senderUsername = USERNAME_MAP[msg.Sender_ID] || "student";
+          const senderUsername = msg.Sender_Username || "Student";
 
           return (
             <div
@@ -101,24 +96,37 @@ const ChatBody = ({ activeRoom = null }) => {
                 }`}
               >
                 <img
-                  src={isMe ? "/DarkLogo.png" : "/Logo.png"}
+                  src={
+                    msg.Sender_Profile_Pic
+                      ? `/uploads/${msg.Sender_Profile_Pic}`
+                      : isMe
+                        ? "/DarkLogo.png"
+                        : "/Logo.png"
+                  }
                   className={`w-8 h-8 rounded-full object-cover ${
                     isMe ? "bg-white" : "bg-primary"
                   }`}
+                  alt={senderUsername}
                 />
 
                 <div className="flex flex-col font-semibold">
-                  {/* 🔹 USERNAME (GROUP + INCOMING ONLY) */}
+                  {/* Username for incoming group messages */}
                   {!isMe && isGroup && (
                     <span className="text-xs font-bold text-green-800">
                       @{senderUsername}
                     </span>
                   )}
 
-                  {/* 🔹 MESSAGE */}
-                  <span>{msg.Message_Text}</span>
+                  {/* Message text */}
+                  <span>
+                    {msg.Is_Deleted ? (
+                      <em className="opacity-60">Message deleted</em>
+                    ) : (
+                      msg.Message_Text
+                    )}
+                  </span>
 
-                  {/* 🔹 TIME + STATUS */}
+                  {/* Time + seen status */}
                   <span
                     className={`text-xs flex items-center gap-2 font-light ${
                       isMe ? "text-gray-300" : "text-green-700"
@@ -128,13 +136,38 @@ const ChatBody = ({ activeRoom = null }) => {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
-                    {isMe && <CheckCheck className="w-4 h-4" />}
+                    {isMe && (
+                      <CheckCheck
+                        className={`w-4 h-4 ${msg.Is_Seen ? "text-blue-300" : "text-gray-300"}`}
+                      />
+                    )}
+                    {isMe && msg.Is_Edited && (
+                      <span className="text-[10px] opacity-60">edited</span>
+                    )}
                   </span>
                 </div>
               </div>
             </div>
           );
         })}
+
+        {/* Typing indicator */}
+        {roomTypers.length > 0 && (
+          <div className="flex justify-start">
+            <div className="bg-white border border-primary text-primary px-4 py-2 rounded-xl rounded-bl-none text-sm font-inter flex items-center gap-2">
+              <span className="flex gap-1">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0ms]" />
+                <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:150ms]" />
+                <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:300ms]" />
+              </span>
+              <span className="text-xs opacity-70">
+                {roomTypers.length === 1
+                  ? "Someone is typing..."
+                  : "Multiple people are typing..."}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
