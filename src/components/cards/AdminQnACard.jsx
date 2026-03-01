@@ -36,7 +36,7 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
             </span>
             <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1">
               <Clock size={12} />{" "}
-              {new Date(qna.addedOn).toLocaleDateString("en-GB", {
+              {new Date(qna.addedOn).toLocaleDateString("en-IN", {
                 day: "2-digit",
                 month: "short",
                 year: "numeric",
@@ -127,7 +127,11 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
                           {ans.author}
                         </p>
                         <span className="text-[10px] text-gray-400 font-medium">
-                          {ans.time}
+                          {new Date(ans.time).toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
                         </span>
                         <span
                           className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${!isAnsActive ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"}`}
