@@ -22,18 +22,17 @@ const Chats = () => {
     joinRoom,
     leaveRoom,
     sendMessage,
+    sendFileMessage,
+    editMessage,
+    deleteMessageSocket,
     markSeen,
     startTyping,
     stopTyping,
     loadMore,
-    getUnreadCounts,
   } = useChat(currentUser?.S_ID || currentUser?.id);
 
-  // When a room is selected: leave old room, join new one
   const handleSelectRoom = (room) => {
-    if (activeRoom?.Room_ID) {
-      leaveRoom(activeRoom.Room_ID);
-    }
+    if (activeRoom?.Room_ID) leaveRoom(activeRoom.Room_ID);
     setActiveRoom(room);
     joinRoom(room.Room_ID);
     markSeen(room.Room_ID);
@@ -52,7 +51,6 @@ const Chats = () => {
           onlineUsers={onlineUsers}
           currentUserId={currentUser?.S_ID || currentUser?.id}
         />
-
         <div className="flex flex-col flex-1 border-5 border-primary rounded-r-2xl">
           <ChatHeader
             activeRoom={activeRoom}
@@ -66,11 +64,14 @@ const Chats = () => {
               currentUserId={currentUser?.S_ID || currentUser?.id}
               typingUsers={typingUsers}
               loadMore={loadMore}
+              editMessage={editMessage}
+              deleteMessageSocket={deleteMessageSocket}
             />
           </div>
           <ChatInput
             activeRoom={activeRoom}
             sendMessage={sendMessage}
+            sendFileMessage={sendFileMessage}
             startTyping={startTyping}
             stopTyping={stopTyping}
           />
