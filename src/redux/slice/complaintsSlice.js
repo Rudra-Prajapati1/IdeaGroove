@@ -1,116 +1,178 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import api from "../../api/axios";
 
-const BASE_URL = "http://localhost:3000/api/complaints";
+/* ================= FETCH USER COMPLAINTS ================= */
 
-/* ================= FETCH ================= */
-
-export const fetchComplaints = createAsyncThunk(
-  "complaints/fetch",
-  async (page, { rejectWithValue }) => {
+export const fetchUserComplaints = createAsyncThunk(
+  "complaints/fetchUserComplaints",
+  async ({ userId, page = 1, limit = 10 }, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`${BASE_URL}?page=${page}&limit=4`);
-      return res.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
+      const { data } = await api.get(
+        `/complaints/user/${userId}?page=${page}&limit=${limit}`
+      );
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to fetch complaints"
+      );
     }
   }
 );
 
-export const createComplaint = async (req, res) => {
-  try {
-    const { name, category, description } = req.body;
+/* ================= CREATE COMPLAINT ================= */
 
-    const complaintId = `#CMP-${Math.floor(
-      1000 + Math.random() * 9000
-    )}`;
-
-    await db.query(
-      `INSERT INTO complaint_tbl
-       (Complaint_ID, Student_Name, Category, Description)
-       VALUES (?, ?, ?, ?)`,
-      [complaintId, name, category, description]
-    );
-
-    res.status(201).json({
-      id: complaintId,
-      name,
-      category,
-      description,
-      status: "PENDING",
-      date: new Date().toDateString()
-    });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server Error" });
+export const createComplaint = createAsyncThunk(
+  "complaints/createComplaint",
+  async (complaintData, { rejectWithValue }) => {
+    try {
+      const { data } = await api.post("/complaints/create", complaintData);
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to submit complaint"
+      );
+    }
   }
+);
+
+/* ================= FETCH CONTENT OPTIONS ================= */
+
+export const fetchContentOptions = createAsyncThunk(
+  "complaints/fetchContentOptions",
+  async (category, { rejectWithValue }) => {
+    try {
+      let response;
+
+      switch (category) {
+        case "Notes":
+          response = await api.get("/notes?limit=100");
+          return (response.data.notes || []).map((note) => ({
+            id: note.N_ID,
+            label: `${note.Description}|${note.Author}`,
+          }));
+
+        case "Events":
+          response = await api.get("/events?limit=100");
+          return (response.data.data || []).map((event) => ({
+            id: event.E_ID,
+            label: `${event.Description}|${event.Organizer_Name}`,
+          }));
+
+        case "Groups":
+          response = await api.get("/groups?limit=100");
+          return (response.data.data || []).map((group) => ({
+            id: group.Room_ID,
+            label: `${group.Room_Name}|${group.Creator_Name}`,
+          }));
+
+        case "QnA":
+          response = await api.get("/qna?limit=100");
+          return (response.data.QnA || []).map((q) => ({
+            id: q.Q_ID,
+            label: `${q.Question}|${q.Question_Author}`,
+          }));
+
+        case "User":
+          response = await api.get("/students/all");
+          return (response.data || []).map((user) => ({
+            id: user.S_ID,
+            label: `@${user.Username}`,
+          }));
+
+        default:
+          return [];
+      }
+    } catch (err) {
+      return rejectWithValue("Failed to fetch content options");
+    }
+  }
+);
+
+/* ================= FETCH ANSWERS FOR QUESTION ================= */
+
+export const fetchAnswersByQuestion = createAsyncThunk(
+  "complaints/fetchAnswersByQuestion",
+  async (questionId, { rejectWithValue }) => {
+    try {
+      const { data } = await api.get(`/qna/answers/${questionId}`);
+      return data.answers || [];
+    } catch (err) {
+      return rejectWithValue("Failed to fetch answers");
+    }
+  }
+);
+
+
+
+export const deleteComplaintThunk = createAsyncThunk(
+  "complaints/deleteComplaint",
+  async (complaintId, { rejectWithValue }) => {
+    try {
+      await api.delete(`/complaints/delete/${complaintId}`);
+      return complaintId;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to delete complaint"
+      );
+    }
+  }
+);
+/* ================= INITIAL STATE ================= */
+
+const initialState = {
+  complaints: [],
+  status: "idle",
+  error: null,
+
+  contentOptions: [],
+  contentStatus: "idle",
+
+  answersOptions: [],
+  answersStatus: "idle",
 };
-
-/* ================= UPDATE STATUS ================= */
-
-export const updateComplaintStatus = createAsyncThunk(
-  "complaints/updateStatus",
-  async ({ id, status }, { rejectWithValue }) => {
-    try {
-      await axios.put(`${BASE_URL}/${id}/status`, { status });
-      return { id, status };
-    } catch (error) {
-      return rejectWithValue(error.response.data);
-    }
-  }
-);
-
-/* ================= DELETE ================= */
-
-export const deleteComplaint = createAsyncThunk(
-  "complaints/delete",
-  async (id, { rejectWithValue }) => {
-    try {
-      await axios.delete(`${BASE_URL}/${id}`);
-      return id;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
-    }
-  }
-);
 
 /* ================= SLICE ================= */
 
-const complaintSlice = createSlice({
+const complaintsSlice = createSlice({
   name: "complaints",
-  initialState: {
-    complaints: [],
-    total: 0,
-    loading: false,
-    error: null
-  },
+  initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchComplaints.pending, (state) => {
-        state.loading = true;
+
+      /* FETCH USER COMPLAINTS */
+      .addCase(fetchUserComplaints.fulfilled, (state, action) => {
+        state.complaints = action.payload.data || [];
       })
-      .addCase(fetchComplaints.fulfilled, (state, action) => {
-        state.loading = false;
-        state.complaints = action.payload.complaints;
-        state.total = action.payload.total;
+
+      /* FETCH CONTENT */
+      .addCase(fetchContentOptions.pending, (state) => {
+        state.contentStatus = "loading";
       })
-      .addCase(fetchComplaints.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
+      .addCase(fetchContentOptions.fulfilled, (state, action) => {
+        state.contentStatus = "succeeded";
+        state.contentOptions = action.payload || [];
       })
-      .addCase(updateComplaintStatus.fulfilled, (state, action) => {
-        const { id, status } = action.payload;
-        const complaint = state.complaints.find(c => c.id === id);
-        if (complaint) complaint.status = status;
+
+      /* FETCH ANSWERS */
+      .addCase(fetchAnswersByQuestion.pending, (state) => {
+        state.answersStatus = "loading";
       })
-      .addCase(deleteComplaint.fulfilled, (state, action) => {
-        state.complaints = state.complaints.filter(
-          c => c.id !== action.payload
-        );
+
+      .addCase(deleteComplaintThunk.fulfilled, (state, action) => {
+  state.complaints = state.complaints.filter(
+    (item) => item.Complaint_ID !== action.payload
+  );
+})
+
+      .addCase(fetchAnswersByQuestion.fulfilled, (state, action) => {
+        state.answersStatus = "succeeded";
+        state.answersOptions = action.payload.map((a) => ({
+          id: a.A_ID,
+          label: `"${a.Answer}" by "${a.Answer_Author}"`,
+        }));
       });
-  }
+  },
 });
 
-export default complaintSlice.reducer;
+export default complaintsSlice.reducer;
