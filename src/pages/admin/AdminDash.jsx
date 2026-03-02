@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 import StudentProfile from "../../components/admin/StudentProfile";
+import ActivityFilterPanel from "../../components/admin/ActivityFilterPanel";
 
 const AdminDash = () => {
   const [statsData, setStatsData] = useState({});
@@ -28,7 +29,18 @@ const AdminDash = () => {
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [recentActivities, setRecentActivities] = useState([]);
 
-  const ACTIVITIES_PER_PAGE = 5;
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    types: [], // e.g. ["EVENT", "NOTE"]
+    statuses: [], // e.g. ["Active", "Blocked"]
+    studentName: "",
+    dateFrom: "",
+    dateTo: "",
+  });
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState(filters);
+
+  const ACTIVITIES_PER_PAGE = 10;
   const [currentPage, setCurrentPage] = useState(1);
 
   // Reset page when activities change
@@ -36,9 +48,39 @@ const AdminDash = () => {
     setCurrentPage(1);
   }, [recentActivities]);
 
+  const filteredActivities = recentActivities.filter((row) => {
+    const { types, statuses, studentName, dateFrom, dateTo } = appliedFilters;
+
+    // Filter by type
+    if (types.length > 0 && !types.includes(row.activity_type)) return false;
+
+    // Filter by status
+    if (statuses.length > 0) {
+      const rowStatus = row.status === 1 ? "Active" : "Blocked";
+      if (!statuses.includes(rowStatus)) return false;
+    }
+
+    // Filter by student name
+    if (studentName?.trim()) {
+      if (!row.student_name?.toLowerCase().includes(studentName.toLowerCase()))
+        return false;
+    }
+
+    // Filter by date range
+    if (dateFrom) {
+      if (new Date(row.created_at) < new Date(dateFrom)) return false;
+    }
+    if (dateTo) {
+      if (new Date(row.created_at) > new Date(dateTo + "T23:59:59"))
+        return false;
+    }
+
+    return true;
+  });
+
   // Paginated slice
-  const totalPages = Math.ceil(recentActivities.length / ACTIVITIES_PER_PAGE);
-  const paginatedActivities = recentActivities.slice(
+  const totalPages = Math.ceil(filteredActivities.length / ACTIVITIES_PER_PAGE);
+  const paginatedActivities = filteredActivities.slice(
     (currentPage - 1) * ACTIVITIES_PER_PAGE,
     currentPage * ACTIVITIES_PER_PAGE,
   );
@@ -104,7 +146,6 @@ const AdminDash = () => {
           throw new Error("Failed to fetch recent activity.");
         }
         const data = await res.json();
-        console.log(data);
         setRecentActivities(data);
       } catch (err) {
         setError(err.message);
@@ -487,11 +528,22 @@ const AdminDash = () => {
 
           <div className="flex gap-2">
             <button className="flex items-center gap-1.5 bg-green-800 px-4 py-1.5 rounded-lg text-sm text-white hover:bg-green-700 transition-colors">
-              <Filter size={12} /> Filter
+              <Download size={12} /> Export
             </button>
 
-            <button className="flex items-center gap-1.5 bg-green-800 px-4 py-1.5 rounded-lg text-sm text-white hover:bg-green-700 transition-colors">
-              <Download size={12} /> Export
+            <button
+              onClick={() => setFilterOpen(true)}
+              className="relative flex items-center gap-1.5 bg-green-800 px-4 py-1.5 rounded-lg text-sm text-white hover:bg-green-700 transition-colors"
+            >
+              <Filter size={12} /> Filter
+              {/* Active filter badge */}
+              {Object.values(appliedFilters).some((v) =>
+                Array.isArray(v) ? v.length > 0 : v,
+              ) && (
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-amber-400 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                  !
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -576,6 +628,22 @@ const AdminDash = () => {
                       <Eye size={18} />
                     </button>
                   </td>
+                  {/* Profile Modal */}
+                  {isProfileOpen && (
+                    <div
+                      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+                      onClick={(e) =>
+                        e.target === e.currentTarget && setIsProfileOpen(false)
+                      }
+                    >
+                      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+                        <StudentProfile
+                          id={event.Organizer_ID}
+                          onClose={() => setIsProfileOpen(false)}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -586,15 +654,23 @@ const AdminDash = () => {
             <span className="text-[11px] text-gray-400 font-bold uppercase tracking-tight">
               Showing{" "}
               <span className="text-gray-600">
-                {(currentPage - 1) * ACTIVITIES_PER_PAGE + 1}–
+                {filteredActivities.length === 0
+                  ? 0
+                  : (currentPage - 1) * ACTIVITIES_PER_PAGE + 1}
+                –
                 {Math.min(
                   currentPage * ACTIVITIES_PER_PAGE,
-                  recentActivities.length,
+                  filteredActivities.length,
                 )}
               </span>{" "}
               of{" "}
-              <span className="text-gray-600">{recentActivities.length}</span>{" "}
+              <span className="text-gray-600">{filteredActivities.length}</span>{" "}
               activities
+              {filteredActivities.length !== recentActivities.length && (
+                <span className="text-amber-500 ml-1">
+                  (filtered from {recentActivities.length})
+                </span>
+              )}
             </span>
 
             <div className="flex items-center gap-1">
@@ -606,22 +682,58 @@ const AdminDash = () => {
                 <ChevronLeft size={16} />
               </button>
 
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`h-8 w-8 flex items-center justify-center rounded-lg text-xs font-bold
-            ${
-              currentPage === page
-                ? "bg-green-900 text-white shadow-sm shadow-green-200"
-                : "text-gray-500 hover:bg-gray-100 border border-gray-200"
-            }`}
-                  >
-                    {page}
-                  </button>
-                ),
-              )}
+              {/* Smart Pagination with ellipsis */}
+              {(() => {
+                const getPageNumbers = () => {
+                  const pages = [];
+
+                  if (totalPages <= 5) {
+                    // Show all pages if 5 or less
+                    for (let i = 1; i <= totalPages; i++) pages.push(i);
+                  } else {
+                    // Always show first page
+                    pages.push(1);
+
+                    if (currentPage > 3) pages.push("...");
+
+                    // Show pages around current
+                    const start = Math.max(2, currentPage - 1);
+                    const end = Math.min(totalPages - 1, currentPage + 1);
+                    for (let i = start; i <= end; i++) pages.push(i);
+
+                    if (currentPage < totalPages - 2) pages.push("...");
+
+                    // Always show last page
+                    pages.push(totalPages);
+                  }
+
+                  return pages;
+                };
+
+                return getPageNumbers().map((page, idx) =>
+                  page === "..." ? (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      className="h-8 w-8 flex items-center justify-center text-xs text-gray-400 font-bold"
+                    >
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`h-8 w-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all
+          ${
+            currentPage === page
+              ? "bg-green-900 text-white shadow-sm shadow-green-200"
+              : "text-gray-500 hover:bg-gray-100 border border-gray-200"
+          }`}
+                    >
+                      {page}
+                    </button>
+                  ),
+                );
+              })()}
 
               <button
                 onClick={() =>
@@ -636,6 +748,28 @@ const AdminDash = () => {
           </div>
         )}
       </div>
+      <ActivityFilterPanel
+        isOpen={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        filters={filters}
+        onFiltersChange={setFilters}
+        onApply={() => {
+          setAppliedFilters(filters);
+          setCurrentPage(1);
+        }}
+        onReset={() => {
+          const empty = {
+            types: [],
+            statuses: [],
+            studentName: "",
+            dateFrom: "",
+            dateTo: "",
+          };
+          setFilters(empty);
+          setAppliedFilters(empty);
+          setCurrentPage(1);
+        }}
+      />
     </section>
   );
 };

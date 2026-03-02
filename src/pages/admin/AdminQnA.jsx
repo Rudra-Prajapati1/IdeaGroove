@@ -137,6 +137,30 @@ const AdminQnA = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
+  const [qnaStats, setQnaStats] = useState([
+    {
+      title: "Total Questions",
+      value: 0,
+      infoText: "All questions asked",
+      color: "green",
+      type: "total",
+    },
+    {
+      title: "Active Questions",
+      value: 0,
+      infoText: "Currently Active",
+      color: "yellow",
+      type: "pending",
+    },
+    {
+      title: "InActive Questions",
+      value: 0,
+      infoText: "Blocked & Deleted",
+      color: "red",
+      type: "blocked",
+    },
+  ]);
+
   const [degreeOptions, setDegreeOptions] = useState([]);
   const [degreeSubjectMap, setDegreeSubjectMap] = useState({});
   const [subjectOptions, setSubjectOptions] = useState([]);
@@ -145,7 +169,7 @@ const AdminQnA = () => {
     const fetchQnA = async () => {
       try {
         const reponse = await fetch(
-          "http://localhost:8080/api/qna/?page=1&limit=1000",
+          `${import.meta.env.VITE_API_BASE_URL}/qna/?page=1&limit=1000`,
         );
         const data = await reponse.json();
         console.log(data.QnA);
@@ -164,13 +188,21 @@ const AdminQnA = () => {
             text: ans.Answer,
             author: ans.Answer_Author,
             time: ans.Answered_On,
+            status: ans.Is_Active === 1 ? "active" : "blocked",
           })),
         }));
 
-        qnaStats[0].value = data.total;
-        qnaStats[1].value = data.QnA.filter((q) => q.Is_Active === 1).length;
-        qnaStats[2].value = data.QnA.filter((q) => q.Is_Active !== 1).length;
-
+        setQnaStats([
+          { ...qnaStats[0], value: data.total || filteredQnAs.length },
+          {
+            ...qnaStats[1],
+            value: filteredQnAs.filter((q) => q.status === "active").length,
+          },
+          {
+            ...qnaStats[2],
+            value: filteredQnAs.filter((q) => q.status === "blocked").length,
+          },
+        ]);
         setQnas(filteredQnAs);
       } catch (err) {
         setError(err.message);
@@ -265,47 +297,94 @@ const AdminQnA = () => {
     e.preventDefault();
     setLoading(true);
 
-    setTimeout(() => {
-      setQnas((prev) =>
-        prev.map((q) => {
-          if (q.id === targetId) {
-            // Case 1: Moderating a specific answer
-            if (targetAnswerId) {
-              return {
-                ...q,
-                answers: q.answers.map((ans) =>
-                  ans.id === targetAnswerId
-                    ? {
-                        ...ans,
-                        status:
-                          selectedAction === "block" ? "blocked" : "active",
-                      }
-                    : ans,
-                ),
-              };
-            }
-            // Case 2: Moderating the whole question
-            return {
-              ...q,
-              status: selectedAction === "block" ? "blocked" : "active",
-            };
-          }
-          return q;
-        }),
+    try {
+      // Determine if we are sending an "answer" or "question" moderation request
+      const endpointType = targetAnswerId ? "answer" : "question";
+      const endpointId = targetAnswerId || targetId;
+
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/toggle-block`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: endpointType,
+            id: endpointId,
+            reason: reason,
+          }),
+        },
       );
 
-      toast.success(
-        `${targetAnswerId ? "Answer" : "Question"} successfully ${selectedAction}ed`,
-      );
-      setModalOpen(false);
+      const data = await res.json();
+
+      if (data.status) {
+        // Update local state
+        setQnas((prev) =>
+          prev.map((q) => {
+            if (q.id === targetId) {
+              // Case 1: Moderating a specific answer
+              if (targetAnswerId) {
+                return {
+                  ...q,
+                  answers: q.answers.map((ans) =>
+                    ans.id === targetAnswerId
+                      ? {
+                          ...ans,
+                          status:
+                            selectedAction === "block" ? "blocked" : "active",
+                        }
+                      : ans,
+                  ),
+                };
+              }
+              // Case 2: Moderating the whole question
+              return {
+                ...q,
+                status: selectedAction === "block" ? "blocked" : "active",
+              };
+            }
+            return q;
+          }),
+        );
+
+        // Update stats ONLY if we moderated a question (we don't track answer stats in StatsRow)
+        if (!targetAnswerId) {
+          setQnaStats((prevStats) => {
+            const newStats = [...prevStats];
+            newStats[1].value = qnas.filter((q) =>
+              q.id === targetId
+                ? selectedAction !== "block"
+                : q.status === "active",
+            ).length;
+            newStats[2].value = qnas.filter((q) =>
+              q.id === targetId
+                ? selectedAction === "block"
+                : q.status === "blocked",
+            ).length;
+            return newStats;
+          });
+        }
+
+        toast.success(
+          `${targetAnswerId ? "Answer" : "Question"} successfully ${selectedAction}ed! Email sent.`,
+        );
+        setModalOpen(false);
+        setReason("");
+      } else {
+        toast.error(data.message || "Action failed");
+      }
+    } catch (err) {
+      console.error("Moderation error:", err);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
     <section className="flex flex-col gap-6 relative min-h-screen">
       <AdminPageHeader
-        title="Notes Moderation"
+        title="Q&A Moderation"
         subtitle="Review and manage user uploads"
         searchValue={searchTerm}
         onSearch={setSearchTerm}
