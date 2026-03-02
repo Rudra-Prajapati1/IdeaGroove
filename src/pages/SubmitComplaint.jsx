@@ -24,6 +24,7 @@ import {
   createComplaint,
   fetchContentOptions,
   fetchAnswersByQuestion, 
+  deleteComplaintThunk,
 } from "../redux/slice/complaintsSlice.js";
 import PageHeader from "../components/common/PageHeader";
 
@@ -89,7 +90,7 @@ const SubmitComplaint = () => {
   
   const isLockedComplaint = Boolean(type && id && text);
 
-  const typeMapping = { event: "Events", note: "Notes", group: "Groups", qna: "QnA", user: "User", other: "Other" };
+  const typeMapping = { events: "Events", note: "Notes", group: "Groups", qna: "QnA", user: "User", other: "Other" };
   
   const [formData, setFormData] = useState({ 
     category: "", 
@@ -129,7 +130,34 @@ const SubmitComplaint = () => {
     if (!user?.id) return toast.error("You must be logged in");
     
     let finalContentId = id || formData.topic;
-    let finalType = type || formData.category.toLowerCase();
+    let finalType;
+
+if (type) {
+  finalType = type;
+} else {
+  switch (formData.category) {
+    case "Events":
+      finalType = "event";
+      break;
+    case "Notes":
+      finalType = "notes";
+      break;
+    case "Groups":
+      finalType = "groups";
+      break;
+    case "User":
+      finalType = "user";
+      break;
+    case "QnA":
+      finalType = "question"; // default unless answer selected
+      break;
+    case "Other":
+      finalType = "other";
+      break;
+    default:
+      finalType = "";
+  }
+}
 
     if (formData.category === "Other") {
         finalContentId = 0;
@@ -309,18 +337,20 @@ const SubmitComplaint = () => {
         </div>
 
         <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-xl shadow-black/5">
-          <div className="grid grid-cols-12 bg-gray-50/50 border-b border-gray-100 px-8 py-4">
+          <div className="grid grid-cols-14 bg-gray-50/50 border-b border-gray-100 px-8 py-4">
             <div className="col-span-2 text-[11px] font-black text-gray-400 uppercase tracking-widest">Category</div>
             <div className="col-span-5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Subject</div>
             <div className="col-span-2 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Date</div>
-            <div className="col-span-2 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Status</div>
+            <div className="col-span-2 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Action</div>
+            <div className="col-span-1 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Status</div>
+            <div className="col-span-1"></div>
           </div>
           {processedComplaints.map((item) => {
              const isExpanded = expandedId === item.Complaint_ID;
              const displayStatus = item.Status?.toUpperCase().replace(/-/g, " ") || "PENDING";
              return (
                <div key={item.Complaint_ID} className={`border-b border-gray-50 last:border-0 transition-all ${isExpanded ? 'bg-orange-50/20' : ''}`}>
-                  <div className="grid grid-cols-12 px-8 py-6 items-center cursor-pointer hover:bg-gray-50/50" onClick={() => setExpandedId(isExpanded ? null : item.Complaint_ID)}>
+                  <div className="grid grid-cols-13 px-8 py-6 items-center cursor-pointer hover:bg-gray-50/50" onClick={() => setExpandedId(isExpanded ? null : item.Complaint_ID)}>
                      <div className="col-span-2"><span className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-[10px] font-black uppercase tracking-wider">{typeMapping[item.Type] || item.Type}</span></div>
                      <div className="col-span-5">
                        <h4 className="text-[15px] font-bold text-gray-800 leading-tight">
@@ -329,6 +359,35 @@ const SubmitComplaint = () => {
                        {item.Type?.toLowerCase() !== "other" && <p className="text-[11px] text-gray-400 mt-1 uppercase font-bold tracking-widest"> • Owner: @{item.Content_Owner_Name}</p>}
                      </div>
                      <div className="col-span-2 text-center text-sm font-semibold text-gray-600">{new Date(item.Date).toLocaleDateString()}</div>
+                     <div className="col-span-1 flex justify-center">
+  {(() => {
+    const complaintDate = new Date(item.Date);
+    const now = new Date();
+    const diffInHours = (now - complaintDate) / (1000 * 60 * 60);
+    const canDelete = diffInHours <= 24;
+
+    return canDelete ? (
+      <button
+        onClick={async (e) => {
+          e.stopPropagation();
+          try {
+            await dispatch(deleteComplaintThunk(item.Complaint_ID)).unwrap();
+            toast.success("Complaint deleted");
+          } catch (err) {
+            toast.error(err);
+          }
+        }}
+        className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg font-bold hover:opacity-90"
+      >
+        Delete
+      </button>
+    ) : (
+      <span className="text-[10px] text-gray-400 italic">
+        Deletion is allowed only within 24hrs
+      </span>
+    );
+  })()}
+</div>
                      <div className="col-span-2 flex justify-center">
                        <span className={`min-w-[110px] text-center px-4 py-1.5 rounded-lg text-[10px] font-black uppercase border-2 ${displayStatus === "PENDING" ? "border-blue-200 bg-blue-50 text-blue-700" : displayStatus === "IN PROGRESS" ? "border-orange-200 bg-orange-50 text-orange-700" : "border-green-200 bg-green-50 text-green-700"}`}>{displayStatus}</span>
                      </div>
@@ -344,6 +403,8 @@ const SubmitComplaint = () => {
                         <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0"><Info size={18} className="text-green-700" /></div>
                         <div><span className="text-[11px] font-black text-green-800 uppercase tracking-widest mb-1 block">Admin Update</span><p className="text-sm text-gray-700 leading-relaxed">"{item.Admin_Update || "Currently under review."}"</p></div>
                       </div>
+
+                      
                     </div>
                   )}
                </div>

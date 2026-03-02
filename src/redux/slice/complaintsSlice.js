@@ -102,6 +102,21 @@ export const fetchAnswersByQuestion = createAsyncThunk(
   }
 );
 
+
+
+export const deleteComplaintThunk = createAsyncThunk(
+  "complaints/deleteComplaint",
+  async (complaintId, { rejectWithValue }) => {
+    try {
+      await api.delete(`/complaints/delete/${complaintId}`);
+      return complaintId;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to delete complaint"
+      );
+    }
+  }
+);
 /* ================= INITIAL STATE ================= */
 
 const initialState = {
@@ -143,6 +158,13 @@ const complaintsSlice = createSlice({
       .addCase(fetchAnswersByQuestion.pending, (state) => {
         state.answersStatus = "loading";
       })
+
+      .addCase(deleteComplaintThunk.fulfilled, (state, action) => {
+  state.complaints = state.complaints.filter(
+    (item) => item.Complaint_ID !== action.payload
+  );
+})
+
       .addCase(fetchAnswersByQuestion.fulfilled, (state, action) => {
         state.answersStatus = "succeeded";
         state.answersOptions = action.payload.map((a) => ({
