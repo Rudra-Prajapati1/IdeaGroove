@@ -1,11 +1,39 @@
-import React from "react";
-import { Mail, GraduationCap, School, Calendar, ArrowLeft } from "lucide-react";
+import { useSelector } from "react-redux";
+import { selectUser } from "../../redux/slice/authSlice";
 import { useNavigate } from "react-router-dom";
+import api from "../../api/axios";
+import {
+  ArrowLeft,
+  Calendar,
+  GraduationCap,
+  Mail,
+  MessageCircle,
+  School,
+} from "lucide-react";
 
 const HeroSection = ({ user, isPublic = false }) => {
   const displayName = user?.Name || "Explorer";
   const userInitial = displayName.charAt(0);
   const navigate = useNavigate();
+
+  const currentUser = useSelector(selectUser);
+
+  const handleDirectMessage = async () => {
+    if (!currentUser) {
+      navigate("/auth");
+      return;
+    }
+    try {
+      await api.post("/chats/create-room", {
+        receiver_id: user?.S_ID || user?.id,
+        room_type: "direct",
+      });
+      navigate("/chats");
+    } catch (err) {
+      console.error("DM error:", err);
+      navigate("/chats");
+    }
+  };
 
   return (
     <section className="relative bg-linear-to-br from-[#1B431C] via-[#235324] to-[#153416] min-h-[500px] flex flex-col justify-center overflow-hidden">
@@ -66,6 +94,16 @@ const HeroSection = ({ user, isPublic = false }) => {
                   Batch of 2026
                 </span>
               </div>
+              {isPublic &&
+                String(user?.S_ID || user?.id) !== String(currentUser?.id) && (
+                  <button
+                    onClick={handleDirectMessage}
+                    className="flex items-center w-[30%] gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md border border-white/10 transition-all active:scale-95 shadow-lg"
+                  >
+                    <MessageCircle size={20} />
+                    <span className="text-sm font-medium">Message</span>
+                  </button>
+                )}
             </div>
           ) : (
             <div className="space-y-2">

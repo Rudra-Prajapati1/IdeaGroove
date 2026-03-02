@@ -166,6 +166,10 @@ const chatsSlice = createSlice({
         .map((m) => ({ id: m.Message_ID, changes: { Is_Seen: 1 } }));
       messagesAdapter.updateMany(state.messages, updates);
     },
+    updateMessage: (state, action) => {
+      const { messageId, changes } = action.payload;
+      messagesAdapter.updateOne(state.messages, { id: messageId, changes });
+    },
   },
 
   extraReducers: (builder) => {
@@ -197,6 +201,7 @@ export const {
   setUnreadCounts,
   markRoomSeen,
   updateSeenMessages,
+  updateMessage,
 } = chatsSlice.actions;
 
 /* ─── Selectors ───────────────────────────────────────────────────────────── */
@@ -229,5 +234,7 @@ export const selectActiveRoom = (state) => state.chats.activeRoom;
 export const selectTypingUsers = (state) => state.chats.typingUsers;
 export const selectOnlineUsers = (state) => state.chats.onlineUsers;
 export const selectUnreadCounts = (state) => state.chats.unreadCounts;
+export const selectMessageById = (messageId) => (state) =>
+  messageSelectors.selectById(state, messageId);
 
 export default chatsSlice.reducer;

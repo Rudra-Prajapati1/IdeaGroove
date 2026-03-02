@@ -12,8 +12,7 @@ import {
   updateSeenMessages,
   setIsConnected,
   fetchUserChatRooms,
-} from "../redux/slice/chatsSlice";
-import {
+  updateMessage,
   selectChatRooms,
   selectChatRoomsStatus,
   selectChatRoomsError,
@@ -31,7 +30,6 @@ export function useChat(studentId) {
   const socketRef = useRef(null);
   const typingTimeouts = useRef({});
 
-  // ── Redux state ────────────────────────────────────────────────────────────
   const rooms = useSelector(selectChatRooms);
   const roomsStatus = useSelector(selectChatRoomsStatus);
   const roomsError = useSelector(selectChatRoomsError);
@@ -39,68 +37,75 @@ export function useChat(studentId) {
   const typingUsers = useSelector(selectTypingUsers);
   const onlineUsers = useSelector(selectOnlineUsers);
   const unreadCounts = useSelector(selectUnreadCounts);
-  const messages = useSelector(selectAllMessages); // flat array of all messages
+  const messages = useSelector(selectAllMessages);
 
-  // ── Socket Setup ────────────────────────────────────────────────────────────
+  // FIX 401: fetch rooms on mount directly, not inside socket connect event
+  useEffect(() => {
+    if (studentId) {
+      dispatch(fetchUserChatRooms());
+    }
+  }, [studentId, dispatch]);
+
   useEffect(() => {
     if (!studentId) return;
 
-    const socket = io(SOCKET_URL, { autoConnect: false });
+    const socket = io(SOCKET_URL, {
+      autoConnect: false,
+      withCredentials: true,
+    });
     socketRef.current = socket;
     socket.connect();
 
     socket.on("connect", () => {
       dispatch(setIsConnected(true));
       socket.emit("user:online", { studentId });
-      // Fetch rooms list via REST once connected
-      dispatch(fetchUserChatRooms());
     });
 
-    socket.on("disconnect", () => {
-      dispatch(setIsConnected(false));
-    });
+    socket.on("disconnect", () => dispatch(setIsConnected(false)));
 
-    // Room history (after joining a room)
     socket.on("room:history", ({ roomId, messages: msgs }) => {
       dispatch(setRoomHistory({ roomId, messages: msgs }));
     });
 
-    // New incoming message
     socket.on("message:new", ({ roomId, message }) => {
       dispatch(addMessage({ roomId, message }));
     });
 
-    // Older messages loaded (load more)
     socket.on("message:more", ({ roomId, messages: msgs }) => {
       dispatch(prependMessages({ roomId, messages: msgs }));
     });
 
-    // Typing updates
     socket.on("typing:update", ({ roomId, studentId: typerId, isTyping }) => {
       dispatch(setTypingUsers({ roomId, studentId: typerId, isTyping }));
     });
 
-    // Online / offline status
     socket.on("user:status", ({ studentId: uid, status }) => {
       dispatch(setUserOnline({ studentId: uid, status }));
     });
 
-    // Seen receipts
     socket.on("message:seen_update", ({ roomId, seenBy }) => {
       dispatch(updateSeenMessages({ roomId, seenBy }));
     });
 
-    // Bulk unread counts
     socket.on("rooms:unread_counts", (counts) => {
       dispatch(setUnreadCounts(counts));
     });
 
-    return () => {
-      socket.disconnect();
-    };
-  }, [studentId, dispatch]);
+    socket.on("message:edited", ({ messageId, newText }) => {
+      dispatch(
+        updateMessage({
+          messageId,
+          changes: { Message_Text: newText, Is_Edited: 1 },
+        }),
+      );
+    });
 
-  // ── Socket Actions ──────────────────────────────────────────────────────────
+    socket.on("message:deleted", ({ messageId }) => {
+      dispatch(updateMessage({ messageId, changes: { Is_Deleted: 1 } }));
+    });
+
+    return () => socket.disconnect();
+  }, [studentId, dispatch]);
 
   const joinRoom = useCallback(
     (roomId) => {
@@ -120,6 +125,22 @@ export function useChat(studentId) {
       roomId,
       message: message.trim(),
     });
+  }, []);
+
+  const sendFileMessage = useCallback((roomId, fileUrl, messageType) => {
+    socketRef.current?.emit("message:send_file", {
+      roomId,
+      fileUrl,
+      messageType,
+    });
+  }, []);
+
+  const editMessage = useCallback((roomId, messageId, newText) => {
+    socketRef.current?.emit("message:edit", { roomId, messageId, newText });
+  }, []);
+
+  const deleteMessageSocket = useCallback((roomId, messageId) => {
+    socketRef.current?.emit("message:delete", { roomId, messageId });
   }, []);
 
   const markSeen = useCallback(
@@ -152,7 +173,6 @@ export function useChat(studentId) {
   }, []);
 
   return {
-    // State
     rooms,
     roomsStatus,
     roomsError,
@@ -161,11 +181,12 @@ export function useChat(studentId) {
     onlineUsers,
     unreadCounts,
     isConnected,
-
-    // Socket actions
     joinRoom,
     leaveRoom,
     sendMessage,
+    sendFileMessage,
+    editMessage,
+    deleteMessageSocket,
     markSeen,
     startTyping,
     stopTyping,
