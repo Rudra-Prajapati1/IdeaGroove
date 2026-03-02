@@ -19,6 +19,7 @@ import {
 import { useEffect } from "react";
 import StudentProfile from "../../components/admin/StudentProfile";
 import ActivityFilterPanel from "../../components/admin/ActivityFilterPanel";
+import ReportGeneration from "../../components/admin/ReportGeneration";
 
 const AdminDash = () => {
   const [statsData, setStatsData] = useState({});
@@ -515,7 +516,6 @@ const AdminDash = () => {
           </div>
         </div>
       </div>
-
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-6 border-b bg-primary border-gray-50 flex justify-between items-center">
           <div className="flex items-center gap-2 text-white">
@@ -527,9 +527,7 @@ const AdminDash = () => {
           </div>
 
           <div className="flex gap-2">
-            <button className="flex items-center gap-1.5 bg-green-800 px-4 py-1.5 rounded-lg text-sm text-white hover:bg-green-700 transition-colors">
-              <Download size={12} /> Export
-            </button>
+            <ReportGeneration recentActivities={paginatedActivities} />
 
             <button
               onClick={() => setFilterOpen(true)}
