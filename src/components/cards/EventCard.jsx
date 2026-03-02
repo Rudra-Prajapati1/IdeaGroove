@@ -151,7 +151,7 @@ const EventCard = ({ event, onEdit }) => {
 
           {!isOwner && (
             <ComplaintButton
-              onClick={() => navigate(`/submit-complaint/event/${event.E_ID}`)}
+              onClick={() => navigate(`/submit-complaint/event/${event.E_ID}/${event.Description}`)}
               className="absolute top-4 right-4"
               element="event"
             />

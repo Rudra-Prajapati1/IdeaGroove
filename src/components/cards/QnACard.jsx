@@ -214,7 +214,7 @@ const QnACard = ({ post, isAuth, onEdit, onDelete }) => {
                 </div>
               ) : (
                 <ComplaintButton
-                  onClick={() => navigate(`/submitComplaint/qna/${post.Q_ID}`)}
+                  onClick={() => navigate(`/submit-complaint/question/${post.Q_ID}/${post.Question}`)}
                   element="question"
                 />
               )}
@@ -277,6 +277,13 @@ const QnACard = ({ post, isAuth, onEdit, onDelete }) => {
                             )}
                           </span>
                         </p>
+
+                        <button>
+                          <ComplaintButton
+                  onClick={() => navigate(`/submit-complaint/answer/${ans.A_ID}/${ans.Answer}`)}
+                  element="answer"
+                />
+                        </button>
 
                         {isAnswerOwner && !isEditingThis && (
                           <div className="flex items-center gap-1">

@@ -110,7 +110,7 @@ const GroupCard = ({ group, onEdit, onDeleteSuccess }) => {
           {!isOwner && isAuth && (
             <ComplaintButton
               onClick={() =>
-                navigate(`/submitComplaint/group/${group.Room_ID}`)
+                navigate(`/submit-complaint/group/${group.Room_ID}/${group.Room_Name}`)
               }
               element="group"
             />

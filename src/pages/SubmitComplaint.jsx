@@ -1,457 +1,415 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   ChevronDown,
   ChevronUp,
-  ArrowLeft,
+  Info,
+  AlertTriangle,
+  ChevronRight,
+  Search,
+  X,
   Lightbulb,
   CheckCircle2,
-  Info,
-  NotebookPen,
-  Settings,
-  User,
-  AlertTriangle,
-  ListFilter,
-  XCircle,
+  Lock,
+  ExternalLink,
+  Mail,
+  HelpCircle,
+  MessageSquare
 } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 import { selectIsAuthenticated } from "../redux/slice/authSlice";
+import {
+  fetchUserComplaints,
+  createComplaint,
+  fetchContentOptions,
+  fetchAnswersByQuestion, 
+  deleteComplaintThunk,
+} from "../redux/slice/complaintsSlice.js";
 import PageHeader from "../components/common/PageHeader";
 
-const SubmitComplaint = () => {
-  const isAuth = useSelector(selectIsAuthenticated);
+/* ================= SEARCHABLE DROPDOWN ================= */
+const SearchableDropdown = ({ label, icon, value, placeholder, items, onSelect, disabled = false, emptyMessage = "No results found" }) => {
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
 
-  const { type, id } = useParams();
-  const navigate = useNavigate();
-  const { user } = useSelector((state) => state.auth);
-
-  // --- Mappings ---
-  const typeMapping = {
-    event: "Events",
-    note: "Notes",
-    group: "Groups",
-    qna: "QnA",
-    user: "User",
-    other: "Other",
-  };
-
-  const genericTopics = {
-    Notes: ["PHP by @khushal", "Bio-chem by @fiona", "Cpp by @sejal"],
-    User: ["@rudri", "@sejal", "@khushal"],
-    Groups: [
-      "Coder club by @jinesh",
-      "Chess ke master by @gukesh",
-      "Cockroach dance by @cockroach",
-    ],
-    Events: ["@rudri on 5th feb", "@sejal on 31th jan", "@khushal on 25th jan"],
-    QnA: [
-      "What is function ? [by @rudri]",
-      "What is micro-organism ? [by @falguni]",
-      "How to initailize array ? [by @yash]",
-    ],
-    Other: ["General Feedback", "Bug Report", "Feature Request"],
-  };
-
-  // --- MOCK DATA ---
-  const mockComplaints = [
-    {
-      id: 9021,
-      category: "Notes",
-      icon: <NotebookPen size={14} />,
-      subject: "Java Notes by khushal",
-      date: "Oct 24, 2023",
-      status: "PENDING",
-      adminUpdate: {
-        date: "OCT 26",
-        text: "Your complaints will soon be read by admin",
-      },
-    },
-    {
-      id: 8845,
-      category: "Any user",
-      icon: <User size={14} />,
-      subject: "Student is fake",
-      date: "Oct 20, 2023",
-      status: "IN PROGRESS",
-      adminUpdate: {
-        date: "OCT 26",
-        text: "Your complaints have been read by admin and are currently in progress",
-      },
-    },
-    {
-      id: 8512,
-      category: "Other",
-      icon: <Settings size={14} />,
-      subject: "XYZ feature is not visible",
-      date: "Oct 15, 2023",
-      status: "RESOLVED",
-      adminUpdate: {
-        date: "OCT 26",
-        text: "Your complaints have been resolved",
-      },
-    },
-  ];
-
-  // --- State ---
-  const [formData, setFormData] = useState({
-    category: "",
-    topic: "",
-    description: "",
-    isAnonymous: false,
-  });
-
-  const [targetItemName, setTargetItemName] = useState("");
-  const [myComplaints, setMyComplaints] = useState(mockComplaints);
-  const [loading, setLoading] = useState(false);
-  const [expandedId, setExpandedId] = useState("");
-  const [filterConfig, setFilterConfig] = useState("NEWEST");
-
-  // --- EFFECT: Simulate Fetching Item Details ---
   useEffect(() => {
-    if (type && id) {
-      setLoading(true);
-      setTimeout(() => {
-        const mappedCategory = typeMapping[type] || "Other";
-        let itemName = `Mock ${typeMapping[type]} (ID: ${id})`;
-        if (type === "event") itemName = `Tech Fest Event #${id}`;
-        if (type === "note") itemName = `Java Notes #${id}`;
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
-        setTargetItemName(itemName);
-        setFormData((prev) => ({
-          ...prev,
-          category: mappedCategory,
-          topic: itemName,
-        }));
-        setLoading(false);
-      }, 500);
+  const filtered = items.filter((item) => item.label?.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className={disabled ? "opacity-60" : ""}>
+      <label className="block text-xs font-bold mb-2 uppercase tracking-widest text-[#3a6b42]">{label}</label>
+      <div ref={ref} className="relative">
+        <div 
+          className={`flex items-center gap-3 bg-[#f4fbf5] border-2 border-[#c8e6c9] rounded-2xl px-5 py-3 transition-all ${disabled ? "cursor-not-allowed pointer-events-none" : "cursor-pointer hover:border-[#1A3C20]"}`} 
+          onClick={() => setOpen((o) => !o)}
+        >
+          <span className="text-[#4caf50]">{icon}</span>
+          <span className={`flex-1 text-sm ${value ? "text-[#1A3C20] font-medium" : "text-gray-400"}`}>
+            {value ? value.split('|')[0] : placeholder}
+          </span>
+          <ChevronDown size={16} className={`text-[#4caf50] transition-transform ${open ? "rotate-180" : ""}`} />
+        </div>
+        {open && (
+          <div className="absolute z-50 mt-2 w-full bg-white border-2 border-[#c8e6c9] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-[#e8f5e9] bg-gray-50/50">
+              <Search size={14} className="text-[#4caf50]" />
+              <input autoFocus value={search} onChange={(e) => setSearch(e.target.value)} placeholder={`Search...`} className="flex-1 text-sm outline-none bg-transparent" />
+            </div>
+            <ul className="max-h-60 overflow-y-auto">
+              {filtered.length === 0 ? (
+                <li className="px-4 py-3 text-sm text-gray-400 text-center">{emptyMessage}</li>
+              ) : (
+                filtered.map((item) => (
+                  <li key={item.id} onClick={() => { onSelect(item); setOpen(false); setSearch(""); }} className="px-5 py-3 cursor-pointer border-b border-gray-50 last:border-0 hover:bg-[#f0f9f1]">
+                    <div className="text-sm font-bold text-gray-800">{item.label.split('|')[0]}</div>
+                    {item.label.split('|')[1] && <div className="text-[10px] text-[#4caf50] font-bold mt-1 uppercase tracking-wider">By: {item.label.split('|')[1]}</div>}
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const SubmitComplaint = () => {
+  const dispatch = useDispatch();
+  const isAuth = useSelector(selectIsAuthenticated);
+  const { user } = useSelector((state) => state.auth);
+  const { complaints, contentOptions, answersOptions } = useSelector((state) => state.complaints);
+  const { type, id, text } = useParams();
+  
+  const isLockedComplaint = Boolean(type && id && text);
+
+  const typeMapping = { events: "Events", note: "Notes", group: "Groups", qna: "QnA", user: "User", other: "Other" };
+  
+  const [formData, setFormData] = useState({ 
+    category: "", 
+    topic: "", 
+    answerId: "", 
+    description: "" 
+  });
+  
+  const [expandedId, setExpandedId] = useState(null);
+  const [filterConfig, setFilterConfig] = useState("ALL");
+
+  useEffect(() => { if (user?.id) dispatch(fetchUserComplaints({ userId: user.id })); }, [dispatch, user]);
+  
+  useEffect(() => { 
+    if (formData.category && formData.category !== "Other" && !id) {
+      dispatch(fetchContentOptions(formData.category));
     }
-  }, [type, id]);
+  }, [formData.category, dispatch, id]);
 
-  // --- FILTERING & SORTING LOGIC ---
+  useEffect(() => {
+    if (formData.category === "QnA" && formData.topic) {
+      dispatch(fetchAnswersByQuestion(formData.topic));
+    }
+  }, [formData.topic, formData.category, dispatch]);
+
   const processedComplaints = useMemo(() => {
-    let result = [...myComplaints];
-
-    // Filter by Status
-    if (["PENDING", "IN PROGRESS", "RESOLVED"].includes(filterConfig)) {
-      result = result.filter((item) => item.status === filterConfig);
+    if (!complaints) return [];
+    let result = [...complaints];
+    if (filterConfig !== "ALL") {
+      result = result.filter((item) => item.Status?.toUpperCase().replace(/[-\s]/g, "") === filterConfig.toUpperCase().replace(/[-\s]/g, ""));
     }
+    return result.sort((a, b) => new Date(b.Date) - new Date(a.Date));
+  }, [complaints, filterConfig]);
 
-    // Sort by Date
-    result.sort((a, b) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
-      return filterConfig === "OLDEST" ? dateA - dateB : dateB - dateA;
-    });
-
-    return result;
-  }, [myComplaints, filterConfig]);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newComplaint = {
-      id: Math.floor(Math.random() * 1000),
-      category: formData.category,
-      icon: <Info size={14} />,
-      subject: formData.topic || formData.category,
-      date: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      status: "PENDING",
-    };
+    if (!user?.id) return toast.error("You must be logged in");
+    
+    let finalContentId = id || formData.topic;
+    let finalType;
 
-    setMyComplaints([newComplaint, ...myComplaints]);
-    toast.success("Complaint Submitted Successfully");
-  };
+if (type) {
+  finalType = type;
+} else {
+  switch (formData.category) {
+    case "Events":
+      finalType = "event";
+      break;
+    case "Notes":
+      finalType = "notes";
+      break;
+    case "Groups":
+      finalType = "groups";
+      break;
+    case "User":
+      finalType = "user";
+      break;
+    case "QnA":
+      finalType = "question"; // default unless answer selected
+      break;
+    case "Other":
+      finalType = "other";
+      break;
+    default:
+      finalType = "";
+  }
+}
 
-  const getStatusStyles = (status) => {
-    switch (status) {
-      case "RESOLVED":
-        return "bg-[#1A3C20] text-white border-transparent";
-      case "IN PROGRESS":
-        return "bg-orange-50 text-orange-700 border-orange-100";
-      default:
-        return "bg-white text-[#1A3C20] border-[#1A3C20]/20";
+    if (formData.category === "Other") {
+        finalContentId = 0;
+        finalType = "other";
+    } 
+    else if (formData.category === "QnA") {
+        if (formData.answerId) {
+            finalContentId = formData.answerId;
+            finalType = "answer";
+        } else {
+            finalContentId = formData.topic;
+            finalType = "question";
+        }
     }
+
+    if (!formData.description.trim() || (formData.category !== "Other" && !finalContentId)) {
+        return toast.error("Please fill all required fields");
+    }
+
+    try {
+      await dispatch(createComplaint({ 
+        Student_ID: user.id, 
+        Type: finalType, 
+        Content_ID: finalContentId, 
+        Complaint_Text: formData.description 
+      })).unwrap();
+      toast.success("Submitted Successfully");
+      dispatch(fetchUserComplaints({ userId: user.id }));
+      setFormData({ category: "", topic: "", answerId: "", description: "" });
+    } catch (err) { toast.error(err); }
   };
 
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
       <PageHeader title="Submit Complaint" />
+      <main className="max-w-6xl mx-auto py-12 px-8 grid grid-cols-12 gap-8 relative z-30">
+        
+        <div className="col-span-8 bg-white rounded-2xl p-8 border border-gray-100 shadow-sm space-y-6">
+  <h3 className="text-xl font-bold text-gray-800">Submit a New Issue</h3>
 
-      <main className="max-w-6xl mx-auto py-12 px-8 grid grid-cols-12 gap-8 mx-auto px-6 relative z-30">
-        <div className="col-span-8 bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
-          {id && type && (
-            <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 mb-6 flex items-start gap-3">
-              <AlertTriangle className="text-orange-600 mt-1" size={20} />
-              <div>
-                <h3 className="font-bold text-gray-800 text-sm italic">
-                  Reporting {typeMapping[type]}:{" "}
-                  {loading ? "Loading..." : targetItemName}
-                </h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  The category has been locked to this specific item.
-                </p>
-              </div>
-            </div>
-          )}
+  {/* ================= LOCKED MODE ================= */}
+  {isLockedComplaint ? (
+    <div className="bg-orange-50 border border-orange-100 rounded-xl p-5 flex items-start gap-3">
+      <Lock className="text-orange-600 mt-1" size={20} />
+      <div>
+        <h3 className="font-bold text-gray-800 text-sm italic tracking-tight">
+          Reporting {typeMapping[type]} : "{decodeURIComponent(text)}"
+        </h3>
+        <p className="text-xs text-gray-500 mt-1">
+          This content is locked for current complaint.
+        </p>
+      </div>
+    </div>
+  ) : (
+    <>
+      <SearchableDropdown
+        label="Category"
+        icon={<HelpCircle size={16} />}
+        value={formData.category}
+        placeholder="Select a category"
+        items={Object.values(typeMapping).map((val) => ({
+          id: val,
+          label: val,
+        }))}
+        onSelect={(item) =>
+          setFormData({
+            ...formData,
+            category: item.id,
+            topic: "",
+            answerId: "",
+          })
+        }
+      />
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Category
-              </label>
-              <select
-                className={`w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#1a432e]/10 outline-none ${
-                  id
-                    ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                    : "cursor-pointer"
-                }`}
-                value={formData.category}
-                disabled={!!id}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    category: e.target.value,
-                    topic: "",
-                  })
-                }
-              >
-                <option value="">Select a category</option>
-                {Object.values(typeMapping).map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
+      {formData.category &&
+        formData.category !== "Other" && (
+          <SearchableDropdown
+            label={
+              formData.category === "QnA"
+                ? "Select Question"
+                : "Specific Issue"
+            }
+            icon={<Info size={16} />}
+            value={
+              contentOptions.find((c) => c.id === formData.topic)?.label || ""
+            }
+            placeholder={
+              formData.category === "QnA"
+                ? "Which question has an issue?"
+                : "Select specific issue"
+            }
+            items={contentOptions}
+            onSelect={(item) =>
+              setFormData({
+                ...formData,
+                topic: item.id,
+                answerId: "",
+              })
+            }
+          />
+        )}
 
-            {formData.category && !id && (
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Specific Issue
-                </label>
-                <select
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#1a432e]/10 outline-none"
-                  value={formData.topic}
-                  onChange={(e) =>
-                    setFormData({ ...formData, topic: e.target.value })
-                  }
-                >
-                  <option value="">Select specific issue</option>
-                  {(
-                    genericTopics[formData.category] || genericTopics["Other"]
-                  ).map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+      {formData.category === "QnA" && (
+        <SearchableDropdown
+          label="Select Answer"
+          icon={<MessageSquare size={16} />}
+          value={
+            answersOptions.find((a) => a.id === formData.answerId)?.label || ""
+          }
+          placeholder="Select the specific answer (Optional)"
+          items={answersOptions}
+          onSelect={(item) =>
+            setFormData({ ...formData, answerId: item.id })
+          }
+          disabled={!formData.topic}
+          emptyMessage={
+            !formData.topic
+              ? "Please select the question first"
+              : "No answers found"
+          }
+        />
+      )}
+    </>
+  )}
 
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Description
-              </label>
-              <textarea
-                rows={6}
-                placeholder="Please describe the issue in detail..."
-                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-4 text-sm outline-none resize-none"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-              />
-            </div>
+  {/* ================= DESCRIPTION ================= */}
+  <div>
+    <label className="block text-sm font-bold text-gray-700 mb-2">
+      Description
+    </label>
+    <textarea
+      rows={5}
+      placeholder="Provide as much detail as possible..."
+      className="w-full bg-[#f4fbf5] border-2 border-[#c8e6c9] rounded-xl px-4 py-4 text-sm outline-none focus:border-[#1A3C20] transition-all resize-none"
+      value={formData.description}
+      onChange={(e) =>
+        setFormData((prev) => ({
+          ...prev,
+          description: e.target.value,
+        }))
+      }
+    />
+  </div>
 
-            <button
-              disabled={!isAuth}
-              type="submit"
-              className={`${
-                isAuth ? "cursor-pointer" : "cursor-not-allowed"
-              } w-full bg-[#1A3C20] text-white py-4 rounded-xl font-bold hover:bg-[#143424] transition-colors shadow-lg shadow-[#1A3C20]/20`}
-            >
-              Submit Complaint
-            </button>
-          </form>
-        </div>
+  <button
+    onClick={handleSubmit}
+    className="w-full bg-[#1A3C20] text-white py-4 rounded-xl font-bold hover:opacity-90 shadow-lg"
+  >
+    Submit Complaint
+  </button>
+</div>
 
-        <div className="col-span-4">
-          <div className="bg-[#f0f4f1] rounded-2xl p-6 border border-[#e0e7e1] sticky top-24">
-            <div className="flex items-center gap-2 mb-6">
-              <Lightbulb className="text-[#1A3C20]" size={20} />
-              <h2 className="font-bold text-[#1A3C20]">Reporting Tips</h2>
-            </div>
-            <ul className="space-y-5">
-              <li className="flex gap-3">
-                <CheckCircle2
-                  className="text-[#1A3C20] shrink-0 mt-0.5"
-                  size={16}
-                />
-                <p className="text-xs text-gray-600">
-                  Be Specific: Provide details.
-                </p>
-              </li>
-              <li className="flex gap-3">
-                <CheckCircle2
-                  className="text-[#1A3C20] shrink-0 mt-0.5"
-                  size={16}
-                />
-                <p className="text-xs text-gray-600">
-                  Stay Objective: Stick to facts.
-                </p>
-              </li>
+        <aside className="col-span-4 space-y-6">
+          <div className="bg-[#f0f9f1] border border-[#c8e6c9] rounded-2xl p-6">
+            <div className="flex items-center gap-3 mb-4"><div className="bg-[#4caf50] p-2 rounded-lg text-white"><Lightbulb size={20} /></div><h4 className="font-bold text-[#1A3C20] text-lg">Reporting Tips</h4></div>
+            <ul className="space-y-4">
+              {[{t:"Be specific", d:"Include names and dates."}, {t:"Stay Objective", d:"State facts clearly."}].map((tip, i) => (
+                <li key={i} className="flex items-start gap-3"><CheckCircle2 size={18} className="text-[#4caf50] mt-0.5 flex-shrink-0" /><p className="text-sm text-gray-600"><span className="font-bold text-[#1A3C20]">{tip.t}:</span> {tip.d}</p></li>
+              ))}
             </ul>
           </div>
-        </div>
+          <div className="bg-gray-50/80 border border-gray-100 rounded-2xl p-5">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Need urgent help?</p>
+            <div className="flex items-center gap-2 text-[#1A3C20] font-bold text-sm"><Mail size={14} /> theideagroove@gmail.com</div>
+          </div>
+        </aside>
       </main>
 
-      {/* --- FILTERED DATA TABLE SECTION --- */}
-      <section className="max-w-6xl mx-auto px-8 mt-12">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
-          <div>
-            <h2 className="text-4xl font-extrabold text-[#1A3C20] mb-2">
-              Your Reported Issues
-            </h2>
-            <p className="text-gray-500 text-xs font-medium">
-              Viewing {processedComplaints.length} records
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* --- CLEAR FILTER BUTTON --- */}
-            {filterConfig !== "NEWEST" && (
-              <button
-                onClick={() => setFilterConfig("NEWEST")}
-                className="flex items-center gap-1.5 text-xs font-black text-red-500 hover:text-red-700 transition-all bg-red-50 px-3 py-2 rounded-xl border border-red-100 animate-in fade-in zoom-in duration-200"
-              >
-                <XCircle size={14} />
-                Clear Filter
-              </button>
-            )}
-
-            {/* --- FILTER DROPDOWN --- */}
-            <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-2 shadow-sm ring-1 ring-black/5">
-              <ListFilter size={16} className="text-gray-400" />
-              <select
-                className="text-xs font-bold text-[#1A3C20] outline-none cursor-pointer bg-transparent"
-                value={filterConfig}
-                onChange={(e) => setFilterConfig(e.target.value)}
-              >
-                <optgroup label="Sorting">
-                  <option value="NEWEST">Newest to Oldest</option>
-                  <option value="OLDEST">Oldest to Newest</option>
-                </optgroup>
-                <optgroup label="Status Filtering">
-                  <option value="PENDING">Status: Pending</option>
-                  <option value="IN PROGRESS">Status: In Progress</option>
-                  <option value="RESOLVED">Status: Resolved</option>
-                </optgroup>
-              </select>
-            </div>
-          </div>
+      <section className="max-w-6xl mx-auto px-8 mt-16 pb-20">
+        <h2 className="text-4xl font-black text-[#1A3C20] tracking-tight mb-8">Your Reported Issues</h2>
+        <div className="flex flex-wrap gap-3 mb-8">
+          {["ALL", "PENDING", "IN PROGRESS", "RESOLVED"].map((status) => (
+            <button key={status} onClick={() => { setFilterConfig(status); setExpandedId(null); }} className={`px-6 py-2 rounded-full text-sm font-bold transition-all border ${filterConfig === status ? "bg-[#1A3C20] text-white shadow-md border-[#1A3C20]" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"}`}>
+              {status === "ALL" ? "All Issues" : status}
+            </button>
+          ))}
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden min-h-[200px]">
-          <div className="grid grid-cols-12 px-8 py-5 bg-gray-50/50 border-b text-[11px] font-bold text-gray-400 uppercase tracking-widest">
-            <div className="col-span-2">Category</div>
-            <div className="col-span-5">Subject</div>
-            <div className="col-span-2">Date</div>
-            <div className="col-span-2">Status</div>
+        <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-xl shadow-black/5">
+          <div className="grid grid-cols-14 bg-gray-50/50 border-b border-gray-100 px-8 py-4">
+            <div className="col-span-2 text-[11px] font-black text-gray-400 uppercase tracking-widest">Category</div>
+            <div className="col-span-5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Subject</div>
+            <div className="col-span-2 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Date</div>
+            <div className="col-span-2 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Action</div>
+            <div className="col-span-1 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Status</div>
             <div className="col-span-1"></div>
           </div>
+          {processedComplaints.map((item) => {
+             const isExpanded = expandedId === item.Complaint_ID;
+             const displayStatus = item.Status?.toUpperCase().replace(/-/g, " ") || "PENDING";
+             return (
+               <div key={item.Complaint_ID} className={`border-b border-gray-50 last:border-0 transition-all ${isExpanded ? 'bg-orange-50/20' : ''}`}>
+                  <div className="grid grid-cols-13 px-8 py-6 items-center cursor-pointer hover:bg-gray-50/50" onClick={() => setExpandedId(isExpanded ? null : item.Complaint_ID)}>
+                     <div className="col-span-2"><span className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-[10px] font-black uppercase tracking-wider">{typeMapping[item.Type] || item.Type}</span></div>
+                     <div className="col-span-5">
+                       <h4 className="text-[15px] font-bold text-gray-800 leading-tight">
+                        {item.Type?.toLowerCase() === "other" ? "Complaint for IdeaGroove" : (item.Content_Title || "No Title")}
+                       </h4>
+                       {item.Type?.toLowerCase() !== "other" && <p className="text-[11px] text-gray-400 mt-1 uppercase font-bold tracking-widest"> • Owner: @{item.Content_Owner_Name}</p>}
+                     </div>
+                     <div className="col-span-2 text-center text-sm font-semibold text-gray-600">{new Date(item.Date).toLocaleDateString()}</div>
+                     <div className="col-span-1 flex justify-center">
+  {(() => {
+    const complaintDate = new Date(item.Date);
+    const now = new Date();
+    const diffInHours = (now - complaintDate) / (1000 * 60 * 60);
+    const canDelete = diffInHours <= 24;
 
-          <div className="divide-y divide-gray-50">
-            {processedComplaints.length > 0 ? (
-              processedComplaints.map((item) => (
-                <div
-                  key={item.id}
-                  className="group transition-colors hover:bg-gray-50/30"
-                >
-                  <div
-                    className="grid grid-cols-12 px-8 py-6 items-center cursor-pointer"
-                    onClick={() =>
-                      setExpandedId(expandedId === item.id ? null : item.id)
-                    }
-                  >
-                    <div className="col-span-2">
-                      <span className="flex items-center gap-2 bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg text-[11px] font-bold w-fit uppercase">
-                        {item.icon} {item.category}
-                      </span>
-                    </div>
-                    <div className="col-span-5 pr-4">
-                      <h3 className="font-bold text-gray-800 text-sm">
-                        {item.subject}
-                      </h3>
-                      <p className="text-[11px] text-gray-400 mt-0.5 tracking-tighter">
-                        Ref ID: #{item.id}
-                      </p>
-                    </div>
-                    <div className="col-span-2 text-[13px] text-gray-500 font-medium">
-                      {item.date}
-                    </div>
-                    <div className="col-span-2">
-                      <span
-                        className={`px-4 py-1.5 rounded-lg border text-[10px] font-black tracking-widest uppercase ${getStatusStyles(
-                          item.status,
-                        )}`}
-                      >
-                        {item.status}
-                      </span>
-                    </div>
-                    <div className="col-span-1 flex justify-end">
-                      {expandedId === item.id ? (
-                        <ChevronUp size={20} className="text-gray-300" />
-                      ) : (
-                        <ChevronDown size={20} className="text-gray-300" />
-                      )}
-                    </div>
+    return canDelete ? (
+      <button
+        onClick={async (e) => {
+          e.stopPropagation();
+          try {
+            await dispatch(deleteComplaintThunk(item.Complaint_ID)).unwrap();
+            toast.success("Complaint deleted");
+          } catch (err) {
+            toast.error(err);
+          }
+        }}
+        className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg font-bold hover:opacity-90"
+      >
+        Delete
+      </button>
+    ) : (
+      <span className="text-[10px] text-gray-400 italic">
+        Deletion is allowed only within 24hrs
+      </span>
+    );
+  })()}
+</div>
+                     <div className="col-span-2 flex justify-center">
+                       <span className={`min-w-[110px] text-center px-4 py-1.5 rounded-lg text-[10px] font-black uppercase border-2 ${displayStatus === "PENDING" ? "border-blue-200 bg-blue-50 text-blue-700" : displayStatus === "IN PROGRESS" ? "border-orange-200 bg-orange-50 text-orange-700" : "border-green-200 bg-green-50 text-green-700"}`}>{displayStatus}</span>
+                     </div>
+                     <div className="col-span-1 flex justify-end">{isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}</div>
                   </div>
-
-                  {expandedId === item.id && item.adminUpdate && (
-                    <div className="px-8 pb-8 animate-in slide-in-from-top-2 duration-300">
-                      <div className="bg-white border border-[#1A3C20]/5 rounded-2xl p-6 flex gap-5 ml-[16.6%] max-w-2xl shadow-sm">
-                        <div className="bg-[#1A3C20]/5 p-2.5 h-fit rounded-xl">
-                          <Info size={18} className="text-[#1A3C20]" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-[10px] font-black text-[#1A3C20] tracking-widest uppercase">
-                              Admin Update
-                            </span>
-                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                              ({item.adminUpdate.date})
-                            </span>
-                          </div>
-                          <p className="text-gray-600 italic text-sm leading-relaxed">
-                            "{item.adminUpdate.text}"
-                          </p>
-                        </div>
+                  {isExpanded && (
+                    <div className="px-8 pb-8 pt-2 space-y-4 animate-in slide-in-from-top-2 duration-300">
+                      <div className="ml-[16.6%] max-w-2xl bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex gap-4">
+                        <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0"><AlertTriangle size={18} className="text-blue-700" /></div>
+                        <div><span className="text-[11px] font-black text-blue-800 uppercase tracking-widest mb-1 block">Your Complaint</span><p className="text-sm text-gray-600 leading-relaxed italic">"{item.Complaint_Text}"</p></div>
                       </div>
+                      <div className="ml-[16.6%] max-w-2xl bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex gap-4">
+                        <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0"><Info size={18} className="text-green-700" /></div>
+                        <div><span className="text-[11px] font-black text-green-800 uppercase tracking-widest mb-1 block">Admin Update</span><p className="text-sm text-gray-700 leading-relaxed">"{item.Admin_Update || "Currently under review."}"</p></div>
+                      </div>
+
+                      
                     </div>
                   )}
-                </div>
-              ))
-            ) : (
-              <div className="py-20 text-center flex flex-col items-center gap-3">
-                <div className="bg-gray-50 p-4 rounded-full">
-                  <AlertTriangle size={32} className="text-gray-200" />
-                </div>
-                <p className="text-gray-400 text-sm font-bold italic">
-                  No results found for this filter.
-                </p>
-                <button
-                  onClick={() => setFilterConfig("NEWEST")}
-                  className="text-[#1A3C20] text-xs font-bold underline underline-offset-4 hover:text-black transition-all"
-                >
-                  Reset to default view
-                </button>
-              </div>
-            )}
-          </div>
+               </div>
+             );
+          })}
         </div>
       </section>
     </div>
@@ -459,4 +417,3 @@ const SubmitComplaint = () => {
 };
 
 export default SubmitComplaint;
-
