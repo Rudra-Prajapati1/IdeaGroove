@@ -301,10 +301,18 @@ const AdminDash = () => {
 
   return (
     <section className="flex flex-col gap-6 relative min-h-screen">
-      <AdminPageHeader
-        title="Admin Overview"
-        subtitle="Real-time analytics & platform health"
-      />
+      <div className="flex justify-between items-center">
+        <AdminPageHeader
+          title="Admin Overview"
+          subtitle="Real-time analytics & platform health"
+        />
+        <ReportGeneration
+          recentActivities={paginatedActivities}
+          statsData={statsData}
+          contributorData={contributorData}
+          categories={categories}
+        />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {stats.map((card, idx) => {
@@ -527,12 +535,6 @@ const AdminDash = () => {
           </div>
 
           <div className="flex gap-2">
-            <ReportGeneration
-              recentActivities={paginatedActivities}
-              statsData={statsData}
-              contributorData={contributorData}
-              categories={categories}
-            />
             <button
               onClick={() => setFilterOpen(true)}
               className="relative flex items-center gap-1.5 bg-green-800 px-4 py-1.5 rounded-lg text-sm text-white hover:bg-green-700 transition-colors"
