@@ -13,7 +13,6 @@ const ChatHeader = ({
     );
   }
 
-  // For direct chats: check if the other person is online
   const isGroup = activeRoom.Room_Type === "group";
   const otherMember = !isGroup
     ? activeRoom.Members?.find(

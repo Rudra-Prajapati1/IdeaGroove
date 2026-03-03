@@ -15,22 +15,21 @@ const ChatList = ({
   const filteredRooms = useMemo(() => {
     let result = rooms;
 
-    // Filter by type
     if (filter === "groups") {
       result = result.filter((r) => r.Room_Type === "group");
     } else if (filter === "individuals") {
       result = result.filter((r) => r.Room_Type === "direct");
     }
 
-    // Filter by search
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter((r) => {
         if (r.Room_Type === "group") {
           return r.Room_Name?.toLowerCase().includes(q);
         }
-        // For direct chats, search by the other person's username/name
-        const other = r.Members?.find((m) => m.Student_ID !== currentUserId);
+        const other = r.Members?.find(
+          (m) => String(m.Student_ID) !== String(currentUserId),
+        );
         return (
           other?.username?.toLowerCase().includes(q) ||
           other?.name?.toLowerCase().includes(q)
@@ -41,23 +40,24 @@ const ChatList = ({
     return result;
   }, [rooms, filter, search, currentUserId]);
 
-  // Helper: get display name for a room
   const getRoomDisplayName = (room) => {
     if (room.Room_Type === "group") return room.Room_Name || "Group";
-    const other = room.Members?.find((m) => m.Student_ID !== currentUserId);
+    const other = room.Members?.find(
+      (m) => String(m.Student_ID) !== String(currentUserId),
+    );
     return other?.name || other?.username || "Direct Chat";
   };
 
-  // Helper: get avatar letter
   const getAvatarLetter = (room) => {
     const name = getRoomDisplayName(room);
     return name?.[0]?.toUpperCase() || "?";
   };
 
-  // Helper: is the other person in a direct chat online?
   const isOtherOnline = (room) => {
     if (room.Room_Type !== "direct") return false;
-    const other = room.Members?.find((m) => m.Student_ID !== currentUserId);
+    const other = room.Members?.find(
+      (m) => String(m.Student_ID) !== String(currentUserId),
+    );
     return other ? onlineUsers.includes(String(other.Student_ID)) : false;
   };
 
@@ -111,7 +111,6 @@ const ChatList = ({
               >
                 {getAvatarLetter(room)}
               </div>
-              {/* Online dot for direct chats */}
               {online && (
                 <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-white" />
               )}
@@ -123,7 +122,6 @@ const ChatList = ({
                 <h4 className="font-semibold font-inter truncate text-sm">
                   {getRoomDisplayName(room)}
                 </h4>
-                {/* Unread badge */}
                 {unread > 0 && !isActive && (
                   <span className="ml-2 shrink-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
                     {unread > 9 ? "9+" : unread}

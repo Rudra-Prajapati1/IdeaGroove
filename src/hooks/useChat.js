@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { io } from "socket.io-client";
+import api from "../api/axios";
 import {
   setRoomHistory,
   addMessage,
@@ -11,6 +12,8 @@ import {
   markRoomSeen,
   updateSeenMessages,
   setIsConnected,
+  setActiveRoom,
+  setCurrentUserId,
   fetchUserChatRooms,
   updateMessage,
   selectChatRooms,
@@ -21,6 +24,7 @@ import {
   selectOnlineUsers,
   selectUnreadCounts,
   selectAllMessages,
+  setOnlineUsersList,
 } from "../redux/slice/chatsSlice";
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:3000";
@@ -29,6 +33,9 @@ export function useChat(studentId) {
   const dispatch = useDispatch();
   const socketRef = useRef(null);
   const typingTimeouts = useRef({});
+  const subscribedRooms = useRef(new Set());
+  // Keep a ref to rooms so the connect handler can access latest value without stale closure
+  const roomsRef = useRef([]);
 
   const rooms = useSelector(selectChatRooms);
   const roomsStatus = useSelector(selectChatRoomsStatus);
@@ -39,12 +46,47 @@ export function useChat(studentId) {
   const unreadCounts = useSelector(selectUnreadCounts);
   const messages = useSelector(selectAllMessages);
 
-  // FIX 401: fetch rooms on mount directly, not inside socket connect event
+  // Keep roomsRef in sync so socket handlers always see the latest rooms
+  useEffect(() => {
+    roomsRef.current = rooms;
+  }, [rooms]);
+
+  useEffect(() => {
+    if (studentId) {
+      dispatch(setCurrentUserId(String(studentId)));
+    }
+  }, [studentId, dispatch]);
+
   useEffect(() => {
     if (studentId) {
       dispatch(fetchUserChatRooms());
     }
   }, [studentId, dispatch]);
+
+  // Shared helper — subscribes to any room not yet subscribed
+  const subscribeToAllRooms = useCallback(() => {
+    const socket = socketRef.current;
+    if (!socket?.connected) return;
+    roomsRef.current.forEach((room) => {
+      const roomId = room.Room_ID;
+      if (!subscribedRooms.current.has(roomId)) {
+        socket.emit("room:subscribe", { roomId });
+        subscribedRooms.current.add(roomId);
+      }
+    });
+  }, []);
+
+  // Trigger when rooms list changes (rooms loaded after socket already connected)
+  useEffect(() => {
+    subscribeToAllRooms();
+  }, [rooms, subscribeToAllRooms]);
+
+  // Trigger when socket connects/reconnects (socket connected after rooms already loaded)
+  useEffect(() => {
+    if (isConnected) {
+      subscribeToAllRooms();
+    }
+  }, [isConnected, subscribeToAllRooms]);
 
   useEffect(() => {
     if (!studentId) return;
@@ -54,24 +96,35 @@ export function useChat(studentId) {
       withCredentials: true,
     });
     socketRef.current = socket;
+    subscribedRooms.current = new Set();
     socket.connect();
 
     socket.on("connect", () => {
+      console.log("[Socket] Connected");
       dispatch(setIsConnected(true));
       socket.emit("user:online", { studentId });
+      // Clear so isConnected effect re-subscribes all rooms fresh
+      subscribedRooms.current = new Set();
     });
 
-    socket.on("disconnect", () => dispatch(setIsConnected(false)));
+    socket.on("disconnect", () => {
+      console.log("[Socket] Disconnected");
+      dispatch(setIsConnected(false));
+    });
 
     socket.on("room:history", ({ roomId, messages: msgs }) => {
+      console.log(`[Socket] room:history for room ${roomId}:`, msgs.length);
       dispatch(setRoomHistory({ roomId, messages: msgs }));
     });
 
     socket.on("message:new", ({ roomId, message }) => {
-      dispatch(addMessage({ roomId, message }));
+      console.log("[Socket] message:new", message);
+      const isMine = String(message.Sender_ID) === String(studentId);
+      dispatch(addMessage({ roomId, message, skipUnread: isMine }));
     });
 
     socket.on("message:more", ({ roomId, messages: msgs }) => {
+      console.log("[Socket] message:more", msgs.length);
       dispatch(prependMessages({ roomId, messages: msgs }));
     });
 
@@ -83,7 +136,12 @@ export function useChat(studentId) {
       dispatch(setUserOnline({ studentId: uid, status }));
     });
 
+    socket.on("users:online_list", ({ onlineUserIds }) => {
+      dispatch(setOnlineUsersList(onlineUserIds));
+    });
+
     socket.on("message:seen_update", ({ roomId, seenBy }) => {
+      console.log("[Socket] message:seen_update", roomId, seenBy);
       dispatch(updateSeenMessages({ roomId, seenBy }));
     });
 
@@ -92,6 +150,7 @@ export function useChat(studentId) {
     });
 
     socket.on("message:edited", ({ messageId, newText }) => {
+      console.log("[Socket] message:edited", messageId);
       dispatch(
         updateMessage({
           messageId,
@@ -101,26 +160,41 @@ export function useChat(studentId) {
     });
 
     socket.on("message:deleted", ({ messageId }) => {
+      console.log("[Socket] message:deleted", messageId);
       dispatch(updateMessage({ messageId, changes: { Is_Deleted: 1 } }));
     });
 
-    return () => socket.disconnect();
+    socket.on("error", (error) => {
+      console.error("[Socket] Error:", error);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, [studentId, dispatch]);
 
   const joinRoom = useCallback(
     (roomId) => {
-      socketRef.current?.emit("room:join", { roomId, studentId });
+      console.log("[Chat] Joining room", roomId);
+      dispatch(setActiveRoom(roomId));
       dispatch(markRoomSeen(roomId));
+      socketRef.current?.emit("room:join", { roomId, studentId });
     },
     [studentId, dispatch],
   );
 
-  const leaveRoom = useCallback((roomId) => {
-    socketRef.current?.emit("room:leave", { roomId });
-  }, []);
+  const leaveRoom = useCallback(
+    (roomId) => {
+      console.log("[Chat] Leaving room", roomId);
+      dispatch(setActiveRoom(null));
+      socketRef.current?.emit("room:leave", { roomId });
+    },
+    [dispatch],
+  );
 
   const sendMessage = useCallback((roomId, message) => {
     if (!message?.trim()) return;
+    console.log("[Chat] Sending message", roomId);
     socketRef.current?.emit("message:send", {
       roomId,
       message: message.trim(),
@@ -128,6 +202,7 @@ export function useChat(studentId) {
   }, []);
 
   const sendFileMessage = useCallback((roomId, fileUrl, messageType) => {
+    console.log("[Chat] Sending file", roomId, messageType);
     socketRef.current?.emit("message:send_file", {
       roomId,
       fileUrl,
@@ -136,19 +211,35 @@ export function useChat(studentId) {
   }, []);
 
   const editMessage = useCallback((roomId, messageId, newText) => {
+    console.log("[Chat] Editing message", messageId);
     socketRef.current?.emit("message:edit", { roomId, messageId, newText });
   }, []);
 
   const deleteMessageSocket = useCallback((roomId, messageId) => {
+    console.log("[Chat] Deleting message", messageId);
     socketRef.current?.emit("message:delete", { roomId, messageId });
+  }, []);
+
+  const markSeenViaRest = useCallback(async (roomId) => {
+    try {
+      await api.post("/chats/mark-seen", { room_id: roomId });
+      console.log("[Chat] Marked seen via REST API");
+    } catch (err) {
+      console.error("[Chat] Failed to mark seen via REST:", err);
+    }
   }, []);
 
   const markSeen = useCallback(
     (roomId) => {
-      socketRef.current?.emit("message:seen", { roomId });
+      console.log("[Chat] Mark seen", roomId);
       dispatch(markRoomSeen(roomId));
+      if (socketRef.current?.connected) {
+        socketRef.current.emit("message:seen", { roomId });
+      } else {
+        markSeenViaRest(roomId);
+      }
     },
-    [dispatch],
+    [dispatch, markSeenViaRest],
   );
 
   const startTyping = useCallback((roomId) => {
@@ -165,6 +256,7 @@ export function useChat(studentId) {
   }, []);
 
   const loadMore = useCallback((roomId, offset) => {
+    console.log("[Chat] Load more", roomId, offset);
     socketRef.current?.emit("message:load_more", { roomId, offset });
   }, []);
 

@@ -7,7 +7,6 @@ import {
 import api from "../../api/axios";
 
 /* ─── Entity Adapter ──────────────────────────────────────────────────────── */
-// Stores messages keyed by Message_ID, sorted oldest-first
 const messagesAdapter = createEntityAdapter({
   selectId: (msg) => msg.Message_ID,
   sortComparer: (a, b) => new Date(a.Sent_On) - new Date(b.Sent_On),
@@ -15,31 +14,16 @@ const messagesAdapter = createEntityAdapter({
 
 /* ─── Initial State ──────────────────────────────────────────────────────── */
 const initialState = {
-  // Messages per room: { [roomId]: EntityState }
-  // We store all rooms' messages in a flat adapter; filtering is done via selector
   messages: messagesAdapter.getInitialState(),
-
-  // Chat rooms list (fetched from REST on connect)
   rooms: [],
   roomsStatus: "idle",
   roomsError: null,
-
-  // Active room ID
-  activeRoom: null,
-
-  // Typing indicators: { [roomId]: [studentId, ...] }
+  activeRoom: null, // currently open Room_ID as a number
+  currentUserId: null, // logged-in student ID
   typingUsers: {},
-
-  // Online users: [studentId, ...]
   onlineUsers: [],
-
-  // Unread counts: { [roomId]: number }
   unreadCounts: {},
-
-  // Socket connection status
   isConnected: false,
-
-  // Legacy status field kept so ChatBody still works without change
   status: "idle",
   error: null,
 };
@@ -64,25 +48,24 @@ const chatsSlice = createSlice({
   name: "chats",
   initialState,
   reducers: {
-    /* ── Socket-driven ── */
-
-    // Called when socket connects/disconnects
     setIsConnected: (state, action) => {
       state.isConnected = action.payload;
     },
 
-    // Set the active room and clear its unread count
+    setCurrentUserId: (state, action) => {
+      state.currentUserId = action.payload;
+    },
+
     setActiveRoom: (state, action) => {
-      state.activeRoom = action.payload;
-      if (action.payload) {
-        state.unreadCounts[action.payload] = 0;
+      const roomId = action.payload ? Number(action.payload) : null;
+      state.activeRoom = roomId;
+      if (roomId) {
+        state.unreadCounts[roomId] = 0;
       }
     },
 
-    // Replace messages for a room (on room:history from socket)
     setRoomHistory: (state, action) => {
       const { roomId, messages } = action.payload;
-      // Remove old messages for this room then add new ones
       const oldIds = messagesAdapter
         .getSelectors()
         .selectAll(state.messages)
@@ -91,36 +74,36 @@ const chatsSlice = createSlice({
 
       messagesAdapter.removeMany(state.messages, oldIds);
       messagesAdapter.upsertMany(state.messages, messages);
-
-      // Also mark status as succeeded (ChatBody checks this)
       state.status = "succeeded";
     },
 
-    // Append a single new message (on message:new from socket)
     addMessage: (state, action) => {
-      const { roomId, message } = action.payload;
+      const { roomId, message, skipUnread = false } = action.payload;
       messagesAdapter.upsertOne(state.messages, message);
 
-      // Update last message preview on the rooms list
-      const room = state.rooms.find((r) => r.Room_ID === Number(roomId));
-      if (room) {
-        room.Last_Message = message.Message_Text;
-        room.Last_Message_At = message.Sent_On;
+      // Replace the room object so React detects the change and re-renders sidebar
+      const roomIndex = state.rooms.findIndex(
+        (r) => r.Room_ID === Number(roomId),
+      );
+      if (roomIndex !== -1) {
+        state.rooms[roomIndex] = {
+          ...state.rooms[roomIndex],
+          Last_Message: message.Message_Text,
+          Last_Message_At: message.Sent_On,
+        };
       }
 
-      // Increment unread count if this isn't the active room
-      if (state.activeRoom !== Number(roomId)) {
+      const isActiveRoom = state.activeRoom === Number(roomId);
+      if (!isActiveRoom && !skipUnread) {
         state.unreadCounts[roomId] = (state.unreadCounts[roomId] || 0) + 1;
       }
     },
 
-    // Prepend older messages (on message:more — load more / pagination)
     prependMessages: (state, action) => {
       const { messages } = action.payload;
       messagesAdapter.upsertMany(state.messages, messages);
     },
 
-    // Typing indicator update
     setTypingUsers: (state, action) => {
       const { roomId, studentId, isTyping } = action.payload;
       if (!state.typingUsers[roomId]) state.typingUsers[roomId] = [];
@@ -135,29 +118,32 @@ const chatsSlice = createSlice({
       }
     },
 
-    // Online/offline status
+    // FIX: always store as string so onlineUsers.includes(String(id)) always matches
     setUserOnline: (state, action) => {
       const { studentId, status } = action.payload;
+      const sid = String(studentId);
       if (status === "online") {
-        if (!state.onlineUsers.includes(studentId)) {
-          state.onlineUsers.push(studentId);
+        if (!state.onlineUsers.includes(sid)) {
+          state.onlineUsers.push(sid);
         }
       } else {
-        state.onlineUsers = state.onlineUsers.filter((id) => id !== studentId);
+        state.onlineUsers = state.onlineUsers.filter((id) => id !== sid);
       }
     },
 
-    // Bulk unread counts update
+    // Bulk-set online users list (received on connect)
+    setOnlineUsersList: (state, action) => {
+      state.onlineUsers = action.payload.map(String);
+    },
+
     setUnreadCounts: (state, action) => {
       state.unreadCounts = { ...state.unreadCounts, ...action.payload };
     },
 
-    // Zero out unread for a room (when user opens it)
     markRoomSeen: (state, action) => {
       state.unreadCounts[action.payload] = 0;
     },
 
-    // Mark messages in a room as seen (tick update)
     updateSeenMessages: (state, action) => {
       const { roomId, seenBy } = action.payload;
       const allMsgs = messagesAdapter.getSelectors().selectAll(state.messages);
@@ -166,6 +152,7 @@ const chatsSlice = createSlice({
         .map((m) => ({ id: m.Message_ID, changes: { Is_Seen: 1 } }));
       messagesAdapter.updateMany(state.messages, updates);
     },
+
     updateMessage: (state, action) => {
       const { messageId, changes } = action.payload;
       messagesAdapter.updateOne(state.messages, { id: messageId, changes });
@@ -181,6 +168,14 @@ const chatsSlice = createSlice({
       .addCase(fetchUserChatRooms.fulfilled, (state, action) => {
         state.roomsStatus = "succeeded";
         state.rooms = action.payload;
+
+        const counts = {};
+        action.payload.forEach((room) => {
+          if (state.unreadCounts[room.Room_ID] === undefined) {
+            counts[room.Room_ID] = room.Unread_Count || 0;
+          }
+        });
+        state.unreadCounts = { ...counts, ...state.unreadCounts };
       })
       .addCase(fetchUserChatRooms.rejected, (state, action) => {
         state.roomsStatus = "failed";
@@ -192,12 +187,14 @@ const chatsSlice = createSlice({
 /* ─── Actions ─────────────────────────────────────────────────────────────── */
 export const {
   setIsConnected,
+  setCurrentUserId,
   setActiveRoom,
   setRoomHistory,
   addMessage,
   prependMessages,
   setTypingUsers,
   setUserOnline,
+  setOnlineUsersList,
   setUnreadCounts,
   markRoomSeen,
   updateSeenMessages,
@@ -205,35 +202,28 @@ export const {
 } = chatsSlice.actions;
 
 /* ─── Selectors ───────────────────────────────────────────────────────────── */
-
-// Raw adapter selectors on state.chats.messages
 const messageSelectors = messagesAdapter.getSelectors(
   (state) => state.chats.messages,
 );
 
 export const selectAllMessages = messageSelectors.selectAll;
 
-// Memoised per-room selector (kept same API as before so ChatBody still works)
 export const selectChatsByRoomId = (roomId) =>
   createSelector([messageSelectors.selectAll], (msgs) =>
     msgs.filter((m) => m.Room_ID === Number(roomId) && m.Is_Deleted === 0),
   );
 
-// Rooms list
 export const selectChatRooms = (state) => state.chats.rooms;
 export const selectChatRoomsStatus = (state) => state.chats.roomsStatus;
 export const selectChatRoomsError = (state) => state.chats.roomsError;
-
-// Legacy selectors kept for ChatBody compatibility
 export const selectChatsStatus = (state) => state.chats.status;
 export const selectChatsError = (state) => state.chats.error;
-
-// Socket state
 export const selectIsConnected = (state) => state.chats.isConnected;
 export const selectActiveRoom = (state) => state.chats.activeRoom;
 export const selectTypingUsers = (state) => state.chats.typingUsers;
 export const selectOnlineUsers = (state) => state.chats.onlineUsers;
 export const selectUnreadCounts = (state) => state.chats.unreadCounts;
+export const selectCurrentUserId = (state) => state.chats.currentUserId;
 export const selectMessageById = (messageId) => (state) =>
   messageSelectors.selectById(state, messageId);
 

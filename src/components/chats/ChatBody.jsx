@@ -280,10 +280,10 @@ const ChatBody = ({
                       className="flex items-center gap-2 mt-1 underline underline-offset-2"
                     >
                       <FileText className="w-4 h-4 shrink-0" />
-                      <span className="truncate max-w-[160px]">View PDF</span>
+                      <span className="truncate max-w-40">View PDF</span>
                     </a>
                   ) : (
-                    <span className="break-words">{msg.Message_Text}</span>
+                    <span className="wrap-break-word">{msg.Message_Text}</span>
                   )}
 
                   {/* Time + seen ticks */}
