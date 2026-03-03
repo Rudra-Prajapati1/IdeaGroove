@@ -217,7 +217,9 @@ const ReportGeneration = ({
     // ═══════════════════════════════════════════════════
     try {
       doc.addImage(logo, "PNG", 15, 5, 35, 35);
-    } catch (e) {}
+    } catch (e) {
+      console.error("Not able to load logo: ", e.message);
+    }
 
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
@@ -592,24 +594,30 @@ const ReportGeneration = ({
   return (
     <button
       onClick={generatePDF}
-      className="flex items-center gap-1.5 bg-green-800 px-4 py-1.5 rounded-lg text-sm text-white hover:bg-green-700 transition-colors"
+      className="group flex items-center gap-2 bg-white border border-gray-200 hover:border-green-700 hover:bg-green-800 px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="12"
-        height="12"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-        <polyline points="7 10 12 15 17 10" />
-        <line x1="12" y1="15" x2="12" y2="3" />
-      </svg>
-      Export
+      <div className="p-1 rounded-lg bg-green-50 group-hover:bg-white/20 transition-colors">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-green-700 group-hover:text-white transition-colors"
+        >
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+      </div>
+      <span>Export Report</span>
+      <span className="text-[10px] font-bold bg-green-100 group-hover:bg-white/20 text-green-700 group-hover:text-white px-1.5 py-0.5 rounded-md transition-colors">
+        PDF
+      </span>
     </button>
   );
 };
