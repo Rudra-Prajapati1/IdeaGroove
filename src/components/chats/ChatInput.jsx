@@ -87,7 +87,7 @@ const ChatInput = ({
             <img
               src={previewFile.url}
               alt="preview"
-              className="h-10 w-10 object-cover rounded-lg flex-shrink-0"
+              className="h-10 w-10 object-cover rounded-lg shrink-0"
             />
           ) : (
             <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
