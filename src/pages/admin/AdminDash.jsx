@@ -527,8 +527,12 @@ const AdminDash = () => {
           </div>
 
           <div className="flex gap-2">
-            <ReportGeneration recentActivities={paginatedActivities} />
-
+            <ReportGeneration
+              recentActivities={paginatedActivities}
+              statsData={statsData}
+              contributorData={contributorData}
+              categories={categories}
+            />
             <button
               onClick={() => setFilterOpen(true)}
               className="relative flex items-center gap-1.5 bg-green-800 px-4 py-1.5 rounded-lg text-sm text-white hover:bg-green-700 transition-colors"
