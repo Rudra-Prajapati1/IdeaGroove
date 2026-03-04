@@ -17,7 +17,6 @@ import {
 
 const EMPTY_ARRAY = [];
 
-// Format a date into a readable label
 const getDateLabel = (dateStr) => {
   const date = new Date(dateStr);
   const today = new Date();
@@ -48,6 +47,13 @@ const DateDivider = ({ label }) => (
   </div>
 );
 
+// ✅ Opens PDF via Google Docs viewer — prevents auto-download
+// and shows the PDF inline in the browser tab
+const getPdfViewUrl = (url) => {
+  if (!url) return "#";
+  return `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=false`;
+};
+
 const ChatBody = ({
   activeRoom = null,
   currentUserId,
@@ -59,10 +65,8 @@ const ChatBody = ({
   const containRef = useRef(null);
   const chatStatus = useSelector(selectChatsStatus);
 
-  // Edit state
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
-  // Context menu state
   const [menuMsgId, setMenuMsgId] = useState(null);
 
   const chatsSelector = useMemo(() => {
@@ -83,7 +87,6 @@ const ChatBody = ({
     containRef.current.scrollTop = containRef.current.scrollHeight;
   }, [chats, activeRoom?.Room_ID]);
 
-  // Close context menu on outside click
   useEffect(() => {
     const close = () => setMenuMsgId(null);
     document.addEventListener("click", close);
@@ -122,7 +125,6 @@ const ChatBody = ({
     );
   }
 
-  // Group messages by date for dividers
   const msgsWithDividers = [];
   let lastDateLabel = null;
   for (const msg of chats) {
@@ -136,7 +138,6 @@ const ChatBody = ({
 
   return (
     <div className="relative h-full w-full overflow-hidden">
-      {/* Background watermark */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <img src="/DarkLogo.png" alt="watermark" className="w-64 opacity-30" />
       </div>
@@ -165,12 +166,14 @@ const ChatBody = ({
           const isEditing = editingId === msg.Message_ID;
           const showMenu = menuMsgId === msg.Message_ID;
 
+          // ✅ File URL lives in File_Path for image/file, Message_Text for text
+          const fileUrl = msg.File_Path || null;
+
           return (
             <div
               key={msg.Message_ID}
               className={`flex mb-3 ${isMe ? "justify-end" : "justify-start"}`}
             >
-              {/* 3-dot menu for own messages */}
               {isMe && !msg.Is_Deleted && (
                 <div className="relative self-center mr-1">
                   <button
@@ -227,13 +230,11 @@ const ChatBody = ({
                     </span>
                   )}
 
-                  {/* Message content */}
                   {msg.Is_Deleted ? (
                     <em className="opacity-50 font-normal text-xs">
                       Message deleted
                     </em>
                   ) : isEditing ? (
-                    // Inline edit input
                     <div className="flex items-center gap-1 mt-0.5">
                       <input
                         autoFocus
@@ -245,48 +246,68 @@ const ChatBody = ({
                         }}
                         className="bg-white/20 border border-white/40 rounded px-2 py-0.5 text-sm text-white outline-none w-full"
                       />
-                      <button
-                        onClick={() => handleEditSubmit(msg)}
-                        className="shrink-0"
-                      >
+                      <button onClick={() => handleEditSubmit(msg)} className="shrink-0">
                         <Check className="w-4 h-4 text-green-300 hover:text-green-100" />
                       </button>
-                      <button
-                        onClick={() => setEditingId(null)}
-                        className="shrink-0"
-                      >
+                      <button onClick={() => setEditingId(null)} className="shrink-0">
                         <X className="w-4 h-4 text-red-300 hover:text-red-100" />
                       </button>
                     </div>
                   ) : msg.Message_Type === "image" ? (
-                    // Image message
-                    <a
-                      href={msg.Message_Text}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                    // ✅ Image: click opens full image in new tab
+                    <a href={fileUrl} target="_blank" rel="noopener noreferrer">
                       <img
-                        src={msg.Message_Text}
+                        src={fileUrl}
                         alt="attachment"
-                        className="max-w-[200px] rounded-lg mt-1 border border-white/20"
+                        className="max-w-[200px] max-h-[200px] object-cover rounded-lg mt-1 border border-white/20"
                       />
                     </a>
                   ) : msg.Message_Type === "file" ? (
-                    // PDF message
-                    <a
-                      href={msg.Message_Text}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 mt-1 underline underline-offset-2"
-                    >
-                      <FileText className="w-4 h-4 shrink-0" />
-                      <span className="truncate max-w-40">View PDF</span>
-                    </a>
+                    // ✅ PDF: View opens Google Docs viewer (no download, no gibberish name)
+                    // ✅ Download uses original filename from Message_Text
+                    <div className="flex flex-col gap-1 mt-1">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 shrink-0" />
+                        <span className="truncate max-w-[150px] text-sm font-semibold">
+                          {msg.Message_Text || "document.pdf"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs mt-0.5">
+                        <a
+                          href={getPdfViewUrl(fileUrl)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline underline-offset-2 opacity-90 hover:opacity-100"
+                        >
+                          View
+                        </a>
+                        <button
+                          className="underline underline-offset-2 opacity-90 hover:opacity-100"
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(fileUrl);
+                              const blob = await res.blob();
+                              const blobUrl = URL.createObjectURL(blob);
+                              const a = document.createElement("a");
+                              a.href = blobUrl;
+                              a.download = msg.Message_Text || "document.pdf";
+                              document.body.appendChild(a);
+                              a.click();
+                              a.remove();
+                              URL.revokeObjectURL(blobUrl);
+                            } catch (err) {
+                              console.error("Download failed:", err);
+                            }
+                          }}
+                        >
+                          Download
+                        </button>
+                      </div>
+                    </div>
                   ) : (
                     <span className="wrap-break-word">{msg.Message_Text}</span>
                   )}
 
-                  {/* Time + seen ticks */}
                   {!isEditing && (
                     <span
                       className={`text-xs flex items-center gap-1 font-light mt-0.5 ${
@@ -319,7 +340,6 @@ const ChatBody = ({
           );
         })}
 
-        {/* Typing indicator */}
         {roomTypers.length > 0 && (
           <div className="flex justify-start mb-3">
             <div className="bg-white border border-primary text-primary px-4 py-2 rounded-xl rounded-bl-none text-sm font-inter flex items-center gap-2">
