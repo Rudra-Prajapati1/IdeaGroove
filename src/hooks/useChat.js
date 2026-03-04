@@ -34,7 +34,6 @@ export function useChat(studentId) {
   const socketRef = useRef(null);
   const typingTimeouts = useRef({});
   const subscribedRooms = useRef(new Set());
-  // Keep a ref to rooms so the connect handler can access latest value without stale closure
   const roomsRef = useRef([]);
 
   const rooms = useSelector(selectChatRooms);
@@ -46,7 +45,6 @@ export function useChat(studentId) {
   const unreadCounts = useSelector(selectUnreadCounts);
   const messages = useSelector(selectAllMessages);
 
-  // Keep roomsRef in sync so socket handlers always see the latest rooms
   useEffect(() => {
     roomsRef.current = rooms;
   }, [rooms]);
@@ -63,7 +61,6 @@ export function useChat(studentId) {
     }
   }, [studentId, dispatch]);
 
-  // Shared helper — subscribes to any room not yet subscribed
   const subscribeToAllRooms = useCallback(() => {
     const socket = socketRef.current;
     if (!socket?.connected) return;
@@ -76,12 +73,10 @@ export function useChat(studentId) {
     });
   }, []);
 
-  // Trigger when rooms list changes (rooms loaded after socket already connected)
   useEffect(() => {
     subscribeToAllRooms();
   }, [rooms, subscribeToAllRooms]);
 
-  // Trigger when socket connects/reconnects (socket connected after rooms already loaded)
   useEffect(() => {
     if (isConnected) {
       subscribeToAllRooms();
@@ -103,7 +98,6 @@ export function useChat(studentId) {
       console.log("[Socket] Connected");
       dispatch(setIsConnected(true));
       socket.emit("user:online", { studentId });
-      // Clear so isConnected effect re-subscribes all rooms fresh
       subscribedRooms.current = new Set();
     });
 
@@ -201,12 +195,14 @@ export function useChat(studentId) {
     });
   }, []);
 
-  const sendFileMessage = useCallback((roomId, fileUrl, messageType) => {
-    console.log("[Chat] Sending file", roomId, messageType);
+  // ✅ FIX: Accept and pass fileName to socket
+  const sendFileMessage = useCallback((roomId, fileUrl, messageType, fileName) => {
+    console.log("[Chat] Sending file", roomId, messageType, fileName);
     socketRef.current?.emit("message:send_file", {
       roomId,
       fileUrl,
       messageType,
+      fileName: fileName || null,
     });
   }, []);
 

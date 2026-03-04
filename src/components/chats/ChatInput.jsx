@@ -1,4 +1,4 @@
-import { Send, Paperclip, X, FileText, Image } from "lucide-react";
+import { Send, Paperclip, X, FileText } from "lucide-react";
 import React, { useState, useRef } from "react";
 import api from "../../api/axios";
 
@@ -18,9 +18,9 @@ const ChatInput = ({
 
   const handleSend = () => {
     if (previewFile) {
-      sendFileMessage(activeRoom.Room_ID, previewFile.url, previewFile.type);
+      // ✅ FIX: Pass previewFile.name as 4th argument
+      sendFileMessage(activeRoom.Room_ID, previewFile.url, previewFile.type, previewFile.name);
       if (message.trim()) {
-        // Send caption as separate text message if provided (WhatsApp-style)
         sendMessage(activeRoom.Room_ID, message.trim());
       }
       setPreviewFile(null);
@@ -65,7 +65,7 @@ const ChatInput = ({
         setPreviewFile({
           url: res.data.url,
           type: isPdf ? "file" : "image",
-          name: file.name,
+          name: file.name, // ✅ original filename preserved
         });
       }
     } catch (err) {
@@ -107,7 +107,6 @@ const ChatInput = ({
       )}
 
       <div className="p-4 flex items-center gap-3">
-        {/* Hidden file input */}
         <input
           ref={fileInputRef}
           type="file"
@@ -116,7 +115,6 @@ const ChatInput = ({
           onChange={handleFileChange}
         />
 
-        {/* Attach button */}
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
