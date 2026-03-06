@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import { useSelector } from "react-redux";
 import {
   selectChatsByRoomId,
@@ -54,6 +60,53 @@ const getPdfViewUrl = (url) => {
   return `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=false`;
 };
 
+// ✅ FIX: Smart dropdown that detects available space and opens up or down
+const MessageMenu = ({ onEdit, onDelete, buttonRef, scrollContainerRef }) => {
+  const menuRef = useRef(null);
+  const [openUpward, setOpenUpward] = useState(true);
+
+  useEffect(() => {
+    if (
+      !buttonRef?.current ||
+      !scrollContainerRef?.current ||
+      !menuRef?.current
+    )
+      return;
+
+    const btnRect = buttonRef.current.getBoundingClientRect();
+    const containerRect = scrollContainerRef.current.getBoundingClientRect();
+    const menuHeight = menuRef.current.offsetHeight || 80; // fallback estimate
+
+    // Space above the button relative to the scroll container top
+    const spaceAbove = btnRect.top - containerRect.top;
+    // Space below
+    const spaceBelow = containerRect.bottom - btnRect.bottom;
+
+    // Prefer opening upward; only flip downward if not enough space above
+    setOpenUpward(spaceAbove >= menuHeight || spaceAbove >= spaceBelow);
+  }, [buttonRef, scrollContainerRef]);
+
+  return (
+    <div
+      ref={menuRef}
+      className={`absolute ${openUpward ? "bottom-8" : "top-8"} right-0 bg-white border border-primary/20 rounded-xl shadow-lg z-50 overflow-hidden w-28`}
+    >
+      <button
+        onClick={onEdit}
+        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-primary hover:bg-primary/10 transition"
+      >
+        <Pencil className="w-3.5 h-3.5" /> Edit
+      </button>
+      <button
+        onClick={onDelete}
+        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 transition"
+      >
+        <Trash2 className="w-3.5 h-3.5" /> Delete
+      </button>
+    </div>
+  );
+};
+
 const ChatBody = ({
   activeRoom = null,
   currentUserId,
@@ -68,6 +121,10 @@ const ChatBody = ({
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
   const [menuMsgId, setMenuMsgId] = useState(null);
+
+  // ✅ FIX: Keep a ref per message for the MoreVertical button so MessageMenu
+  // can measure available space relative to the scroll container
+  const menuButtonRefs = useRef({});
 
   const chatsSelector = useMemo(() => {
     if (!activeRoom) return () => EMPTY_ARRAY;
@@ -169,14 +226,21 @@ const ChatBody = ({
           // ✅ File URL lives in File_Path for image/file, Message_Text for text
           const fileUrl = msg.File_Path || null;
 
+          // ✅ FIX: ensure a stable ref exists for each message button
+          if (!menuButtonRefs.current[msg.Message_ID]) {
+            menuButtonRefs.current[msg.Message_ID] = React.createRef();
+          }
+
           return (
             <div
               key={msg.Message_ID}
               className={`flex mb-3 ${isMe ? "justify-end" : "justify-start"}`}
             >
+              {/* ✅ FIX: Only show the MoreVertical button if the message is NOT deleted */}
               {isMe && !msg.Is_Deleted && (
                 <div className="relative self-center mr-1">
                   <button
+                    ref={menuButtonRefs.current[msg.Message_ID]}
                     onClick={(e) => {
                       e.stopPropagation();
                       setMenuMsgId(showMenu ? null : msg.Message_ID);
@@ -185,21 +249,15 @@ const ChatBody = ({
                   >
                     <MoreVertical className="w-4 h-4" />
                   </button>
+
+                  {/* ✅ FIX: Smart-positioned menu via MessageMenu component */}
                   {showMenu && (
-                    <div className="absolute bottom-8 right-0 bg-white border border-primary/20 rounded-xl shadow-lg z-50 overflow-hidden w-28">
-                      <button
-                        onClick={() => startEdit(msg)}
-                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-primary hover:bg-primary/10 transition"
-                      >
-                        <Pencil className="w-3.5 h-3.5" /> Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(msg)}
-                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 transition"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Delete
-                      </button>
-                    </div>
+                    <MessageMenu
+                      onEdit={() => startEdit(msg)}
+                      onDelete={() => handleDelete(msg)}
+                      buttonRef={menuButtonRefs.current[msg.Message_ID]}
+                      scrollContainerRef={containRef}
+                    />
                   )}
                 </div>
               )}
@@ -231,6 +289,8 @@ const ChatBody = ({
                   )}
 
                   {msg.Is_Deleted ? (
+                    // ✅ FIX: Both sender and receiver see the same "Message deleted"
+                    // placeholder (italic, muted) — exactly like WhatsApp
                     <em className="opacity-50 font-normal text-xs">
                       Message deleted
                     </em>
@@ -246,10 +306,16 @@ const ChatBody = ({
                         }}
                         className="bg-white/20 border border-white/40 rounded px-2 py-0.5 text-sm text-white outline-none w-full"
                       />
-                      <button onClick={() => handleEditSubmit(msg)} className="shrink-0">
+                      <button
+                        onClick={() => handleEditSubmit(msg)}
+                        className="shrink-0"
+                      >
                         <Check className="w-4 h-4 text-green-300 hover:text-green-100" />
                       </button>
-                      <button onClick={() => setEditingId(null)} className="shrink-0">
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="shrink-0"
+                      >
                         <X className="w-4 h-4 text-red-300 hover:text-red-100" />
                       </button>
                     </div>
