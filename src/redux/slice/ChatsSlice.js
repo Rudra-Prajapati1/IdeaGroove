@@ -28,6 +28,77 @@ const initialState = {
   error: null,
 };
 
+const getLastMessagePreview = (room, currentUserId) => {
+  if (!room) return "";
+
+  const preview =
+    room.Last_Type && room.Last_Type !== "text"
+      ? `Sent a ${room.Last_Type}`
+      : room.Last_Message_Raw || room.Last_Message || "";
+
+  if (!preview || room.Room_Type !== "group") {
+    return preview;
+  }
+
+  const isCurrentUser =
+    currentUserId != null &&
+    String(room.Last_Sender_ID) === String(currentUserId);
+  const senderLabel = isCurrentUser
+    ? "You"
+    : room.Last_Sender_Name || room.Last_Sender_Username || "";
+
+  return senderLabel ? `${senderLabel}: ${preview}` : preview;
+};
+
+const hydrateRoomPreview = (room, currentUserId) => ({
+  ...room,
+  Last_Message_Raw: room.Last_Message_Raw || room.Last_Message || "",
+  Last_Message: getLastMessagePreview(room, currentUserId),
+});
+
+const syncRoomPreviewFromMessages = (state, roomId) => {
+  const roomIndex = state.rooms.findIndex((room) => room.Room_ID === Number(roomId));
+  if (roomIndex === -1) return;
+
+  const roomMessages = messagesAdapter
+    .getSelectors()
+    .selectAll(state.messages)
+    .filter((message) => message.Room_ID === Number(roomId) && !message.Is_Deleted);
+
+  const lastMessage = roomMessages[roomMessages.length - 1];
+
+  if (!lastMessage) {
+    state.rooms[roomIndex] = hydrateRoomPreview(
+      {
+        ...state.rooms[roomIndex],
+        Last_Message: "",
+        Last_Message_Raw: "",
+        Last_Type: null,
+        Last_Message_At: null,
+        Last_Sender_ID: null,
+        Last_Sender_Name: null,
+        Last_Sender_Username: null,
+      },
+      state.currentUserId,
+    );
+    return;
+  }
+
+  state.rooms[roomIndex] = hydrateRoomPreview(
+    {
+      ...state.rooms[roomIndex],
+      Last_Message: lastMessage.Message_Text || "",
+      Last_Message_Raw: lastMessage.Message_Text || "",
+      Last_Type: lastMessage.Message_Type,
+      Last_Message_At: lastMessage.Sent_On,
+      Last_Sender_ID: lastMessage.Sender_ID,
+      Last_Sender_Name: lastMessage.Sender_Name || null,
+      Last_Sender_Username: lastMessage.Sender_Username || null,
+    },
+    state.currentUserId,
+  );
+};
+
 /* ─── Async Thunk: Fetch Rooms via REST ───────────────────────────────────── */
 export const fetchUserChatRooms = createAsyncThunk(
   "chats/fetchUserChatRooms",
@@ -54,6 +125,9 @@ const chatsSlice = createSlice({
 
     setCurrentUserId: (state, action) => {
       state.currentUserId = action.payload;
+      state.rooms = state.rooms.map((room) =>
+        hydrateRoomPreview(room, state.currentUserId),
+      );
     },
 
     setActiveRoom: (state, action) => {
@@ -86,11 +160,20 @@ const chatsSlice = createSlice({
         (r) => r.Room_ID === Number(roomId),
       );
       if (roomIndex !== -1) {
-        state.rooms[roomIndex] = {
+        const nextRoom = {
           ...state.rooms[roomIndex],
           Last_Message: message.Message_Text,
+          Last_Message_Raw: message.Message_Text || "",
+          Last_Type: message.Message_Type,
           Last_Message_At: message.Sent_On,
+          Last_Sender_ID: message.Sender_ID,
+          Last_Sender_Name: message.Sender_Name || null,
+          Last_Sender_Username: message.Sender_Username || null,
         };
+        state.rooms[roomIndex] = hydrateRoomPreview(
+          nextRoom,
+          state.currentUserId,
+        );
       }
 
       const isActiveRoom = state.activeRoom === Number(roomId);
@@ -155,7 +238,11 @@ const chatsSlice = createSlice({
 
     updateMessage: (state, action) => {
       const { messageId, changes } = action.payload;
+      const currentMessage = state.messages.entities[messageId];
       messagesAdapter.updateOne(state.messages, { id: messageId, changes });
+      if (currentMessage?.Room_ID) {
+        syncRoomPreviewFromMessages(state, currentMessage.Room_ID);
+      }
     },
   },
 
@@ -167,7 +254,9 @@ const chatsSlice = createSlice({
       })
       .addCase(fetchUserChatRooms.fulfilled, (state, action) => {
         state.roomsStatus = "succeeded";
-        state.rooms = action.payload;
+        state.rooms = action.payload.map((room) =>
+          hydrateRoomPreview(room, state.currentUserId),
+        );
 
         const counts = {};
         action.payload.forEach((room) => {

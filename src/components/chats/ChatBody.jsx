@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 const EMPTY_ARRAY = [];
+const EDIT_WINDOW_MS = 5 * 60 * 1000;
 
 const getDateLabel = (dateStr) => {
   const date = new Date(dateStr);
@@ -61,7 +62,13 @@ const getPdfViewUrl = (url) => {
 };
 
 // ✅ FIX: Smart dropdown that detects available space and opens up or down
-const MessageMenu = ({ onEdit, onDelete, buttonRef, scrollContainerRef }) => {
+const MessageMenu = ({
+  onEdit,
+  onDelete,
+  canEdit,
+  buttonRef,
+  scrollContainerRef,
+}) => {
   const menuRef = useRef(null);
   const [openUpward, setOpenUpward] = useState(true);
 
@@ -91,12 +98,14 @@ const MessageMenu = ({ onEdit, onDelete, buttonRef, scrollContainerRef }) => {
       ref={menuRef}
       className={`absolute ${openUpward ? "bottom-8" : "top-8"} right-0 bg-white border border-primary/20 rounded-xl shadow-lg z-50 overflow-hidden w-28`}
     >
-      <button
-        onClick={onEdit}
-        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-primary hover:bg-primary/10 transition"
-      >
-        <Pencil className="w-3.5 h-3.5" /> Edit
-      </button>
+      {canEdit && (
+        <button
+          onClick={onEdit}
+          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-primary hover:bg-primary/10 transition"
+        >
+          <Pencil className="w-3.5 h-3.5" /> Edit
+        </button>
+      )}
       <button
         onClick={onDelete}
         className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 transition"
@@ -150,6 +159,13 @@ const ChatBody = ({
     return () => document.removeEventListener("click", close);
   }, []);
 
+  const canEditMessage = useCallback((msg) => {
+    if (!msg || msg.Is_Deleted) return false;
+    const sentAt = new Date(msg.Sent_On).getTime();
+    if (Number.isNaN(sentAt)) return false;
+    return Date.now() - sentAt <= EDIT_WINDOW_MS;
+  }, []);
+
   const handleEditSubmit = (msg) => {
     if (!editText.trim() || editText === msg.Message_Text) {
       setEditingId(null);
@@ -165,6 +181,10 @@ const ChatBody = ({
   };
 
   const startEdit = (msg) => {
+    if (!canEditMessage(msg)) {
+      setMenuMsgId(null);
+      return;
+    }
     setEditingId(msg.Message_ID);
     setEditText(msg.Message_Text);
     setMenuMsgId(null);
@@ -222,6 +242,7 @@ const ChatBody = ({
           const senderUsername = msg.Sender_Username || "Student";
           const isEditing = editingId === msg.Message_ID;
           const showMenu = menuMsgId === msg.Message_ID;
+          const canEdit = canEditMessage(msg);
 
           // ✅ File URL lives in File_Path for image/file, Message_Text for text
           const fileUrl = msg.File_Path || null;
@@ -255,6 +276,7 @@ const ChatBody = ({
                     <MessageMenu
                       onEdit={() => startEdit(msg)}
                       onDelete={() => handleDelete(msg)}
+                      canEdit={canEdit}
                       buttonRef={menuButtonRefs.current[msg.Message_ID]}
                       scrollContainerRef={containRef}
                     />
@@ -393,7 +415,7 @@ const ChatBody = ({
                           }`}
                         />
                       )}
-                      {isMe && msg.Is_Edited === 1 && !msg.Is_Deleted && (
+                      {Boolean(msg.Is_Edited) && !msg.Is_Deleted && (
                         <span className="text-[10px] opacity-60 ml-1">
                           edited
                         </span>

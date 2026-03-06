@@ -44,6 +44,7 @@ export function useChat(studentId) {
   const onlineUsers = useSelector(selectOnlineUsers);
   const unreadCounts = useSelector(selectUnreadCounts);
   const messages = useSelector(selectAllMessages);
+  const roomIdsKey = rooms.map((room) => room.Room_ID).join(",");
 
   useEffect(() => {
     roomsRef.current = rooms;
@@ -82,6 +83,16 @@ export function useChat(studentId) {
       subscribeToAllRooms();
     }
   }, [isConnected, subscribeToAllRooms]);
+
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket?.connected || !roomIdsKey) return;
+    const roomIds = roomIdsKey.split(",").map(Number);
+
+    socket.emit("rooms:unread_counts", {
+      roomIds,
+    });
+  }, [isConnected, roomIdsKey]);
 
   useEffect(() => {
     if (!studentId) return;
@@ -151,11 +162,13 @@ export function useChat(studentId) {
           changes: { Message_Text: newText, Is_Edited: 1 },
         }),
       );
+      dispatch(fetchUserChatRooms());
     });
 
     socket.on("message:deleted", ({ messageId }) => {
       console.log("[Socket] message:deleted", messageId);
       dispatch(updateMessage({ messageId, changes: { Is_Deleted: 1 } }));
+      dispatch(fetchUserChatRooms());
     });
 
     socket.on("error", (error) => {
@@ -181,7 +194,6 @@ export function useChat(studentId) {
     (roomId) => {
       console.log("[Chat] Leaving room", roomId);
       dispatch(setActiveRoom(null));
-      socketRef.current?.emit("room:leave", { roomId });
     },
     [dispatch],
   );
