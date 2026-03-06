@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ChatsSidebar from "../components/chats/ChatsSidebar";
 import ChatHeader from "../components/chats/ChatHeader";
 import ChatBody from "../components/chats/ChatBody";
@@ -7,7 +7,7 @@ import PageHeader from "../components/common/PageHeader";
 import { useSelector } from "react-redux";
 import { selectUser } from "../redux/slice/authSlice";
 import { useChat } from "../hooks/useChat";
-import { selectAllMessages } from "../redux/slice/chatsSlice";
+import { selectChatsByRoomId } from "../redux/slice/chatsSlice";
 
 const Chats = () => {
   const currentUser = useSelector(selectUser);
@@ -36,11 +36,34 @@ const Chats = () => {
     markSeen,
   } = useChat(studentId);
 
-  const allMessages = useSelector(selectAllMessages);
+  // ✅ FIX: Build a selector scoped to the active room only.
+  // Previously selectAllMessages was used here — that includes ALL rooms, so
+  // any incoming message from any room triggered markSeen on the active room,
+  // which also zeroed counts for rooms the user hadn't even looked at yet via
+  // the socket seen event. Now we only watch the active room's messages.
+  const activeRoomId = activeRoom?.Room_ID ?? null;
+  const activeRoomChatsSelector = React.useMemo(
+    () => selectChatsByRoomId(activeRoomId ?? -1),
+    [activeRoomId],
+  );
+  const activeRoomChats = useSelector(activeRoomChatsSelector);
+
+  // ✅ FIX: Only fire markSeen when a new message arrives IN the active room,
+  // not whenever any message arrives in any room.
+  const prevLengthRef = useRef(0);
   useEffect(() => {
-    if (!activeRoom?.Room_ID) return;
-    markSeen(activeRoom.Room_ID);
-  }, [allMessages.length, activeRoom?.Room_ID]);
+    if (!activeRoomId) return;
+    const currentLength = activeRoomChats.length;
+    if (currentLength !== prevLengthRef.current) {
+      prevLengthRef.current = currentLength;
+      markSeen(activeRoomId);
+    }
+  }, [activeRoomChats.length, activeRoomId, markSeen]);
+
+  // Reset the length ref when switching rooms so we don't skip the first markSeen
+  useEffect(() => {
+    prevLengthRef.current = 0;
+  }, [activeRoomId]);
 
   const handleSelectRoom = (room) => {
     if (activeRoom?.Room_ID) leaveRoom(activeRoom.Room_ID);

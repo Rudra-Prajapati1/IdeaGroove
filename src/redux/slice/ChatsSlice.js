@@ -208,9 +208,12 @@ const messageSelectors = messagesAdapter.getSelectors(
 
 export const selectAllMessages = messageSelectors.selectAll;
 
+// ✅ FIX: Removed `&& m.Is_Deleted === 0` filter so deleted messages are kept
+// in the list. ChatBody already renders "Message deleted" when Is_Deleted is
+// truthy, so both sender AND receiver now see the WhatsApp-style placeholder.
 export const selectChatsByRoomId = (roomId) =>
   createSelector([messageSelectors.selectAll], (msgs) =>
-    msgs.filter((m) => m.Room_ID === Number(roomId) && m.Is_Deleted === 0),
+    msgs.filter((m) => m.Room_ID === Number(roomId)),
   );
 
 export const selectChatRooms = (state) => state.chats.rooms;
