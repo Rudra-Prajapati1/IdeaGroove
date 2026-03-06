@@ -307,7 +307,7 @@ const AdminDash = () => {
           subtitle="Real-time analytics & platform health"
         />
         <ReportGeneration
-          recentActivities={paginatedActivities}
+          recentActivities={filteredActivities}
           statsData={statsData}
           contributorData={contributorData}
           categories={categories}

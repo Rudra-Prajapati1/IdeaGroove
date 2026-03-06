@@ -256,10 +256,7 @@ const AdminEvents = () => {
         onSubjectFilter={setEventFilter}
         secondTitle="All Events"
       />
-      <EventsReportGeneration
-        events={filteredEvents}
-        eventsStats={eventsStats}
-      />
+      <EventsReportGeneration events={filteredEvents} />
 
       <StatsRow stats={eventsStats} />
 
