@@ -3,7 +3,7 @@ import jsPDF from "jspdf";
 import logo from "/DarkLogo.png";
 import "jspdf-autotable";
 
-const EventsReportGeneration = ({ events = [], eventsStats = [] }) => {
+const EventsReportGeneration = ({ events = [] }) => {
   const generatePDF = async () => {
     const doc = new jsPDF("p", "mm", "a4");
     const pageWidth = doc.internal.pageSize.getWidth();
