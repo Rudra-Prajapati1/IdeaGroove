@@ -1,5 +1,6 @@
 import {
   Calendar,
+  FileBarChart2,
   LayoutDashboardIcon,
   LogOut,
   MessageCircleQuestion,
@@ -29,6 +30,12 @@ export const sidebarLinks = [
   },
   {
     id: 8,
+    title: "Report Generation",
+    icon: FileBarChart2,
+    to: "/admin/reports",
+  },
+  {
+    id: 9,
     title: "Logout",
     icon: LogOut,
     to: "#",

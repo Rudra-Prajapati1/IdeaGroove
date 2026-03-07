@@ -7,6 +7,7 @@ import AdminGroups from "../pages/admin/AdminGroups";
 import AdminQnA from "../pages/admin/AdminQnA";
 import AdminComplaints from "../pages/admin/AdminComplaints";
 import AdminDash from "../pages/admin/AdminDash";
+import AdminReportBuilder from "../components/admin/AdminReportBuilder";
 
 const AdminRoutes = (
   <>
@@ -19,6 +20,7 @@ const AdminRoutes = (
     <Route path="groups" element={<AdminGroups />} />
     <Route path="qna" element={<AdminQnA />} />
     <Route path="complaints" element={<AdminComplaints />} />
+    <Route path="reports" element={<AdminReportBuilder />} />
 
     <Route path="*" element={<NotFound />} />
   </>
