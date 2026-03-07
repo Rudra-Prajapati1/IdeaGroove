@@ -9,21 +9,21 @@ import EmailConfirmationModal from "../../components/admin/EmailConfirmationModa
 export const dashboardUserStats = [
   {
     title: "Total Users",
-    value: "",
-    infoText: "+5% this month",
+    value: 0,
+    infoText: "All users in system",
     color: "green",
     type: "total",
   },
   {
     title: "Active Users",
-    value: "",
+    value: 0,
     infoText: "Currently active",
     color: "yellow",
     type: "pending",
   },
   {
     title: "Inactive Users",
-    value: "",
+    value: 0,
     infoText: "Needs attention",
     color: "red",
     type: "blocked",
@@ -131,29 +131,54 @@ const AdminDashboard = () => {
     );
   };
 
+  // REPLACE the fake setTimeout with a real API call:
   const handleActionSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    setTimeout(() => {
+    try {
+      const endpoint =
+        selectedAction === "block" ? "block-student" : "unblock-student";
+
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/${endpoint}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: targetId, reason }),
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Action failed");
+        return;
+      }
+
+      // Update local state so UI reflects change immediately
       setUsers((prev) =>
         prev.map((u) =>
           u.S_ID === targetId
-            ? {
-                ...u,
-                status: selectedAction === "block" ? "inactive" : "active",
-              }
+            ? { ...u, is_Active: selectedAction === "block" ? 0 : 1 }
             : u,
         ),
       );
 
       toast.success(
-        `User ${selectedAction === "block" ? "Blocked" : "Unblocked"} successfully!`,
+        selectedAction === "block"
+          ? "Student blocked & email sent!"
+          : "Student unblocked & email sent!",
       );
+
       setModalOpen(false);
-      setLoading(false);
       setReason("");
-    }, 1000);
+    } catch (err) {
+      toast.error("Network error. Please try again.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

@@ -24,7 +24,7 @@ const AdminGroups = () => {
     {
       title: "Total Groups",
       value: 0,
-      infoText: "+18 new groups",
+      infoText: "All groups in system",
       color: "green",
       type: "total",
     },

@@ -71,29 +71,7 @@ const AdminNotes = () => {
   const [degreeSubjectMap, setDegreeSubjectMap] = useState({});
   const [subjectOptions, setSubjectOptions] = useState([]);
 
-  const [notesStats, setNotesStats] = useState([
-    {
-      title: "Total Notes Uploaded",
-      value: 0,
-      infoText: "+12% this month",
-      color: "green",
-      type: "total",
-    },
-    {
-      title: "Active Notes",
-      value: 0,
-      infoText: "Currently Active",
-      color: "yellow",
-      type: "pending",
-    },
-    {
-      title: "InActive Notes",
-      value: 0,
-      infoText: "Blocked & Deleted Notes",
-      color: "red",
-      type: "blocked",
-    },
-  ]);
+  const [notesStats, setNotesStats] = useState([]);
 
   // ✅ Move fetchNotes outside useEffect so handleActionSubmit can call it
   const fetchNotes = async () => {
@@ -120,7 +98,7 @@ const AdminNotes = () => {
         {
           title: "Total Notes Uploaded",
           value: data.total,
-          infoText: "+12% this month",
+          infoText: "All notes in system",
           color: "green",
           type: "total",
         },
