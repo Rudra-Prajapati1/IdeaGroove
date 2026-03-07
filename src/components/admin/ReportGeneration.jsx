@@ -476,6 +476,12 @@ const ReportGeneration = ({
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
+    try {
+      doc.addImage(logo, "PNG", 15, 5, 35, 35);
+    } catch (e) {
+      console.error("Not able to load logo: ", e.message);
+    }
+
     // Filter all data by chosen date range
     const filteredActivities = filterByDate(
       recentActivities,
