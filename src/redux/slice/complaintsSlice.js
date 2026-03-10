@@ -48,7 +48,7 @@ export const fetchContentOptions = createAsyncThunk(
           response = await api.get("/notes?limit=100");
           return (response.data.notes || []).map((note) => ({
             id: note.N_ID,
-            label: `${note.Description}|${note.Author}`,
+            label: `${note.File_Name}|${note.Author}`,
           }));
 
         case "Events":
