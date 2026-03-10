@@ -11,59 +11,6 @@ const StudentProfile = ({ id, onClose }) => {
   const tabRefs = useRef({});
   const containerRef = useRef(null);
 
-  // // Mock data for activities (extended to include all 5 types)
-  // const activities = [
-  //   {
-  //     id: 1,
-  //     type: "Notes",
-  //     title: "Quantum Mechanics Lecture Notes",
-  //     course: "PHY401",
-  //     time: "2 hours ago",
-  //   },
-  //   {
-  //     id: 2,
-  //     type: "Resources",
-  //     title: "Advanced Calculus Textbook PDF",
-  //     course: "MAT302",
-  //     time: "5 hours ago",
-  //   },
-  //   {
-  //     id: 3,
-  //     type: "Q&A",
-  //     title: "Answered: Thermal Dynamics Problem Set 4",
-  //     course: "PHY202",
-  //     time: "1 day ago",
-  //   },
-  //   {
-  //     id: 4,
-  //     type: "Events",
-  //     title: "Registered: Tech Symposium 2024",
-  //     course: "GEN101",
-  //     time: "2 days ago",
-  //   },
-  //   {
-  //     id: 5,
-  //     type: "Groups",
-  //     title: "Joined: AI Research Lab Group",
-  //     course: "CS450",
-  //     time: "3 days ago",
-  //   },
-  //   {
-  //     id: 6,
-  //     type: "Complaints",
-  //     title: "Reported: Lab Equipment Issue",
-  //     course: "PHY401",
-  //     time: "4 days ago",
-  //   },
-  //   {
-  //     id: 7,
-  //     type: "Notes",
-  //     title: "Data Structures Cheat Sheet",
-  //     course: "CS201",
-  //     time: "5 days ago",
-  //   },
-  // ];
-
   useEffect(() => {
     if (!id) return;
 
@@ -102,6 +49,8 @@ const StudentProfile = ({ id, onClose }) => {
 
     fetchActivities();
   }, [filter, id]);
+
+  console.log(activities);
 
   useEffect(() => {
     const activeTab = tabRefs.current[filter];

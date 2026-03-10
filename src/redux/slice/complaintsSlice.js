@@ -8,15 +8,15 @@ export const fetchUserComplaints = createAsyncThunk(
   async ({ userId, page = 1, limit = 10 }, { rejectWithValue }) => {
     try {
       const { data } = await api.get(
-        `/complaints/user/${userId}?page=${page}&limit=${limit}`
+        `/complaints/user/${userId}?page=${page}&limit=${limit}`,
       );
       return data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.error || "Failed to fetch complaints"
+        err.response?.data?.error || "Failed to fetch complaints",
       );
     }
-  }
+  },
 );
 
 /* ================= CREATE COMPLAINT ================= */
@@ -29,10 +29,10 @@ export const createComplaint = createAsyncThunk(
       return data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.error || "Failed to submit complaint"
+        err.response?.data?.error || "Failed to submit complaint",
       );
     }
-  }
+  },
 );
 
 /* ================= FETCH CONTENT OPTIONS ================= */
@@ -48,7 +48,7 @@ export const fetchContentOptions = createAsyncThunk(
           response = await api.get("/notes?limit=100");
           return (response.data.notes || []).map((note) => ({
             id: note.N_ID,
-            label: `${note.Description}|${note.Author}`,
+            label: `${note.File_Name}|${note.Author}`,
           }));
 
         case "Events":
@@ -85,7 +85,7 @@ export const fetchContentOptions = createAsyncThunk(
     } catch (err) {
       return rejectWithValue("Failed to fetch content options");
     }
-  }
+  },
 );
 
 /* ================= FETCH ANSWERS FOR QUESTION ================= */
@@ -99,10 +99,8 @@ export const fetchAnswersByQuestion = createAsyncThunk(
     } catch (err) {
       return rejectWithValue("Failed to fetch answers");
     }
-  }
+  },
 );
-
-
 
 export const deleteComplaintThunk = createAsyncThunk(
   "complaints/deleteComplaint",
@@ -112,10 +110,10 @@ export const deleteComplaintThunk = createAsyncThunk(
       return complaintId;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.error || "Failed to delete complaint"
+        err.response?.data?.error || "Failed to delete complaint",
       );
     }
-  }
+  },
 );
 /* ================= INITIAL STATE ================= */
 
@@ -160,10 +158,10 @@ const complaintsSlice = createSlice({
       })
 
       .addCase(deleteComplaintThunk.fulfilled, (state, action) => {
-  state.complaints = state.complaints.filter(
-    (item) => item.Complaint_ID !== action.payload
-  );
-})
+        state.complaints = state.complaints.filter(
+          (item) => item.Complaint_ID !== action.payload,
+        );
+      })
 
       .addCase(fetchAnswersByQuestion.fulfilled, (state, action) => {
         state.answersStatus = "succeeded";
