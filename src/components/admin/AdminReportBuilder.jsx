@@ -465,7 +465,9 @@ const AdminReportBuilder = () => {
       const drawHeader = (sectionLabel) => {
         try {
           doc.addImage(logo, "PNG", 13, 5, 26, 26);
-        } catch {}
+        } catch {
+          console.error("Not able to fetch image");
+        }
         doc.setFontSize(13);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(27, 67, 28);
@@ -493,7 +495,7 @@ const AdminReportBuilder = () => {
         doc.setFontSize(10.5);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(255, 255, 255);
-        doc.text(sectionLabel + " — Admin Intelligence Report", pw / 2, 38, {
+        doc.text(sectionLabel + " - Admin Intelligence Report", pw / 2, 38, {
           align: "center",
         });
       };
@@ -509,7 +511,7 @@ const AdminReportBuilder = () => {
           doc.setTextColor(170, 170, 170);
           doc.setFont("helvetica", "normal");
           doc.text(
-            "IdeaGroove Student Collaboration Platform — Confidential Admin Report",
+            "IdeaGroove Student Collaboration Platform - Confidential Admin Report",
             13,
             ph - 4,
           );
@@ -866,7 +868,7 @@ const AdminReportBuilder = () => {
           doc.setFont("helvetica", "bold");
           doc.setTextColor(...rgb);
           doc.text(
-            `${section.label} Records — ${sData.rows?.length || 0} total · ${activeCols.length} columns selected`,
+            `${section.label} Records - ${sData.rows?.length || 0} total · ${activeCols.length} columns selected`,
             10,
             y,
           );

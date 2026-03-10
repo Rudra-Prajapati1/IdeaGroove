@@ -145,7 +145,7 @@ const AdminComplaintsGrid = ({
                   {/* TYPE COLUMN */}
                   <td className="px-8 py-5 text-sm">
                     <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-[11px] font-bold uppercase">
-                      {item.complaintType}
+                      {item.Type}
                     </span>
                   </td>
                   <td className="px-8 py-5 text-sm text-gray-400">

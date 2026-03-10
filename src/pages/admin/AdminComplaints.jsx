@@ -59,7 +59,9 @@ const AdminComplaints = () => {
       }
     };
     fetchComplaints();
-  });
+  }, []);
+
+  console.log(complaints);
 
   const handleStatusRequest = (complaint) => {
     setSelectedComplaint(complaint);
