@@ -1,478 +1,481 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
 import logo from "/DarkLogo.png";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import {
-  ActivitySquare,
-  AlertOctagon,
-  BarChart3,
+  Calendar,
+  Users,
+  FileText,
+  MessageSquare,
+  AlertTriangle,
   FileBarChart2,
-  ChevronRight,
-  Download,
-  EyeOff,
-  Flame,
-  HeartPulse,
   Loader2,
-  Settings2,
-  Sparkles,
-  UserX,
+  EyeOff,
   Zap,
+  ChevronDown,
+  ChevronUp,
+  Check,
+  Columns,
+  Sparkles,
 } from "lucide-react";
 
-// ─── Section registry ───────────────────────────────────────────────────────
+// ─── Section registry ──────────────────────────────────────────────────────
 const SECTIONS = [
   {
-    id: "healthScore",
-    label: "Platform Health Score",
-    icon: HeartPulse,
-    color: "#10b981",
-    bg: "from-emerald-500/10 to-teal-500/10",
-    border: "border-emerald-200",
-    tag: "UNIQUE",
-    tagColor: "bg-emerald-100 text-emerald-700",
-    desc: "A 0–100 wellness gauge with live breakdown",
-    endpoint: "platform-health-score",
-  },
-  {
-    id: "atRisk",
-    label: "At-Risk Students",
-    icon: Flame,
+    id: "events",
+    label: "Events",
+    icon: Calendar,
     color: "#f59e0b",
-    bg: "from-amber-500/10 to-orange-500/10",
+    rgb: [245, 158, 11],
+    accent: "#fef3c7",
     border: "border-amber-200",
-    tag: "INSIGHT",
+    bg: "from-amber-50 to-orange-50",
+    tag: "ACTIVITIES",
     tagColor: "bg-amber-100 text-amber-700",
-    desc: "Students who went quiet after being active",
-    endpoint: "at-risk-students",
-    hasConfig: true,
-    configLabel: "Silence threshold",
-    configKey: "atRiskDays",
-    configDefault: 30,
-    configOptions: [7, 14, 30, 60, 90],
+    desc: "Platform events with status & organizer breakdown",
+    endpoint: "events-report",
+    columns: [
+      { key: "Description", label: "Title", default: true },
+      { key: "Event_Date", label: "Event Date", default: true },
+      { key: "Added_On", label: "Added On", default: false },
+      { key: "student_name", label: "Organizer", default: true },
+      { key: "Degree_Name", label: "Degree", default: true },
+      { key: "Is_Active", label: "Status", default: true },
+    ],
   },
   {
-    id: "inactive",
-    label: "Inactive Students",
-    icon: UserX,
-    color: "#6366f1",
-    bg: "from-indigo-500/10 to-purple-500/10",
-    border: "border-indigo-200",
-    tag: "AUDIT",
-    tagColor: "bg-indigo-100 text-indigo-700",
-    desc: "Students who never posted a single thing",
-    endpoint: "inactive-students",
-    hasConfig: true,
-    configLabel: "Account age threshold",
-    configKey: "inactiveDays",
-    configDefault: 60,
-    configOptions: [30, 60, 90, 180],
-  },
-  {
-    id: "complained",
-    label: "Most Complained Students",
-    icon: AlertOctagon,
-    color: "#ef4444",
-    bg: "from-red-500/10 to-rose-500/10",
-    border: "border-red-200",
-    tag: "MODERATION",
-    tagColor: "bg-red-100 text-red-700",
-    desc: "Ranked students by complaint count & blocked content",
-    endpoint: "most-complained-students",
-  },
-  {
-    id: "blockIndex",
-    label: "Content Block Index",
-    icon: BarChart3,
+    id: "groups",
+    label: "Groups",
+    icon: Users,
     color: "#8b5cf6",
-    bg: "from-violet-500/10 to-purple-500/10",
+    rgb: [139, 92, 246],
+    accent: "#ede9fe",
     border: "border-violet-200",
-    tag: "QUALITY",
+    bg: "from-violet-50 to-purple-50",
+    tag: "COMMUNITY",
     tagColor: "bg-violet-100 text-violet-700",
-    desc: "Block ratios by subject & degree — find problem areas",
-    endpoint: "content-block-index",
+    desc: "Study groups, member counts & activity",
+    endpoint: "groups-report",
+    columns: [
+      { key: "Room_Name", label: "Group Name", default: true },
+      { key: "Created_On", label: "Created On", default: true },
+      { key: "student_name", label: "Created By", default: true },
+      { key: "member_count", label: "Members", default: true },
+      { key: "Degree_Name", label: "Degree", default: true },
+      { key: "Is_Active", label: "Status", default: true },
+    ],
+  },
+  {
+    id: "notes",
+    label: "Notes",
+    icon: FileText,
+    color: "#ef4444",
+    rgb: [239, 68, 68],
+    accent: "#fee2e2",
+    border: "border-red-200",
+    bg: "from-red-50 to-rose-50",
+    tag: "CONTENT",
+    tagColor: "bg-red-100 text-red-700",
+    desc: "Uploaded notes by subject, degree & status",
+    endpoint: "notes-report",
+    columns: [
+      { key: "File_Name", label: "File Name", default: true },
+      { key: "Description", label: "Description", default: false },
+      { key: "Added_On", label: "Uploaded On", default: true },
+      { key: "student_name", label: "Author", default: true },
+      { key: "Subject_Name", label: "Subject", default: true },
+      { key: "Degree_Name", label: "Degree", default: true },
+      { key: "Is_Active", label: "Status", default: true },
+    ],
+  },
+  {
+    id: "qna",
+    label: "Q&A",
+    icon: MessageSquare,
+    color: "#10b981",
+    rgb: [16, 185, 129],
+    accent: "#d1fae5",
+    border: "border-emerald-200",
+    bg: "from-emerald-50 to-teal-50",
+    tag: "KNOWLEDGE",
+    tagColor: "bg-emerald-100 text-emerald-700",
+    desc: "Questions asked, answers given & resolution rate",
+    endpoint: "qna-report",
+    columns: [
+      { key: "Question", label: "Question", default: true },
+      { key: "Added_On", label: "Posted On", default: true },
+      { key: "student_name", label: "Asked By", default: true },
+      { key: "answer_count", label: "Answers", default: true },
+      { key: "Subject_Name", label: "Subject", default: true },
+      { key: "Degree_Name", label: "Degree", default: false },
+      { key: "Is_Active", label: "Status", default: true },
+    ],
+  },
+  {
+    id: "complaints",
+    label: "Complaints",
+    icon: AlertTriangle,
+    color: "#6366f1",
+    rgb: [99, 102, 241],
+    accent: "#e0e7ff",
+    border: "border-indigo-200",
+    bg: "from-indigo-50 to-blue-50",
+    tag: "MODERATION",
+    tagColor: "bg-indigo-100 text-indigo-700",
+    desc: "All complaints with status & resolution data",
+    endpoint: "complaints-report",
+    columns: [
+      { key: "Complaint_Text", label: "Complaint", default: true },
+      { key: "Date", label: "Filed On", default: true },
+      { key: "student_name", label: "Student", default: true },
+      { key: "Status", label: "Status", default: true },
+      { key: "Degree_Name", label: "Degree", default: false },
+      { key: "age_days", label: "Age (days)", default: true },
+    ],
   },
 ];
 
-// ─── Mini preview cards rendered inside the builder ─────────────────────────
-const HealthPreview = ({ data }) => {
-  if (!data) return <SkeletonPreview />;
-  const { totalScore, healthLabel, breakdown } = data;
-  const color =
-    totalScore >= 80
-      ? "#10b981"
-      : totalScore >= 60
-        ? "#3b82f6"
-        : totalScore >= 40
-          ? "#f59e0b"
-          : "#ef4444";
+// ─── Helpers ──────────────────────────────────────────────────────────────
+const STATUS_COLORS = {
+  Active: [16, 185, 129],
+  Blocked: [239, 68, 68],
+  Resolved: [16, 185, 129],
+  Pending: [245, 158, 11],
+  "In-Progress": [59, 130, 246],
+};
 
-  const bars = [
-    {
-      label: "Activity Rate",
-      score: breakdown.activityScore,
-      max: 30,
-      pct: breakdown.activityRate,
-    },
-    {
-      label: "Content Quality",
-      score: breakdown.qualityScore,
-      max: 25,
-      pct: breakdown.qualityRate,
-    },
-    {
-      label: "Complaint Score",
-      score: breakdown.complaintScore,
-      max: 25,
-      pct: 100 - breakdown.complaintRate,
-    },
-    {
-      label: "Engagement Depth",
-      score: breakdown.depthScore,
-      max: 20,
-      pct: Math.min((breakdown.avgContributions / 5) * 100, 100),
-    },
-  ];
+const formatCell = (key, val) => {
+  if (val === null || val === undefined) return "-";
+  if (key === "Is_Active") return val === 1 ? "Active" : "Blocked";
+  if (["Event_Date", "Added_On", "Created_On", "Date"].includes(key)) {
+    try {
+      return new Date(val).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return String(val);
+    }
+  }
+  const s = String(val);
+  return s.length > 40 ? s.slice(0, 39) + "…" : s;
+};
+
+// ─── Mini SVG Donut ──────────────────────────────────────────────────────
+const MiniDonut = ({ slices, size = 72 }) => {
+  const r = 24,
+    c = size / 2;
+  let cum = 0;
+  const total = slices.reduce((s, x) => s + x.value, 0);
+  if (total === 0)
+    return (
+      <div className="w-[72px] h-[72px] rounded-full bg-gray-100 animate-pulse" />
+    );
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <circle
+        cx={c}
+        cy={c}
+        r={r}
+        fill="none"
+        stroke="#f1f5f9"
+        strokeWidth="9"
+      />
+      {slices.map((s, i) => {
+        const pct = s.value / total;
+        const a1 = cum * 2 * Math.PI - Math.PI / 2;
+        cum += pct;
+        const a2 = cum * 2 * Math.PI - Math.PI / 2;
+        const x1 = c + r * Math.cos(a1),
+          y1 = c + r * Math.sin(a1);
+        const x2 = c + r * Math.cos(a2),
+          y2 = c + r * Math.sin(a2);
+        return (
+          <path
+            key={i}
+            d={`M${c},${c} L${x1},${y1} A${r},${r} 0 ${pct > 0.5 ? 1 : 0},1 ${x2},${y2} Z`}
+            fill={s.color}
+          />
+        );
+      })}
+      <circle cx={c} cy={c} r={r * 0.54} fill="white" />
+      <text
+        x={c}
+        y={c + 1}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        style={{ fontSize: 10, fontWeight: 900, fill: "#1e293b" }}
+      >
+        {total}
+      </text>
+    </svg>
+  );
+};
+
+// ─── Mini Bar Chart ───────────────────────────────────────────────────────
+const MiniBarChart = ({ bars, color }) => {
+  const max = Math.max(...bars.map((b) => b.value), 1);
+  return (
+    <div className="flex items-end gap-0.5 h-12 w-full">
+      {bars.map((b, i) => (
+        <div
+          key={i}
+          className="flex flex-col items-center gap-0.5 flex-1 min-w-0"
+        >
+          <span className="text-[8px] font-bold text-gray-500">{b.value}</span>
+          <div
+            className="w-full rounded-t-sm transition-all duration-700"
+            style={{
+              height: `${Math.max((b.value / max) * 32, 2)}px`,
+              backgroundColor: color,
+              opacity: 0.5 + (i / bars.length) * 0.5,
+            }}
+          />
+          <span className="text-[7px] text-gray-400 truncate w-full text-center leading-none">
+            {b.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ─── Section Preview ──────────────────────────────────────────────────────
+const SectionPreview = ({ section, sData }) => {
+  if (!sData)
+    return (
+      <div className="p-4 space-y-2">
+        {[100, 75, 90].map((w, i) => (
+          <div
+            key={i}
+            className="h-2.5 bg-gray-100 rounded animate-pulse"
+            style={{ width: `${w}%` }}
+          />
+        ))}
+      </div>
+    );
+
+  const { summary, chartData } = sData;
 
   return (
     <div className="p-4 space-y-4">
-      {/* Gauge */}
-      <div className="flex items-center gap-4">
-        <div className="relative w-20 h-20 flex-shrink-0">
-          <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-            <circle
-              cx="18"
-              cy="18"
-              r="15"
-              fill="none"
-              stroke="#f1f5f9"
-              strokeWidth="3"
-            />
-            <circle
-              cx="18"
-              cy="18"
-              r="15"
-              fill="none"
-              stroke={color}
-              strokeWidth="3"
-              strokeDasharray={`${totalScore * 0.94} 94`}
-              strokeLinecap="round"
-              style={{ transition: "stroke-dasharray 1s ease" }}
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-lg font-black text-gray-800">
-              {totalScore}
-            </span>
-            <span className="text-[8px] font-bold text-gray-400 uppercase">
-              /100
-            </span>
-          </div>
-        </div>
-        <div>
-          <div className="text-xs font-black uppercase tracking-widest text-gray-400 mb-0.5">
-            Health Status
-          </div>
-          <div className="text-xl font-black" style={{ color }}>
-            {healthLabel}
-          </div>
-          <div className="text-[10px] text-gray-400 mt-0.5">
-            {data.meta?.totalUsers} users · {data.meta?.totalContributions}{" "}
-            contributions
-          </div>
-        </div>
-      </div>
-      {/* Breakdown bars */}
-      <div className="space-y-2">
-        {bars.map((b) => (
-          <div key={b.label}>
-            <div className="flex justify-between mb-0.5">
-              <span className="text-[10px] font-semibold text-gray-500">
-                {b.label}
-              </span>
-              <span className="text-[10px] font-black text-gray-700">
-                {b.score}/{b.max}
-              </span>
-            </div>
-            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{
-                  width: `${(b.score / b.max) * 100}%`,
-                  backgroundColor: color,
-                }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const AtRiskPreview = ({ data }) => {
-  if (!data) return <SkeletonPreview />;
-  const top = data.students?.slice(0, 4) || [];
-  return (
-    <div className="p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-2xl font-black text-amber-600">{data.count}</span>
-        <span className="text-xs text-gray-500">
-          students went silent in the last <strong>{data.days}</strong> days
-        </span>
-      </div>
-      <div className="space-y-2">
-        {top.map((s, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-2 p-2 rounded-lg bg-amber-50 border border-amber-100"
-          >
-            <div className="w-7 h-7 rounded-full bg-amber-200 flex items-center justify-center text-[10px] font-black text-amber-700 flex-shrink-0">
-              {s.Name?.charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-bold text-gray-700 truncate">
-                {s.Name}
-              </div>
-              <div className="text-[10px] text-gray-400">{s.Degree_Name}</div>
-            </div>
-            <div className="text-right flex-shrink-0">
-              <div className="text-xs font-black text-amber-600">
-                {s.days_silent}d
-              </div>
-              <div className="text-[9px] text-gray-400">silent</div>
-            </div>
-          </div>
-        ))}
-        {data.count > 4 && (
-          <div className="text-center text-[10px] text-gray-400 font-semibold pt-1">
-            +{data.count - 4} more in PDF
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const InactivePreview = ({ data }) => {
-  if (!data) return <SkeletonPreview />;
-  const top = data.students?.slice(0, 4) || [];
-  return (
-    <div className="p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-2xl font-black text-indigo-600">
-          {data.count}
-        </span>
-        <span className="text-xs text-gray-500">
-          students never posted after joining <strong>{data.days}+</strong> days
-          ago
-        </span>
-      </div>
-      <div className="space-y-2">
-        {top.map((s, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-2 p-2 rounded-lg bg-indigo-50 border border-indigo-100"
-          >
-            <div className="w-7 h-7 rounded-full bg-indigo-200 flex items-center justify-center text-[10px] font-black text-indigo-700 flex-shrink-0">
-              {s.Name?.charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-bold text-gray-700 truncate">
-                {s.Name}
-              </div>
-              <div className="text-[10px] text-gray-400">{s.Degree_Name}</div>
-            </div>
-            <div className="text-right flex-shrink-0">
-              <div className="text-xs font-black text-indigo-600">
-                {s.days_since_joined}d
-              </div>
-              <div className="text-[9px] text-gray-400">member</div>
-            </div>
-          </div>
-        ))}
-        {data.count > 4 && (
-          <div className="text-center text-[10px] text-gray-400 font-semibold pt-1">
-            +{data.count - 4} more in PDF
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const ComplainedPreview = ({ data }) => {
-  if (!data) return <SkeletonPreview />;
-  const top = data.students?.slice(0, 4) || [];
-  return (
-    <div className="p-4">
-      <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">
-        Top offenders
-      </div>
-      <div className="space-y-2">
-        {top.map((s, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-2 p-2 rounded-lg bg-red-50 border border-red-100"
-          >
+      {/* Summary stat pills */}
+      {summary?.length > 0 && (
+        <div
+          className="grid gap-2"
+          style={{
+            gridTemplateColumns: `repeat(${Math.min(summary.length, 4)}, 1fr)`,
+          }}
+        >
+          {summary.map((s, i) => (
             <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black text-white flex-shrink-0 ${i === 0 ? "bg-red-500" : i === 1 ? "bg-red-400" : "bg-red-300"}`}
+              key={i}
+              className="rounded-xl px-3 py-2 text-center"
+              style={{ backgroundColor: section.accent }}
             >
-              {i + 1}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-bold text-gray-700 truncate">
-                {s.Name}
-              </div>
-              <div className="text-[10px] text-gray-400">{s.Degree_Name}</div>
-            </div>
-            <div className="text-right flex-shrink-0">
-              <div className="text-xs font-black text-red-600">
-                {s.total_complaints}
-              </div>
-              <div className="text-[9px] text-gray-400">complaints</div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const BlockIndexPreview = ({ data }) => {
-  if (!data) return <SkeletonPreview />;
-  const top = data.bySubject?.slice(0, 5) || [];
-  const maxRate = Math.max(...top.map((s) => s.block_rate_pct), 1);
-  return (
-    <div className="p-4">
-      <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">
-        Highest block rate subjects
-      </div>
-      <div className="space-y-2.5">
-        {top.map((s, i) => (
-          <div key={i}>
-            <div className="flex justify-between mb-0.5">
-              <span className="text-[10px] font-semibold text-gray-600 truncate max-w-[140px]">
-                {s.Subject_Name}
-              </span>
-              <span className="text-[10px] font-black text-violet-700">
-                {s.block_rate_pct}%
-              </span>
-            </div>
-            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className="h-full rounded-full bg-violet-500 transition-all duration-700"
-                style={{ width: `${(s.block_rate_pct / maxRate) * 100}%` }}
-              />
+                className="text-base font-black leading-tight"
+                style={{ color: section.color }}
+              >
+                {s.value}
+              </div>
+              <div className="text-[9px] font-semibold text-gray-500 leading-tight mt-0.5">
+                {s.label}
+              </div>
             </div>
-            <div className="text-[9px] text-gray-400 mt-0.5">
-              {s.total_notes} notes · {s.blocked_notes} blocked ·{" "}
-              {s.Degree_Name}
+          ))}
+        </div>
+      )}
+
+      {/* Charts row */}
+      {chartData && (
+        <div className="flex items-center gap-4 pt-1">
+          {chartData.donut?.length > 0 && (
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <MiniDonut slices={chartData.donut} />
+              <div className="space-y-1">
+                {chartData.donut.map((s, i) => (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <div
+                      className="w-2 h-2 rounded-sm flex-shrink-0"
+                      style={{ backgroundColor: s.color }}
+                    />
+                    <span className="text-[9px] text-gray-500 leading-none">
+                      {s.label}:{" "}
+                      <strong className="text-gray-700">{s.value}</strong>
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          )}
+          {chartData.bars?.length > 0 && (
+            <div className="flex-1 min-w-0">
+              <div className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">
+                Monthly trend
+              </div>
+              <MiniBarChart bars={chartData.bars} color={section.color} />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
 
-const SkeletonPreview = () => (
-  <div className="p-4 space-y-3">
-    {[80, 60, 90, 50].map((w, i) => (
-      <div key={i} className="animate-pulse space-y-1">
-        <div
-          className="h-2.5 bg-gray-100 rounded-full"
-          style={{ width: `${w}%` }}
-        />
-        <div
-          className="h-1.5 bg-gray-100 rounded-full"
-          style={{ width: `${w - 20}%` }}
-        />
-      </div>
-    ))}
-  </div>
+// ─── Column chip ──────────────────────────────────────────────────────────
+const ColChip = ({ col, active, onToggle, color }) => (
+  <button
+    onClick={onToggle}
+    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all duration-150
+      ${active ? "border-transparent text-white shadow-sm" : "bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50"}`}
+    style={active ? { backgroundColor: color, borderColor: color } : {}}
+  >
+    {active && <Check size={8} />}
+    {col.label}
+  </button>
 );
 
-const PREVIEW_MAP = {
-  healthScore: HealthPreview,
-  atRisk: AtRiskPreview,
-  inactive: InactivePreview,
-  complained: ComplainedPreview,
-  blockIndex: BlockIndexPreview,
+// ─── Sample rows mini table ───────────────────────────────────────────────
+const SampleTable = ({ section, rows, colState }) => {
+  const visibleCols = section.columns.filter((c) => colState[c.key]);
+  if (!visibleCols.length || !rows?.length) return null;
+  return (
+    <div className="px-4 pb-4 overflow-x-auto">
+      <div className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">
+        Sample — first 5 rows (matching PDF columns)
+      </div>
+      <table className="w-full text-[10px] border-collapse min-w-max">
+        <thead>
+          <tr>
+            {visibleCols.map((col) => (
+              <th
+                key={col.key}
+                className="text-left py-1.5 px-2 font-black text-[9px] text-gray-400 uppercase border-b border-gray-100 whitespace-nowrap"
+              >
+                {col.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.slice(0, 5).map((row, i) => (
+            <tr
+              key={i}
+              className="border-b border-gray-50 hover:bg-gray-50/60 transition-colors"
+            >
+              {visibleCols.map((col) => (
+                <td
+                  key={col.key}
+                  className="py-1.5 px-2 text-gray-600 whitespace-nowrap max-w-[160px] truncate"
+                >
+                  {col.key === "Is_Active" ? (
+                    <span
+                      className={`font-bold ${row[col.key] === 1 ? "text-emerald-600" : "text-red-500"}`}
+                    >
+                      {row[col.key] === 1 ? "Active" : "Blocked"}
+                    </span>
+                  ) : col.key === "Status" ? (
+                    <span
+                      className={`font-bold ${
+                        row[col.key] === "Resolved"
+                          ? "text-emerald-600"
+                          : row[col.key] === "Pending"
+                            ? "text-amber-600"
+                            : row[col.key] === "In-Progress"
+                              ? "text-blue-600"
+                              : "text-gray-500"
+                      }`}
+                    >
+                      {row[col.key] || "-"}
+                    </span>
+                  ) : (
+                    formatCell(col.key, row[col.key])
+                  )}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 };
 
-// ─── Main Component ──────────────────────────────────────────────────────────
+// ─── Main Component ───────────────────────────────────────────────────────
 const AdminReportBuilder = () => {
   const [selected, setSelected] = useState({});
-  const [configs, setConfigs] = useState({ atRiskDays: 30, inactiveDays: 60 });
+  const [colState, setColState] = useState(() =>
+    Object.fromEntries(
+      SECTIONS.map((s) => [
+        s.id,
+        Object.fromEntries(s.columns.map((c) => [c.key, c.default])),
+      ]),
+    ),
+  );
+  const [expanded, setExpanded] = useState({});
   const [data, setData] = useState({});
   const [loading, setLoading] = useState({});
   const [generating, setGenerating] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(null);
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
-  // Fetch data for a section
   const fetchSection = async (section) => {
-    setLoading((prev) => ({ ...prev, [section.id]: true }));
+    setLoading((p) => ({ ...p, [section.id]: true }));
     try {
-      let url = `${baseUrl}/admin/${section.endpoint}`;
-      if (section.id === "atRisk") url += `?days=${configs.atRiskDays}`;
-      if (section.id === "inactive") url += `?days=${configs.inactiveDays}`;
-      const res = await fetch(url);
+      const res = await fetch(`${baseUrl}/admin/${section.endpoint}`);
       const json = await res.json();
-      setData((prev) => ({ ...prev, [section.id]: json }));
+      setData((p) => ({ ...p, [section.id]: json }));
     } catch (e) {
-      console.error(`Failed to fetch ${section.id}:`, e);
+      console.error(`Fetch ${section.id}:`, e);
     } finally {
-      setLoading((prev) => ({ ...prev, [section.id]: false }));
+      setLoading((p) => ({ ...p, [section.id]: false }));
     }
   };
 
-  // Toggle section on/off and fetch if toggling on
   const toggleSection = (section) => {
-    const isOn = !selected[section.id];
-    setSelected((prev) => ({ ...prev, [section.id]: isOn }));
-    if (isOn && !data[section.id]) fetchSection(section);
+    const willBeOn = !selected[section.id];
+    setSelected((p) => ({ ...p, [section.id]: willBeOn }));
+    if (willBeOn && !data[section.id]) fetchSection(section);
   };
 
-  // Re-fetch when config changes
-  const handleConfigChange = (key, val, section) => {
-    setConfigs((prev) => ({ ...prev, [key]: val }));
-    if (selected[section.id]) {
-      setData((prev) => ({ ...prev, [section.id]: null }));
-      setTimeout(
-        () => fetchSection({ ...section, endpoint: section.endpoint }),
-        50,
-      );
-    }
+  const toggleCol = (sId, key) =>
+    setColState((p) => ({ ...p, [sId]: { ...p[sId], [key]: !p[sId][key] } }));
+
+  const toggleAllCols = (sId, section) => {
+    const allOn = section.columns.every((c) => colState[sId][c.key]);
+    setColState((p) => ({
+      ...p,
+      [sId]: Object.fromEntries(section.columns.map((c) => [c.key, !allOn])),
+    }));
   };
 
   const selectedCount = Object.values(selected).filter(Boolean).length;
 
-  // ── PDF generation ─────────────────────────────────────────────────────────
+  // ── PDF Generation ────────────────────────────────────────────────────────
   const generatePDF = async () => {
     setGenerating(true);
     try {
       const doc = new jsPDF("p", "mm", "a4");
       const pw = doc.internal.pageSize.getWidth();
       const ph = doc.internal.pageSize.getHeight();
+      let firstPage = true;
 
-      const addHeader = (subtitle) => {
+      // ── page header ────────────────────────────────────────
+      const drawHeader = (sectionLabel) => {
         try {
-          doc.addImage(logo, "PNG", 13, 5, 30, 30);
+          doc.addImage(logo, "PNG", 13, 5, 26, 26);
         } catch {}
-        doc.setFontSize(15);
+        doc.setFontSize(13);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(27, 67, 28);
-        doc.text("IdeaGroove — Admin Intelligence Report", pw - 15, 16, {
-          align: "right",
-        });
-        doc.setFontSize(8);
+        doc.text("IdeaGroove — Admin Report", pw - 13, 14, { align: "right" });
+        doc.setFontSize(7.5);
         doc.setFont("helvetica", "normal");
-        doc.setTextColor(100, 140, 100);
-        doc.text(subtitle, pw - 15, 22, { align: "right" });
-        doc.setFontSize(7);
-        doc.setTextColor(170, 170, 170);
+        doc.setTextColor(120, 160, 120);
+        doc.text("Platform Content Report", pw - 13, 20, { align: "right" });
+        doc.setFontSize(6.5);
+        doc.setTextColor(180, 180, 180);
         doc.text(
           "Generated: " +
             new Date().toLocaleDateString("en-IN", {
@@ -480,637 +483,406 @@ const AdminReportBuilder = () => {
               month: "short",
               year: "numeric",
             }),
-          pw - 15,
-          27,
+          pw - 13,
+          26,
           { align: "right" },
         );
         // Title bar
         doc.setFillColor(27, 67, 28);
-        doc.rect(10, 38, pw - 20, 11, "F");
-        doc.setFontSize(13);
+        doc.rect(10, 31, pw - 20, 10, "F");
+        doc.setFontSize(10.5);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(255, 255, 255);
-        doc.text("Admin Intelligence Report", pw / 2, 46, { align: "center" });
+        doc.text(sectionLabel + " — Admin Intelligence Report", pw / 2, 38, {
+          align: "center",
+        });
       };
 
-      const addFooter = () => {
+      // ── footer ─────────────────────────────────────────────
+      const drawFooter = () => {
         const tp = doc.internal.getNumberOfPages();
         for (let p = 1; p <= tp; p++) {
           doc.setPage(p);
           doc.setFillColor(248, 250, 248);
-          doc.rect(0, ph - 12, pw, 12, "F");
-          doc.setFontSize(7);
-          doc.setTextColor(160, 160, 160);
+          doc.rect(0, ph - 10, pw, 10, "F");
+          doc.setFontSize(6.5);
+          doc.setTextColor(170, 170, 170);
           doc.setFont("helvetica", "normal");
           doc.text(
             "IdeaGroove Student Collaboration Platform — Confidential Admin Report",
-            15,
-            ph - 5,
+            13,
+            ph - 4,
           );
-          doc.text("Page " + p + " of " + tp, pw - 15, ph - 5, {
-            align: "right",
-          });
+          doc.text(`Page ${p} of ${tp}`, pw - 13, ph - 4, { align: "right" });
         }
       };
 
-      const sectionTitle = (doc, title, y, color = [27, 67, 28]) => {
-        doc.setFillColor(...color);
-        doc.roundedRect(10, y, pw - 20, 9, 1, 1, "F");
-        doc.setFontSize(10);
+      // ── section title bar ───────────────────────────────────
+      const drawSectionTitle = (title, y, [r, g, b]) => {
+        doc.setFillColor(r, g, b);
+        doc.roundedRect(10, y, pw - 20, 9, 1.5, 1.5, "F");
+        doc.setFontSize(9);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(255, 255, 255);
-        doc.text(title, pw / 2, y + 6.2, { align: "center" });
+        doc.text(title, pw / 2, y + 6, { align: "center" });
         return y + 13;
       };
 
-      let firstPage = true;
-      let y = 54;
-
-      // ── 1. PLATFORM HEALTH SCORE ──────────────────────────────
-      if (selected.healthScore && data.healthScore) {
-        if (!firstPage) {
-          doc.addPage();
-          y = 54;
-        }
-        addHeader("Platform Health Score");
-        firstPage = false;
-        const d = data.healthScore;
-        const score = d.totalScore;
-        const hColor =
-          score >= 80
-            ? [16, 185, 129]
-            : score >= 60
-              ? [59, 130, 246]
-              : score >= 40
-                ? [245, 158, 11]
-                : [239, 68, 68];
-
-        y = sectionTitle(doc, "Platform Health Score", y, [27, 67, 28]);
-
-        // Big score circle via canvas
-        const gc = document.createElement("canvas");
-        gc.width = 220;
-        gc.height = 220;
-        const gctx = gc.getContext("2d");
-        // Outer ring
-        gctx.beginPath();
-        gctx.arc(110, 110, 90, 0, 2 * Math.PI);
-        gctx.strokeStyle = "#f1f5f9";
-        gctx.lineWidth = 16;
-        gctx.stroke();
-        // Score arc
-        gctx.beginPath();
-        gctx.arc(
-          110,
-          110,
-          90,
-          -Math.PI / 2,
-          -Math.PI / 2 + (score / 100) * 2 * Math.PI,
-        );
-        gctx.strokeStyle = `rgb(${hColor.join(",")})`;
-        gctx.lineWidth = 16;
-        gctx.lineCap = "round";
-        gctx.stroke();
-        // Score text
-        gctx.fillStyle = "#1e293b";
-        gctx.font = "bold 52px Arial";
-        gctx.textAlign = "center";
-        gctx.textBaseline = "middle";
-        gctx.fillText(String(score), 110, 100);
-        gctx.font = "16px Arial";
-        gctx.fillStyle = "#94a3b8";
-        gctx.fillText("out of 100", 110, 135);
-        gctx.font = `bold 20px Arial`;
-        gctx.fillStyle = `rgb(${hColor.join(",")})`;
-        gctx.fillText(d.healthLabel, 110, 162);
-
-        doc.addImage(gc.toDataURL("image/png"), "PNG", pw / 2 - 28, y, 56, 56);
-        y += 60;
-
-        // Breakdown cards — 4 in a row
-        const breakdown = [
-          {
-            label: "Activity Rate",
-            score: d.breakdown.activityScore,
-            max: 30,
-            extra: d.breakdown.activityRate + "% users posted",
-          },
-          {
-            label: "Content Quality",
-            score: d.breakdown.qualityScore,
-            max: 25,
-            extra: d.breakdown.qualityRate + "% content active",
-          },
-          {
-            label: "Complaint Score",
-            score: d.breakdown.complaintScore,
-            max: 25,
-            extra: d.breakdown.complaintRate + "% complaints unresolved",
-          },
-          {
-            label: "Engagement Depth",
-            score: d.breakdown.depthScore,
-            max: 20,
-            extra: d.breakdown.avgContributions + " avg contributions",
-          },
-        ];
-        const cw = (pw - 25) / 4;
-        breakdown.forEach(({ label, score: s, max, extra }, i) => {
-          const cx = 12 + i * (cw + 1);
-          const pct = Math.round((s / max) * 100);
-          const [r, g, b] = hColor;
-          doc.setFillColor(r, g, b, 0.1);
-          doc.setFillColor(245, 251, 245);
-          doc.roundedRect(cx, y, cw, 22, 2, 2, "F");
+      // ── summary stat cards row ──────────────────────────────
+      const drawSummaryCards = (summary, y, [r, g, b]) => {
+        if (!summary?.length) return y;
+        const n = Math.min(summary.length, 5);
+        const cw = (pw - 20 - (n - 1) * 3) / n;
+        // pastel background tint
+        const tR = Math.min(Math.round(r * 0.12 + 235), 255);
+        const tG = Math.min(Math.round(g * 0.12 + 235), 255);
+        const tB = Math.min(Math.round(b * 0.12 + 235), 255);
+        summary.slice(0, n).forEach((s, i) => {
+          const cx = 10 + i * (cw + 3);
+          doc.setFillColor(tR, tG, tB);
+          doc.roundedRect(cx, y, cw, 20, 2, 2, "F");
           doc.setDrawColor(r, g, b);
-          doc.setLineWidth(0.3);
-          doc.roundedRect(cx, y, cw, 22, 2, 2, "S");
-          doc.setFontSize(14);
+          doc.setLineWidth(0.25);
+          doc.roundedRect(cx, y, cw, 20, 2, 2, "S");
+          doc.setFontSize(16);
           doc.setFont("helvetica", "bold");
           doc.setTextColor(r, g, b);
-          doc.text(`${s}/${max}`, cx + cw / 2, y + 9, { align: "center" });
-          doc.setFontSize(6.5);
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(80, 80, 80);
-          doc.text(label.toUpperCase(), cx + cw / 2, y + 14, {
+          doc.text(String(s.value ?? 0), cx + cw / 2, y + 11, {
             align: "center",
           });
           doc.setFontSize(6);
-          doc.setFont("helvetica", "normal");
-          doc.setTextColor(140, 140, 140);
-          doc.text(extra, cx + cw / 2, y + 18.5, { align: "center" });
-          // Mini progress bar
-          doc.setFillColor(230, 230, 230);
-          doc.roundedRect(cx + 2, y + 20, cw - 4, 1.5, 0.5, 0.5, "F");
-          doc.setFillColor(r, g, b);
-          doc.roundedRect(
-            cx + 2,
-            y + 20,
-            ((cw - 4) * pct) / 100,
-            1.5,
-            0.5,
-            0.5,
-            "F",
-          );
-        });
-        y += 28;
-
-        // Meta stats row
-        const meta = [
-          ["Total Users", d.meta.totalUsers],
-          ["Active Posters", d.meta.activePosters],
-          ["Total Content", d.meta.totalContent],
-          ["Blocked", d.meta.blockedContent],
-          ["Complaints", d.meta.totalComplaints],
-          ["Unresolved", d.meta.unresolvedComplaints],
-        ];
-        doc.setFontSize(7);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(150, 150, 150);
-        meta.forEach(([label, val], i) => {
-          const mx = 12 + i * 33;
-          doc.setTextColor(27, 67, 28);
-          doc.setFontSize(11);
           doc.setFont("helvetica", "bold");
-          doc.text(String(val), mx + 14, y + 6, { align: "center" });
-          doc.setFontSize(6);
-          doc.setFont("helvetica", "normal");
-          doc.setTextColor(150, 150, 150);
-          doc.text(label, mx + 14, y + 10.5, { align: "center" });
-        });
-        y += 16;
-      }
-
-      // ── 2. AT-RISK STUDENTS ───────────────────────────────────
-      if (selected.atRisk && data.atRisk) {
-        if (!firstPage && y > ph - 60) {
-          doc.addPage();
-          y = 54;
-          addHeader("At-Risk Students");
-        } else if (firstPage) {
-          addHeader("At-Risk Students");
-          firstPage = false;
-        }
-        const d = data.atRisk;
-        y = sectionTitle(
-          doc,
-          `At-Risk Students — Silent for ${d.days}+ Days (${d.count} found)`,
-          y,
-          [245, 158, 11],
-        );
-
-        if (d.students?.length === 0) {
-          doc.setFontSize(9);
-          doc.setTextColor(120, 120, 120);
-          doc.setFont("helvetica", "italic");
-          doc.text(
-            "No at-risk students found for this threshold.",
-            pw / 2,
-            y + 8,
-            { align: "center" },
-          );
-          y += 16;
-        } else {
-          // Cards in 2-col grid
-          const cols = 2,
-            cw = (pw - 26) / 2;
-          d.students.forEach((s, i) => {
-            if (y > ph - 30) {
-              doc.addPage();
-              y = 20;
-            }
-            const col = i % cols,
-              row = Math.floor(i / cols);
-            if (col === 0 && row > 0) y += 22;
-            const cx = 12 + col * (cw + 2);
-            const cy = y;
-
-            // Card background — color intensity by urgency
-            const urgency = Math.min(s.days_silent / 90, 1);
-            const r = Math.round(255 * urgency + 254 * (1 - urgency));
-            const g = Math.round(237 * urgency + 243 * (1 - urgency));
-            const b = Math.round(213 * urgency + 199 * (1 - urgency));
-            doc.setFillColor(r, g, b);
-            doc.roundedRect(cx, cy, cw, 20, 2, 2, "F");
-            doc.setDrawColor(245, 158, 11);
-            doc.setLineWidth(0.2);
-            doc.roundedRect(cx, cy, cw, 20, 2, 2, "S");
-
-            // Avatar circle
-            doc.setFillColor(245, 158, 11);
-            doc.circle(cx + 9, cy + 10, 6, "F");
-            doc.setFontSize(8);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(255, 255, 255);
-            doc.text(
-              (s.Name?.charAt(0) || "?").toUpperCase(),
-              cx + 9,
-              cy + 12,
-              { align: "center" },
-            );
-
-            // Info
-            doc.setFontSize(8);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(40, 40, 40);
-            doc.text(s.Name || "Unknown", cx + 18, cy + 8);
-            doc.setFontSize(6.5);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(100, 100, 100);
-            doc.text(
-              (s.Degree_Name || "-") + " · " + (s.Year || ""),
-              cx + 18,
-              cy + 13,
-            );
-            doc.setFontSize(6);
-            doc.setTextColor(130, 130, 130);
-            doc.text(
-              `${s.total_contributions} contributions lifetime`,
-              cx + 18,
-              cy + 17.5,
-            );
-
-            // Days badge
-            doc.setFillColor(239, 68, 68);
-            doc.roundedRect(cx + cw - 22, cy + 5, 19, 10, 2, 2, "F");
-            doc.setFontSize(9);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(255, 255, 255);
-            doc.text(`${s.days_silent}d`, cx + cw - 12.5, cy + 11.5, {
-              align: "center",
-            });
-            doc.setFontSize(5);
-            doc.setFont("helvetica", "normal");
-            doc.text("silent", cx + cw - 12.5, cy + 14.5, { align: "center" });
+          doc.setTextColor(110, 110, 110);
+          doc.text(s.label.toUpperCase(), cx + cw / 2, y + 16.5, {
+            align: "center",
           });
-          if (d.students.length % 2 !== 0) y += 22;
-          y += 22;
-        }
-      }
+        });
+        return y + 24;
+      };
 
-      // ── 3. INACTIVE STUDENTS ──────────────────────────────────
-      if (selected.inactive && data.inactive) {
-        if (y > ph - 60) {
-          doc.addPage();
-          y = 20;
-        }
-        const d = data.inactive;
-        y = sectionTitle(
-          doc,
-          `Inactive Students — Never Posted, ${d.days}+ Days Old (${d.count} found)`,
-          y,
-          [99, 102, 241],
+      // ── donut chart via canvas ──────────────────────────────
+      const drawDonutChart = (slices, cx, cy, radius, doc) => {
+        const canvas = document.createElement("canvas");
+        const sz = (radius + 12) * 2 * 2; // 2x for crispness
+        canvas.width = canvas.height = sz;
+        const ctx = canvas.getContext("2d");
+        const cc = sz / 2;
+        const total = slices.reduce((s, x) => s + x.value, 0);
+        if (total === 0 || !slices.length) return;
+        let angle = -Math.PI / 2;
+        slices.forEach((s) => {
+          const sweep = (s.value / total) * 2 * Math.PI;
+          ctx.beginPath();
+          ctx.moveTo(cc, cc);
+          ctx.arc(cc, cc, radius * 2, angle, angle + sweep);
+          ctx.closePath();
+          ctx.fillStyle = s.color;
+          ctx.fill();
+          ctx.strokeStyle = "#fff";
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+          angle += sweep;
+        });
+        // donut hole
+        ctx.beginPath();
+        ctx.arc(cc, cc, radius * 2 * 0.52, 0, 2 * Math.PI);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+        // center text
+        ctx.fillStyle = "#1e293b";
+        ctx.font = `bold ${radius * 0.9}px Arial`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(String(total), cc, cc - radius * 0.15);
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = `${radius * 0.45}px Arial`;
+        ctx.fillText("total", cc, cc + radius * 0.5);
+        const mmSize = (radius + 12) * 2 * 0.265;
+        doc.addImage(
+          canvas.toDataURL("image/png"),
+          "PNG",
+          cx - mmSize / 2,
+          cy - mmSize / 2,
+          mmSize,
+          mmSize,
         );
+        return mmSize;
+      };
 
-        if (d.students?.length === 0) {
-          doc.setFontSize(9);
-          doc.setTextColor(120, 120, 120);
-          doc.setFont("helvetica", "italic");
-          doc.text(
-            "No inactive students found for this threshold.",
-            pw / 2,
-            y + 8,
-            { align: "center" },
-          );
-          y += 16;
-        } else {
-          // Summary stat
-          doc.setFontSize(8);
-          doc.setFont("helvetica", "normal");
-          doc.setTextColor(100, 100, 100);
-          doc.text(
-            `${d.count} registered students have never made a single contribution to the platform.`,
-            pw / 2,
-            y,
-            { align: "center" },
-          );
-          y += 7;
+      // ── bar chart via canvas ────────────────────────────────
+      const drawBarChart = (bars, x, y, w, h, hexColor, doc) => {
+        if (!bars || bars.length === 0) return;
+        const canvas = document.createElement("canvas");
+        canvas.width = w * 5;
+        canvas.height = h * 5;
+        const ctx = canvas.getContext("2d");
+        const max = Math.max(...bars.map((b) => Number(b.value) || 0), 1);
+        const bw = (canvas.width / bars.length) * 0.58;
+        const gap = (canvas.width / bars.length) * 0.42;
+        bars.forEach((b, i) => {
+          const bh = (b.value / max) * canvas.height * 0.72;
+          const bx = i * (bw + gap) + gap * 0.5;
+          const by = canvas.height * 0.82 - bh;
+          const grad = ctx.createLinearGradient(bx, by, bx, by + bh);
+          grad.addColorStop(0, hexColor);
+          grad.addColorStop(1, hexColor + "55");
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          // roundRect polyfill for older browsers
+          const rrFn = (cx2, cy2, cw2, ch2, r2) => {
+            ctx.moveTo(cx2 + r2, cy2);
+            ctx.lineTo(cx2 + cw2 - r2, cy2);
+            ctx.quadraticCurveTo(cx2 + cw2, cy2, cx2 + cw2, cy2 + r2);
+            ctx.lineTo(cx2 + cw2, cy2 + ch2);
+            ctx.lineTo(cx2, cy2 + ch2);
+            ctx.lineTo(cx2, cy2 + r2);
+            ctx.quadraticCurveTo(cx2, cy2, cx2 + r2, cy2);
+            ctx.closePath();
+          };
+          rrFn(bx, by, bw, Math.max(bh, 1), 3);
+          ctx.fill();
+          // value
+          ctx.fillStyle = "#374151";
+          ctx.font = `bold ${canvas.width * 0.058}px Arial`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "bottom";
+          ctx.fillText(String(b.value), bx + bw / 2, by - 3);
+          // label
+          ctx.fillStyle = "#9ca3af";
+          ctx.font = `${canvas.width * 0.048}px Arial`;
+          ctx.textBaseline = "top";
+          const lbl = b.label.length > 5 ? b.label.slice(0, 4) + "." : b.label;
+          ctx.fillText(lbl, bx + bw / 2, canvas.height * 0.84);
+        });
+        doc.addImage(canvas.toDataURL("image/png"), "PNG", x, y, w, h);
+      };
 
-          const cols = 3,
-            cw2 = (pw - 28) / 3;
-          d.students.forEach((s, i) => {
-            if (y > ph - 25) {
-              doc.addPage();
-              y = 20;
-            }
-            const col = i % cols;
-            if (col === 0 && i > 0) y += 16;
-            const cx = 12 + col * (cw2 + 2);
+      // ── data table — pure doc.text() (no autoTable dependency) ─
+      const drawDataTable = (rows, cols, startY) => {
+        if (!rows?.length || !cols.length) return startY + 4;
 
-            doc.setFillColor(238, 242, 255);
-            doc.roundedRect(cx, y, cw2, 14, 1.5, 1.5, "F");
-            doc.setDrawColor(165, 180, 252);
-            doc.setLineWidth(0.2);
-            doc.roundedRect(cx, y, cw2, 14, 1.5, 1.5, "S");
+        const marginL = 10;
+        const tableW = pw - 20;
+        const rowH = 8;
+        const colW = tableW / cols.length;
 
-            doc.setFillColor(99, 102, 241);
-            doc.circle(cx + 7, y + 7, 4.5, "F");
-            doc.setFontSize(6.5);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(255, 255, 255);
+        // ── draw header row ──
+        const drawHeader = (yPos) => {
+          doc.setFillColor(27, 67, 28);
+          doc.rect(marginL, yPos, tableW, rowH, "F");
+          doc.setFontSize(7.5);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(255, 255, 255);
+          cols.forEach((col, i) => {
+            const cellX = marginL + i * colW + 2;
+            const txt = col.label.toUpperCase();
+            const maxChars = Math.floor(colW / 2.2);
             doc.text(
-              (s.Name?.charAt(0) || "?").toUpperCase(),
-              cx + 7,
-              y + 8.5,
-              { align: "center" },
+              txt.length > maxChars ? txt.slice(0, maxChars - 1) + "…" : txt,
+              cellX,
+              yPos + 5.5,
             );
+          });
+          return yPos + rowH;
+        };
+
+        let y = drawHeader(startY);
+
+        // ── draw each data row ──
+        rows.forEach((row, i) => {
+          // page break
+          if (y > ph - 18) {
+            doc.addPage();
+            y = 15;
+            y = drawHeader(y);
+          }
+
+          // alternating row background
+          if (i % 2 === 0) {
+            doc.setFillColor(248, 252, 248);
+            doc.rect(marginL, y, tableW, rowH, "F");
+          }
+
+          cols.forEach((col, j) => {
+            const raw = row[col.key];
+            const cellVal =
+              raw === null || raw === undefined
+                ? "-"
+                : formatCell(col.key, raw);
+
+            const cellX = marginL + j * colW + 2;
+            const maxChars = Math.floor(colW / 1.9);
+            const display =
+              cellVal.length > maxChars
+                ? cellVal.slice(0, maxChars - 1) + "…"
+                : cellVal;
 
             doc.setFontSize(7);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(50, 50, 50);
-            doc.text(
-              (s.Name || "Unknown").length > 14
-                ? s.Name.slice(0, 13) + "…"
-                : s.Name || "Unknown",
-              cx + 14,
-              y + 6,
-            );
-            doc.setFontSize(5.5);
             doc.setFont("helvetica", "normal");
-            doc.setTextColor(130, 130, 130);
-            doc.text(s.Degree_Name || "-", cx + 14, y + 10);
-            doc.setFontSize(6);
+
+            // colour-code status columns
+            if (col.key === "Is_Active") {
+              const isActive = raw === 1;
+              doc.setTextColor(...(isActive ? [16, 185, 129] : [239, 68, 68]));
+              doc.setFont("helvetica", "bold");
+            } else if (col.key === "Status") {
+              const c = STATUS_COLORS[raw] || [100, 100, 100];
+              doc.setTextColor(...c);
+              doc.setFont("helvetica", "bold");
+            } else {
+              doc.setTextColor(50, 50, 50);
+            }
+
+            doc.text(display, cellX, y + 5.5);
+          });
+
+          // thin divider line
+          doc.setDrawColor(220, 230, 220);
+          doc.setLineWidth(0.1);
+          doc.line(marginL, y + rowH, marginL + tableW, y + rowH);
+
+          y += rowH;
+        });
+
+        return y + 6;
+      };
+
+      // ── iterate sections ────────────────────────────────────
+      for (const section of SECTIONS) {
+        if (!selected[section.id] || !data[section.id]) continue;
+        try {
+          const sData = data[section.id];
+          const activeCols = section.columns.filter(
+            (c) => colState[section.id][c.key],
+          );
+          const rgb = section.rgb;
+          const hexColor = section.color;
+
+          if (!firstPage) doc.addPage();
+          drawHeader(section.label);
+          firstPage = false;
+          let y = 47;
+
+          // section title bar
+          y = drawSectionTitle(section.label + " — Detailed Report", y, rgb);
+          y += 2;
+
+          // summary stat cards
+          if (sData.summary?.length) {
+            y = drawSummaryCards(sData.summary, y, rgb);
+            y += 2;
+          }
+
+          // charts — bigger donut (radius 30), taller bar zone (52mm), total height 70mm
+          if (
+            sData.chartData &&
+            (sData.chartData.donut?.length || sData.chartData.bars?.length)
+          ) {
+            // light background panel behind the whole chart row
+            doc.setFillColor(249, 252, 249);
+            doc.roundedRect(10, y, pw - 20, 80, 2, 2, "F");
+            doc.setDrawColor(220, 235, 220);
+            doc.setLineWidth(0.2);
+            doc.roundedRect(10, y, pw - 20, 80, 2, 2, "S");
+
+            const chartTop = y + 4; // 4mm inner padding
+            const halfW = (pw - 26) / 2;
+
+            // ── Left panel: donut ──────────────────────────────
+            doc.setFontSize(7.5);
             doc.setFont("helvetica", "bold");
-            doc.setTextColor(99, 102, 241);
-            doc.text(`${s.days_since_joined}d`, cx + cw2 - 10, y + 7.5, {
+            doc.setTextColor(...rgb);
+            doc.text("Status Distribution", 12 + halfW / 2, chartTop + 3, {
               align: "center",
             });
-          });
-          if (d.students.length % cols !== 0) y += 16;
-          y += 16;
-        }
-      }
 
-      // ── 4. MOST COMPLAINED STUDENTS ───────────────────────────
-      if (selected.complained && data.complained) {
-        if (y > ph - 70) {
-          doc.addPage();
-          y = 20;
-        }
-        const d = data.complained;
-        y = sectionTitle(
-          doc,
-          "Most Complained-About Students",
-          y,
-          [239, 68, 68],
-        );
+            if (sData.chartData.donut?.length) {
+              // bigger donut: radius 30 → drawn at centre (12 + halfW*0.38, chartTop+37)
+              const donutCX = 12 + halfW * 0.38;
+              const donutCY = chartTop + 40;
+              drawDonutChart(sData.chartData.donut, donutCX, donutCY, 34, doc);
 
-        d.students?.slice(0, 10).forEach((s, i) => {
-          if (y > ph - 22) {
-            doc.addPage();
-            y = 20;
-          }
-          const isTop3 = i < 3;
-          const bgR = isTop3 ? 254 : 249;
-          const bgG = isTop3 ? 242 : 245;
-          const bgB = isTop3 ? 242 : 245;
-          doc.setFillColor(bgR, bgG, bgB);
-          doc.roundedRect(10, y, pw - 20, 18, 1.5, 1.5, "F");
-          if (isTop3) {
-            doc.setDrawColor(239, 68, 68);
+              // legend — vertically centred next to donut
+              const legX = 12 + halfW * 0.66;
+              const legStartY = chartTop + 22;
+              sData.chartData.donut.forEach((s, i) => {
+                const ly = legStartY + i * 12;
+                doc.setFillColor(s.color);
+                doc.roundedRect(legX, ly, 4, 4, 0.5, 0.5, "F");
+                doc.setFontSize(7.5);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(50, 50, 50);
+                doc.text(`${s.label}`, legX + 6, ly + 3.2);
+                doc.setFontSize(9);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(...rgb);
+                doc.text(`${s.value}`, legX + 6, ly + 9);
+              });
+            }
+
+            // vertical divider between panels
+            doc.setDrawColor(220, 235, 220);
+            doc.setLineWidth(0.3);
+            doc.line(14 + halfW, chartTop + 2, 14 + halfW, chartTop + 74);
+
+            // ── Right panel: bar chart ─────────────────────────
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(...rgb);
+            doc.text("Monthly Trend", 16 + halfW + halfW / 2, chartTop + 3, {
+              align: "center",
+            });
+
+            if (sData.chartData.bars?.length) {
+              // taller bar area so value numbers at top are clearly readable
+              drawBarChart(
+                sData.chartData.bars,
+                16 + halfW,
+                chartTop + 8,
+                halfW - 4,
+                64, // 64mm tall — matches taller panel
+                hexColor,
+                doc,
+              );
+            }
+
+            y = y + 84; // 80mm panel + 4mm gap
+
+            // divider before table
+            doc.setDrawColor(210, 228, 210);
             doc.setLineWidth(0.4);
-            doc.roundedRect(10, y, pw - 20, 18, 1.5, 1.5, "S");
+            doc.line(10, y, pw - 10, y);
+            y += 6;
           }
 
-          // Rank badge
-          const rankColor =
-            i === 0
-              ? [239, 68, 68]
-              : i === 1
-                ? [249, 115, 22]
-                : i === 2
-                  ? [245, 158, 11]
-                  : [156, 163, 175];
-          doc.setFillColor(...rankColor);
-          doc.roundedRect(13, y + 4, 10, 10, 1, 1, "F");
+          // table — add new page if less than 50mm left on current page
+          if (y > ph - 50) {
+            doc.addPage();
+            drawHeader(section.label);
+            y = 47;
+          }
+
           doc.setFontSize(8);
           doc.setFont("helvetica", "bold");
-          doc.setTextColor(255, 255, 255);
-          doc.text(`#${i + 1}`, 18, y + 10.5, { align: "center" });
-
-          // Avatar
-          doc.setFillColor(200, 200, 200);
-          doc.circle(32, y + 9, 6, "F");
-          doc.setFontSize(7);
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(255, 255, 255);
-          doc.text((s.Name?.charAt(0) || "?").toUpperCase(), 32, y + 10.8, {
-            align: "center",
-          });
-
-          // Name + degree
-          doc.setFontSize(9);
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(30, 30, 30);
-          doc.text(s.Name || "Unknown", 42, y + 8);
-          doc.setFontSize(6.5);
-          doc.setFont("helvetica", "normal");
-          doc.setTextColor(120, 120, 120);
+          doc.setTextColor(...rgb);
           doc.text(
-            (s.Degree_Name || "-") +
-              (s.is_Active === 0 ? " · BLOCKED ACCOUNT" : ""),
-            42,
-            y + 13,
+            `${section.label} Records — ${sData.rows?.length || 0} total · ${activeCols.length} columns selected`,
+            10,
+            y,
           );
+          y += 5;
 
-          // Stats on the right
-          const stats = [
-            {
-              label: "Complaints",
-              val: s.total_complaints,
-              color: [239, 68, 68],
-            },
-            { label: "Resolved", val: s.resolved, color: [16, 185, 129] },
-            { label: "Pending", val: s.pending, color: [245, 158, 11] },
-            {
-              label: "Blocked Content",
-              val: s.blocked_content_count,
-              color: [99, 102, 241],
-            },
-          ];
-          stats.forEach(({ label, val, color }, si) => {
-            const sx = pw - 15 - (3 - si) * 38;
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(...color);
-            doc.text(String(val || 0), sx, y + 9, { align: "center" });
-            doc.setFontSize(5.5);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(150, 150, 150);
-            doc.text(label, sx, y + 13.5, { align: "center" });
-          });
-          y += 21;
-        });
+          // data table
+          y = drawDataTable(sData.rows || [], activeCols, y);
+        } catch (sectionErr) {
+          console.error(`PDF section ${section.id} failed:`, sectionErr);
+        }
       }
 
-      // ── 5. CONTENT BLOCK INDEX ────────────────────────────────
-      if (selected.blockIndex && data.blockIndex) {
-        if (y > ph - 80) {
-          doc.addPage();
-          y = 20;
-        }
-        const d = data.blockIndex;
-        y = sectionTitle(
-          doc,
-          "Content Block Index — Subject & Degree Quality Analysis",
-          y,
-          [139, 92, 246],
-        );
-
-        // By Degree — horizontal bar chart
-        doc.setFontSize(8);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(80, 80, 80);
-        doc.text("Block Rate by Degree", 12, y + 1);
-        y += 5;
-
-        const maxDegRate = Math.max(
-          ...(d.byDegree?.map((r) => r.overall_block_rate_pct) || [1]),
-          1,
-        );
-        d.byDegree?.forEach((row, i) => {
-          if (y > ph - 16) {
-            doc.addPage();
-            y = 20;
-          }
-          const barW = Math.max(
-            (row.overall_block_rate_pct / maxDegRate) * (pw - 80),
-            1,
-          );
-          const intensity = row.overall_block_rate_pct / 100;
-          const r = Math.round(139 + (239 - 139) * intensity);
-          const g = Math.round(92 + (68 - 92) * intensity);
-          const b = Math.round(246 + (68 - 246) * intensity);
-
-          doc.setFontSize(7);
-          doc.setFont("helvetica", "normal");
-          doc.setTextColor(60, 60, 60);
-          const degLabel =
-            (row.Degree_Name || "").length > 22
-              ? row.Degree_Name.slice(0, 21) + "…"
-              : row.Degree_Name || "-";
-          doc.text(degLabel, 12, y + 4.5);
-          doc.setFillColor(240, 240, 240);
-          doc.roundedRect(58, y + 1, pw - 80, 5, 1, 1, "F");
-          doc.setFillColor(r, g, b);
-          doc.roundedRect(58, y + 1, barW, 5, 1, 1, "F");
-          doc.setFontSize(6.5);
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(r, g, b);
-          doc.text(`${row.overall_block_rate_pct}%`, pw - 18, y + 5, {
-            align: "right",
-          });
-          doc.setFontSize(5.5);
-          doc.setFont("helvetica", "normal");
-          doc.setTextColor(160, 160, 160);
-          doc.text(
-            `${row.total_content} total · ${row.total_blocked} blocked`,
-            pw - 18,
-            y + 9,
-            { align: "right" },
-          );
-          y += 11;
-        });
-
-        // By Subject — top 8 cards
-        if (y > ph - 60) {
-          doc.addPage();
-          y = 20;
-        }
-        doc.setFontSize(8);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(80, 80, 80);
-        doc.text("Highest Block Rate Subjects", 12, y + 1);
-        y += 7;
-
-        const top8 = d.bySubject?.slice(0, 8) || [];
-        const scw = (pw - 26) / 4;
-        top8.forEach((s, i) => {
-          if (y > ph - 22) {
-            doc.addPage();
-            y = 20;
-          }
-          const col = i % 4;
-          if (col === 0 && i > 0) y += 22;
-          const cx = 12 + col * (scw + 2);
-          const pct = s.block_rate_pct;
-          const cardR = pct > 30 ? 254 : pct > 15 ? 255 : 245;
-          const cardG = pct > 30 ? 226 : pct > 15 ? 243 : 243;
-          const cardB = pct > 30 ? 226 : pct > 15 ? 199 : 255;
-          doc.setFillColor(cardR, cardG, cardB);
-          doc.roundedRect(cx, y, scw, 20, 2, 2, "F");
-          doc.setFontSize(13);
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(
-            pct > 30 ? 185 : pct > 15 ? 161 : 109,
-            pct > 30 ? 28 : pct > 15 ? 80 : 40,
-            pct > 30 ? 28 : pct > 15 ? 11 : 217,
-          );
-          doc.text(`${pct}%`, cx + scw / 2, y + 9, { align: "center" });
-          doc.setFontSize(5.5);
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(80, 80, 80);
-          const subLabel =
-            (s.Subject_Name || "").length > 16
-              ? s.Subject_Name.slice(0, 15) + "…"
-              : s.Subject_Name || "-";
-          doc.text(subLabel, cx + scw / 2, y + 13.5, { align: "center" });
-          doc.setFontSize(5);
-          doc.setFont("helvetica", "normal");
-          doc.setTextColor(150, 150, 150);
-          doc.text(
-            `${s.total_notes} notes · ${s.blocked_notes} blocked`,
-            cx + scw / 2,
-            y + 17.5,
-            { align: "center" },
-          );
-        });
-        if (top8.length % 4 !== 0) y += 22;
-        y += 22;
-      }
-
-      addFooter();
-      doc.save(`IdeaGroove_Intelligence_Report_${Date.now()}.pdf`);
+      drawFooter();
+      doc.save(
+        `IdeaGroove_Report_${new Date().toISOString().slice(0, 10)}.pdf`,
+      );
     } catch (err) {
       console.error("PDF generation failed:", err);
     } finally {
@@ -1118,16 +890,15 @@ const AdminReportBuilder = () => {
     }
   };
 
+  // ─── Render ─────────────────────────────────────────────────────────────
   return (
-    <section className="flex flex-col gap-6 relative min-h-screen">
-      {/* ── Header row: title + export button (mirrors AdminDash pattern) ── */}
+    <section className="flex flex-col gap-6 relative min-h-screen pb-28">
+      {/* Header row */}
       <div className="flex justify-between items-center">
         <AdminPageHeader
           title="Report Builder"
-          subtitle="Select sections, preview live data, generate a custom PDF"
+          subtitle="Select sections · customize columns · generate a PDF"
         />
-
-        {/* Export button — same style as ReportGeneration.jsx */}
         <button
           onClick={generatePDF}
           disabled={selectedCount === 0 || generating}
@@ -1167,42 +938,50 @@ const AdminReportBuilder = () => {
           />
         </div>
         <span className="text-xs font-bold text-gray-400 w-20 text-right">
-          {selectedCount}/{SECTIONS.length} selected
+          {selectedCount}/{SECTIONS.length} sections
         </span>
       </div>
 
       {/* Section cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {SECTIONS.map((section) => {
           const isOn = !!selected[section.id];
-          const isLoad = loading[section.id];
+          const isLoad = !!loading[section.id];
           const hasData = !!data[section.id];
+          const isExp = !!expanded[section.id];
           const Icon = section.icon;
-          const Preview = PREVIEW_MAP[section.id];
+          const activeColCount = section.columns.filter(
+            (c) => colState[section.id][c.key],
+          ).length;
 
           return (
             <div
               key={section.id}
-              className={`relative rounded-2xl border-2 transition-all duration-300 overflow-hidden bg-white
+              className={`rounded-2xl border-2 transition-all duration-300 overflow-hidden bg-white
                 ${
                   isOn
                     ? `${section.border} shadow-lg`
                     : "border-gray-100 shadow-sm hover:border-gray-200 hover:shadow-md"
                 }`}
             >
-              {/* Card header */}
-              <div className={`p-4 bg-gradient-to-r ${section.bg}`}>
-                <div className="flex items-start justify-between">
+              {/* ── Card header gradient strip ── */}
+              <div className={`bg-gradient-to-r ${section.bg} p-4`}>
+                <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
+                    {/* Icon */}
                     <div
-                      className="w-9 h-9 rounded-xl flex items-center justify-center"
-                      style={{ backgroundColor: section.color + "20" }}
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{
+                        backgroundColor: section.color + "18",
+                        border: `1.5px solid ${section.color}30`,
+                      }}
                     >
-                      <Icon size={18} style={{ color: section.color }} />
+                      <Icon size={19} style={{ color: section.color }} />
                     </div>
+                    {/* Title + tags */}
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-black text-gray-800 text-sm">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-black text-gray-800 text-sm tracking-tight">
                           {section.label}
                         </h3>
                         <span
@@ -1210,95 +989,147 @@ const AdminReportBuilder = () => {
                         >
                           {section.tag}
                         </span>
+                        {isOn && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-white/70 text-gray-500 border border-gray-200">
+                            {activeColCount}/{section.columns.length} cols
+                          </span>
+                        )}
                       </div>
-                      <p className="text-[11px] text-gray-500 mt-0.5">
+                      <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
                         {section.desc}
                       </p>
                     </div>
                   </div>
 
-                  {/* Toggle */}
+                  {/* Toggle switch */}
                   <button
                     onClick={() => toggleSection(section)}
-                    className={`relative w-11 h-6 rounded-full transition-all duration-300 flex-shrink-0 ml-2
-                      ${isOn ? "bg-[#1B431C]" : "bg-gray-200"}`}
+                    className={`relative w-12 h-6 rounded-full transition-all duration-300 flex-shrink-0 mt-0.5
+                      ${isOn ? "bg-[#1B431C]" : "bg-gray-200 hover:bg-gray-300"}`}
+                    aria-label={`Toggle ${section.label}`}
                   >
                     <div
-                      className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all duration-300
-                      ${isOn ? "left-5.5 translate-x-0.5" : "left-0.5"}`}
+                      className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300"
                       style={{ left: isOn ? "calc(100% - 22px)" : "2px" }}
                     />
                   </button>
                 </div>
-
-                {/* Config options */}
-                {section.hasConfig && isOn && (
-                  <div className="mt-3 flex items-center gap-2">
-                    <Settings2
-                      size={11}
-                      className="text-gray-400 flex-shrink-0"
-                    />
-                    <span className="text-[10px] font-bold text-gray-500">
-                      {section.configLabel}:
-                    </span>
-                    <div className="flex gap-1">
-                      {section.configOptions.map((opt) => (
-                        <button
-                          key={opt}
-                          onClick={() =>
-                            handleConfigChange(section.configKey, opt, section)
-                          }
-                          className={`text-[9px] font-black px-2 py-0.5 rounded-md transition-all
-                            ${
-                              configs[section.configKey] === opt
-                                ? "bg-[#1B431C] text-white"
-                                : "bg-white/60 text-gray-500 hover:bg-white"
-                            }`}
-                        >
-                          {opt}d
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
 
-              {/* Live preview */}
-              {isOn && (
-                <div className="border-t border-gray-100">
-                  <div className="flex items-center justify-between px-4 py-2 bg-gray-50/50">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                      Live Preview
-                    </span>
-                    {isLoad ? (
-                      <div className="flex items-center gap-1 text-[10px] text-gray-400">
-                        <Loader2 size={10} className="animate-spin" />
-                        Loading…
-                      </div>
-                    ) : hasData ? (
-                      <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold">
-                        <Zap size={10} />
-                        Live data
-                      </div>
-                    ) : null}
-                  </div>
-                  <div className="min-h-[120px]">
-                    {isLoad ? (
-                      <SkeletonPreview />
-                    ) : (
-                      <Preview data={data[section.id]} />
-                    )}
-                  </div>
+              {/* ── Inactive hint ── */}
+              {!isOn && (
+                <div className="px-4 py-3 flex items-center gap-2 text-gray-300 border-t border-gray-50">
+                  <EyeOff size={13} />
+                  <span className="text-xs">
+                    Toggle to preview live data & include in PDF
+                  </span>
                 </div>
               )}
 
-              {/* Disabled state overlay hint */}
-              {!isOn && (
-                <div className="p-4 flex items-center gap-2 text-gray-300">
-                  <EyeOff size={14} />
-                  <span className="text-xs">
-                    Toggle to preview & include in PDF
-                  </span>
+              {/* ── Active section body ── */}
+              {isOn && (
+                <div className="border-t border-gray-100 divide-y divide-gray-50">
+                  {/* Column selector */}
+                  <div className="px-4 pt-3 pb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <Columns size={11} className="text-gray-400" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                          PDF Columns
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => toggleAllCols(section.id, section)}
+                        className="text-[9px] font-bold text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        {section.columns.every(
+                          (c) => colState[section.id][c.key],
+                        )
+                          ? "Deselect all"
+                          : "Select all"}
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {section.columns.map((col) => (
+                        <ColChip
+                          key={col.key}
+                          col={col}
+                          active={colState[section.id][col.key]}
+                          onToggle={() => toggleCol(section.id, col.key)}
+                          color={section.color}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Live preview */}
+                  <div>
+                    <div className="flex items-center justify-between px-4 py-2 bg-gray-50/50">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                          Live Preview
+                        </span>
+                        {isLoad && (
+                          <span className="flex items-center gap-1 text-[10px] text-gray-400">
+                            <Loader2 size={9} className="animate-spin" />{" "}
+                            Loading…
+                          </span>
+                        )}
+                        {!isLoad && hasData && (
+                          <span className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold">
+                            <Zap size={9} /> Live data
+                          </span>
+                        )}
+                      </div>
+                      {hasData && data[section.id]?.rows?.length > 0 && (
+                        <button
+                          onClick={() =>
+                            setExpanded((p) => ({
+                              ...p,
+                              [section.id]: !p[section.id],
+                            }))
+                          }
+                          className="flex items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          {isExp ? (
+                            <>
+                              <ChevronUp size={10} /> Hide rows
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown size={10} /> Sample rows
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    {isLoad ? (
+                      <div className="p-4 space-y-2">
+                        {[100, 80, 90].map((w, i) => (
+                          <div
+                            key={i}
+                            className="h-2.5 bg-gray-100 rounded animate-pulse"
+                            style={{ width: `${w}%` }}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <SectionPreview
+                        section={section}
+                        sData={data[section.id]}
+                      />
+                    )}
+
+                    {/* Expandable sample rows */}
+                    {isExp && hasData && (
+                      <SampleTable
+                        section={section}
+                        rows={data[section.id]?.rows}
+                        colState={colState[section.id]}
+                      />
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -1307,7 +1138,7 @@ const AdminReportBuilder = () => {
 
         {/* Empty state */}
         {selectedCount === 0 && (
-          <div className="lg:col-span-2 xl:col-span-3 flex flex-col items-center justify-center py-12 text-center">
+          <div className="lg:col-span-2 flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
               <Sparkles size={24} className="text-gray-300" />
             </div>
@@ -1315,48 +1146,12 @@ const AdminReportBuilder = () => {
               Toggle sections above to build your report
             </p>
             <p className="text-gray-300 text-xs mt-1">
-              Each section loads live data and shows a preview
+              Each section loads live data · choose which columns appear in the
+              PDF
             </p>
           </div>
         )}
       </div>
-
-      {/* Sticky bottom bar when sections selected */}
-      {selectedCount > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-          <div className="flex items-center gap-4 bg-[#1B431C] text-white px-6 py-3.5 rounded-2xl shadow-2xl shadow-green-900/40">
-            <div className="flex items-center gap-2">
-              <ActivitySquare size={16} className="text-emerald-300" />
-              <span className="text-sm font-bold">
-                {selectedCount} section{selectedCount > 1 ? "s" : ""} ready
-              </span>
-            </div>
-            <div className="w-px h-5 bg-white/20" />
-            <div className="flex gap-1">
-              {SECTIONS.filter((s) => selected[s.id]).map((s) => (
-                <div
-                  key={s.id}
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: s.color }}
-                />
-              ))}
-            </div>
-            <div className="w-px h-5 bg-white/20" />
-            <button
-              onClick={generatePDF}
-              disabled={generating}
-              className="flex items-center gap-1.5 bg-white text-[#1B431C] font-black text-sm px-4 py-1.5 rounded-xl hover:bg-emerald-50 transition-all disabled:opacity-60"
-            >
-              {generating ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                <Download size={14} />
-              )}
-              {generating ? "Generating…" : "Export PDF"}
-            </button>
-          </div>
-        </div>
-      )}
     </section>
   );
 };
