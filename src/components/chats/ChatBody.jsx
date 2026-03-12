@@ -54,6 +54,34 @@ const DateDivider = ({ label }) => (
   </div>
 );
 
+const getMemberDisplayName = (room, studentId) => {
+  if (!room || !studentId) return null;
+  const member = room.Members?.find(
+    (item) => String(item.Student_ID) === String(studentId),
+  );
+  return member?.name || member?.username || null;
+};
+
+const getTypingLabel = (room, typers) => {
+  if (!typers.length) return "";
+
+  const names = [
+    ...new Set(
+      typers.map((id) => getMemberDisplayName(room, id)).filter(Boolean),
+    ),
+  ];
+
+  if (names.length === 0) {
+    return typers.length === 1
+      ? "Someone is typing..."
+      : "Multiple people are typing...";
+  }
+
+  if (names.length === 1) return `${names[0]} is typing...`;
+  if (names.length === 2) return `${names[0]} and ${names[1]} are typing...`;
+  return `${names[0]} and ${names.length - 1} others are typing...`;
+};
+
 // ✅ Opens PDF via Google Docs viewer — prevents auto-download
 // and shows the PDF inline in the browser tab
 const getPdfViewUrl = (url) => {
@@ -120,7 +148,7 @@ const ChatBody = ({
   activeRoom = null,
   currentUserId,
   typingUsers = {},
-  loadMore,
+  _loadMore,
   editMessage,
   deleteMessageSocket,
 }) => {
@@ -147,6 +175,7 @@ const ChatBody = ({
         (id) => String(id) !== String(currentUserId),
       )
     : [];
+  const typingLabel = getTypingLabel(activeRoom, roomTypers);
 
   useEffect(() => {
     if (!containRef.current) return;
@@ -393,7 +422,9 @@ const ChatBody = ({
                       </div>
                     </div>
                   ) : (
-                    <span className="wrap-break-word">{msg.Message_Text}</span>
+                    <span className="whitespace-pre-wrap wrap-break-word">
+                      {msg.Message_Text}
+                    </span>
                   )}
 
                   {!isEditing && (
@@ -436,11 +467,7 @@ const ChatBody = ({
                 <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:150ms]" />
                 <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:300ms]" />
               </span>
-              <span className="text-xs opacity-70">
-                {roomTypers.length === 1
-                  ? "Someone is typing..."
-                  : "Multiple people are typing..."}
-              </span>
+              <span className="text-xs opacity-70">{typingLabel}</span>
             </div>
           </div>
         )}

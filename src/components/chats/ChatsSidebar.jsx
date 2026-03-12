@@ -7,6 +7,7 @@ const ChatsSidebar = ({
   activeRoom,
   rooms,
   roomsStatus,
+  typingUsers,
   unreadCounts,
   onlineUsers,
   currentUserId,
@@ -75,6 +76,7 @@ const ChatsSidebar = ({
         activeRoom={activeRoom}
         rooms={rooms}
         roomsStatus={roomsStatus}
+        typingUsers={typingUsers}
         unreadCounts={unreadCounts}
         onlineUsers={onlineUsers}
         currentUserId={currentUserId}

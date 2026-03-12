@@ -22,7 +22,14 @@ import {
 } from "../../redux/slice/chatRoomsSlice";
 import { ConfirmationBox } from "../common/ConfirmationBox";
 
-const GroupCard = ({ group, onEdit, onDeleteSuccess }) => {
+const GroupCard = ({
+  group,
+  onEdit,
+  onDeleteSuccess,
+  ownerLabel,
+  dateLabel,
+  dateValue,
+}) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const isAuth = !!user;
@@ -36,10 +43,12 @@ const GroupCard = ({ group, onEdit, onDeleteSuccess }) => {
   const [isLeaving, setIsLeaving] = useState(false);
 
   const currentUserId = user?.id || user?.S_ID;
-  const isOwner = group.Created_By === currentUserId;
+  const isOwner = Number(group.Created_By) === Number(currentUserId);
 
   const isMember = Array.isArray(group.Members)
-    ? group.Members.some((m) => m.Student_ID === currentUserId)
+    ? group.Members.some(
+        (m) => Number(m.Student_ID) === Number(currentUserId),
+      )
     : false;
 
   const formattedDate = group.Created_On
@@ -49,6 +58,13 @@ const GroupCard = ({ group, onEdit, onDeleteSuccess }) => {
         year: "numeric",
       })
     : "Recently created";
+  const secondaryDate = dateValue
+    ? new Date(dateValue).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : formattedDate;
 
   /* =================== DELETE =================== */
   const handleDelete = async () => {
@@ -124,7 +140,9 @@ const GroupCard = ({ group, onEdit, onDeleteSuccess }) => {
 
           <div className="space-y-2.5 mb-3">
             <div className="flex items-center gap-1.5 text-gray-800 text-sm">
-              <span className="font-medium">Admin : {group.Creator_Name}</span>
+              <span className="font-medium">
+                {ownerLabel || `Admin : ${group.Creator_Name}`}
+              </span>
             </div>
 
             <div className="flex items-center gap-1.5 text-gray-400 text-sm">
@@ -134,7 +152,7 @@ const GroupCard = ({ group, onEdit, onDeleteSuccess }) => {
 
             <div className="flex items-center gap-1.5 text-gray-400 text-xs">
               <Info className="w-3.5 h-3.5" />
-              <span>Created on {formattedDate}</span>
+              <span>{dateLabel || "Created on"} {secondaryDate}</span>
             </div>
           </div>
 

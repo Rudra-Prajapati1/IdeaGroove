@@ -12,6 +12,8 @@ const messagesAdapter = createEntityAdapter({
   sortComparer: (a, b) => new Date(a.Sent_On) - new Date(b.Sent_On),
 });
 
+const DELETED_MESSAGE_PREVIEW = "Message deleted";
+
 /* ─── Initial State ──────────────────────────────────────────────────────── */
 const initialState = {
   messages: messagesAdapter.getInitialState(),
@@ -32,7 +34,9 @@ const getLastMessagePreview = (room, currentUserId) => {
   if (!room) return "";
 
   const preview =
-    room.Last_Type && room.Last_Type !== "text"
+    room.Last_Is_Deleted
+      ? DELETED_MESSAGE_PREVIEW
+      : room.Last_Type && room.Last_Type !== "text"
       ? `Sent a ${room.Last_Type}`
       : room.Last_Message_Raw || room.Last_Message || "";
 
@@ -52,18 +56,24 @@ const getLastMessagePreview = (room, currentUserId) => {
 
 const hydrateRoomPreview = (room, currentUserId) => ({
   ...room,
-  Last_Message_Raw: room.Last_Message_Raw || room.Last_Message || "",
+  Last_Is_Deleted: room.Last_Is_Deleted ? 1 : 0,
+  Last_Is_Seen: room.Last_Is_Seen ? 1 : 0,
+  Last_Message_Raw: room.Last_Is_Deleted
+    ? DELETED_MESSAGE_PREVIEW
+    : room.Last_Message_Raw || room.Last_Message || "",
   Last_Message: getLastMessagePreview(room, currentUserId),
 });
 
 const syncRoomPreviewFromMessages = (state, roomId) => {
-  const roomIndex = state.rooms.findIndex((room) => room.Room_ID === Number(roomId));
+  const roomIndex = state.rooms.findIndex(
+    (room) => room.Room_ID === Number(roomId),
+  );
   if (roomIndex === -1) return;
 
   const roomMessages = messagesAdapter
     .getSelectors()
     .selectAll(state.messages)
-    .filter((message) => message.Room_ID === Number(roomId) && !message.Is_Deleted);
+    .filter((message) => message.Room_ID === Number(roomId));
 
   const lastMessage = roomMessages[roomMessages.length - 1];
 
@@ -78,6 +88,8 @@ const syncRoomPreviewFromMessages = (state, roomId) => {
         Last_Sender_ID: null,
         Last_Sender_Name: null,
         Last_Sender_Username: null,
+        Last_Is_Deleted: 0,
+        Last_Is_Seen: 0,
       },
       state.currentUserId,
     );
@@ -87,13 +99,19 @@ const syncRoomPreviewFromMessages = (state, roomId) => {
   state.rooms[roomIndex] = hydrateRoomPreview(
     {
       ...state.rooms[roomIndex],
-      Last_Message: lastMessage.Message_Text || "",
-      Last_Message_Raw: lastMessage.Message_Text || "",
+      Last_Message: lastMessage.Is_Deleted
+        ? DELETED_MESSAGE_PREVIEW
+        : lastMessage.Message_Text || "",
+      Last_Message_Raw: lastMessage.Is_Deleted
+        ? DELETED_MESSAGE_PREVIEW
+        : lastMessage.Message_Text || "",
       Last_Type: lastMessage.Message_Type,
       Last_Message_At: lastMessage.Sent_On,
       Last_Sender_ID: lastMessage.Sender_ID,
       Last_Sender_Name: lastMessage.Sender_Name || null,
       Last_Sender_Username: lastMessage.Sender_Username || null,
+      Last_Is_Deleted: lastMessage.Is_Deleted ? 1 : 0,
+      Last_Is_Seen: lastMessage.Is_Seen ? 1 : 0,
     },
     state.currentUserId,
   );
@@ -148,6 +166,7 @@ const chatsSlice = createSlice({
 
       messagesAdapter.removeMany(state.messages, oldIds);
       messagesAdapter.upsertMany(state.messages, messages);
+      syncRoomPreviewFromMessages(state, roomId);
       state.status = "succeeded";
     },
 
@@ -162,13 +181,19 @@ const chatsSlice = createSlice({
       if (roomIndex !== -1) {
         const nextRoom = {
           ...state.rooms[roomIndex],
-          Last_Message: message.Message_Text,
-          Last_Message_Raw: message.Message_Text || "",
+          Last_Message: message.Is_Deleted
+            ? DELETED_MESSAGE_PREVIEW
+            : message.Message_Text,
+          Last_Message_Raw: message.Is_Deleted
+            ? DELETED_MESSAGE_PREVIEW
+            : message.Message_Text || "",
           Last_Type: message.Message_Type,
           Last_Message_At: message.Sent_On,
           Last_Sender_ID: message.Sender_ID,
           Last_Sender_Name: message.Sender_Name || null,
           Last_Sender_Username: message.Sender_Username || null,
+          Last_Is_Deleted: message.Is_Deleted ? 1 : 0,
+          Last_Is_Seen: message.Is_Seen ? 1 : 0,
         };
         state.rooms[roomIndex] = hydrateRoomPreview(
           nextRoom,
@@ -234,6 +259,7 @@ const chatsSlice = createSlice({
         .filter((m) => m.Room_ID === Number(roomId) && m.Sender_ID !== seenBy)
         .map((m) => ({ id: m.Message_ID, changes: { Is_Seen: 1 } }));
       messagesAdapter.updateMany(state.messages, updates);
+      syncRoomPreviewFromMessages(state, roomId);
     },
 
     updateMessage: (state, action) => {

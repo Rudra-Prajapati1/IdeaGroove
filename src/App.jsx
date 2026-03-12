@@ -5,6 +5,11 @@ import {
   selectDegreeSubjectStatus,
 } from "../src/redux/slice/degreeSubjectSlice";
 import { useSelector, useDispatch } from "react-redux";
+import {
+  restoreSession,
+  selectAuthSessionChecked,
+  selectUser,
+} from "./redux/slice/authSlice";
 
 import UserLayout from "./layouts/UserLayout";
 import AdminLayout from "./layouts/AdminLayout";
@@ -27,12 +32,20 @@ function ScrollToTop() {
 const App = () => {
   const dispatch = useDispatch();
   const degreeStatus = useSelector(selectDegreeSubjectStatus);
+  const currentUser = useSelector(selectUser);
+  const authSessionChecked = useSelector(selectAuthSessionChecked);
 
   useEffect(() => {
     if (degreeStatus === "idle") {
       dispatch(fetchDegreeSubject());
     }
   }, [degreeStatus, dispatch]);
+
+  useEffect(() => {
+    if (currentUser && !authSessionChecked) {
+      dispatch(restoreSession());
+    }
+  }, [currentUser, authSessionChecked, dispatch]);
 
   return (
     <>

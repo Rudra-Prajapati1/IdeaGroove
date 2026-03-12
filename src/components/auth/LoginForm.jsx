@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   login,
+  selectAuthSessionChecked,
   selectAuthLoading,
   selectIsAuthenticated,
 } from "../../redux/slice/authSlice";
@@ -14,6 +15,7 @@ const LoginForm = ({ onSignup }) => {
   const navigate = useNavigate();
 
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const sessionChecked = useSelector(selectAuthSessionChecked);
   const loading = useSelector(selectAuthLoading);
 
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -24,12 +26,12 @@ const LoginForm = ({ onSignup }) => {
   const toastShown = useRef(false);
 
   useEffect(() => {
-    if (isAuthenticated && !toastShown.current) {
+    if (sessionChecked && isAuthenticated && !toastShown.current) {
       toast.success("Welcome back!");
       toastShown.current = true;
       navigate("/dashboard");
     }
-  }, [isAuthenticated, navigate]);
+  }, [sessionChecked, isAuthenticated, navigate]);
 
   const handleLogin = (e) => {
     e.preventDefault();

@@ -260,6 +260,12 @@ const groupsSlice = createSlice({
       /* DELETE */
       .addCase(deleteGroup.fulfilled, (state, action) => {
         groupsAdapter.removeOne(state, action.payload.Room_ID);
+        state.userGroups = state.userGroups.filter(
+          (group) => group.Room_ID !== action.payload.Room_ID,
+        );
+        state.previewGroups = state.previewGroups.filter(
+          (group) => group.Room_ID !== action.payload.Room_ID,
+        );
       })
 
       /* PREVIEW */

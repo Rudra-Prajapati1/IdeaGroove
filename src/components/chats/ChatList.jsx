@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { CheckCheck } from "lucide-react";
 import Loading from "../common/Loading";
 
 const ChatList = ({
@@ -8,6 +9,7 @@ const ChatList = ({
   activeRoom,
   rooms = [],
   roomsStatus = "idle",
+  typingUsers = {},
   unreadCounts = {},
   onlineUsers = [],
   currentUserId,
@@ -53,6 +55,38 @@ const ChatList = ({
     return name?.[0]?.toUpperCase() || "?";
   };
 
+  const getMemberDisplayName = (room, studentId) => {
+    if (!studentId) return null;
+    const member = room.Members?.find(
+      (m) => String(m.Student_ID) === String(studentId),
+    );
+    return member?.name || member?.username || null;
+  };
+
+  const getTypingLabel = (room) => {
+    const roomTypers = (typingUsers[room.Room_ID] || []).filter(
+      (id) => String(id) !== String(currentUserId),
+    );
+
+    if (roomTypers.length === 0) return "";
+
+    const names = [...new Set(
+      roomTypers
+        .map((id) => getMemberDisplayName(room, id))
+        .filter(Boolean),
+    )];
+
+    if (names.length === 0) {
+      return roomTypers.length === 1
+        ? "Someone is typing..."
+        : "Multiple people are typing...";
+    }
+
+    if (names.length === 1) return `${names[0]} is typing...`;
+    if (names.length === 2) return `${names[0]} and ${names[1]} are typing...`;
+    return `${names[0]} and ${names.length - 1} others are typing...`;
+  };
+
   const isOtherOnline = (room) => {
     if (room.Room_Type !== "direct") return false;
     const other = room.Members?.find(
@@ -89,6 +123,29 @@ const ChatList = ({
         const isActive = activeRoom?.Room_ID === room.Room_ID;
         const unread = unreadCounts[room.Room_ID] || 0;
         const online = isOtherOnline(room);
+        const typingLabel = getTypingLabel(room);
+        const showSeenTick =
+          room.Room_Type === "direct" &&
+          !typingLabel &&
+          String(room.Last_Sender_ID) === String(currentUserId);
+        const tickColor = room.Last_Is_Seen
+          ? isActive
+            ? "text-blue-300"
+            : "text-blue-500"
+          : isActive
+            ? "text-white/70"
+            : "text-gray-400";
+        const previewText =
+          typingLabel ||
+          room.Last_Message ||
+          (room.Room_Type === "group" ? "Group chat" : "Direct message");
+        const previewClass = typingLabel
+          ? isActive
+            ? "text-white/80"
+            : "text-primary/70"
+          : isActive
+            ? "text-white/70"
+            : "text-gray-400";
 
         return (
           <div
@@ -129,14 +186,14 @@ const ChatList = ({
                 )}
               </div>
               <p
-                className={`text-xs truncate ${
-                  isActive ? "text-white/70" : "text-gray-400"
+                className={`text-xs truncate flex items-center gap-1 ${
+                  previewClass
                 }`}
               >
-                {room.Last_Message ||
-                  (room.Room_Type === "group"
-                    ? "Group chat"
-                    : "Direct message")}
+                {showSeenTick && (
+                  <CheckCheck className={`w-3.5 h-3.5 shrink-0 ${tickColor}`} />
+                )}
+                <span className="truncate">{previewText}</span>
               </p>
             </div>
           </div>

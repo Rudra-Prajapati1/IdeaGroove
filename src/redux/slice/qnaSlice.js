@@ -224,6 +224,9 @@ const qnaSlice = createSlice({
         state.previewQnA = state.previewQnA.filter(
           (q) => q.Q_ID !== action.payload.Q_ID,
         );
+        state.userQuestions = state.userQuestions.filter(
+          (q) => q.Q_ID !== action.payload.Q_ID,
+        );
       })
       .addCase(deleteQuestion.rejected, (state, action) => {
         state.deleteStatus = "failed";
