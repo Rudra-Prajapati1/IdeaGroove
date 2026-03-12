@@ -34,17 +34,19 @@ const STYLE_VARIANTS = [
 ];
 
 const NotesSection = ({
-  notes,
-  search,
-  filter,
-  selectedDegree,
-  selectedSubject,
-  onSearchChange,
-  onFilterChange,
-  onDegreeChange,
-  onSubjectChange,
-  isRefetching,
-  onRefetch,
+  notes = [],
+  search = "",
+  filter = "all",
+  selectedDegree = "",
+  selectedSubject = "",
+  onSearchChange = () => {},
+  onFilterChange = () => {},
+  onDegreeChange = () => {},
+  onSubjectChange = () => {},
+  isRefetching = false,
+  onRefetch = () => {},
+  showUploadAction = true,
+  getNoteLabel = null,
 }) => {
   const isAuth = useSelector(selectIsAuthenticated);
   const user = useSelector(selectUser);
@@ -127,13 +129,15 @@ const NotesSection = ({
               "Oldest to Newest": "oldest_to_newest",
             }}
           />
-          <ActionButton
-            label="Upload Notes"
-            icon={Upload}
-            disabled={!isAuth}
-            disabledMessage="Please login to upload notes"
-            onClick={() => setShowAddNotes(true)}
-          />
+          {showUploadAction && (
+            <ActionButton
+              label="Upload Notes"
+              icon={Upload}
+              disabled={!isAuth}
+              disabledMessage="Please login to upload notes"
+              onClick={() => setShowAddNotes(true)}
+            />
+          )}
         </div>
       </div>
 
@@ -208,17 +212,22 @@ const NotesSection = ({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {notes.map((note, index) => (
-                <NotesCard
-                  key={note.N_ID}
-                  note={note}
-                  style={STYLE_VARIANTS[index % STYLE_VARIANTS.length]}
-                  isAuth={isAuth}
-                  currentUserId={user?.S_ID || user?.id}
-                  onEdit={() => setEditing(note)}
-                  onDeleteSuccess={onRefetch}
-                />
-              ))}
+              {notes.map((note, index) => {
+                const noteLabel = getNoteLabel?.(note);
+
+                return (
+                  <NotesCard
+                    key={note.N_ID}
+                    note={note}
+                    style={STYLE_VARIANTS[index % STYLE_VARIANTS.length]}
+                    isAuth={isAuth}
+                    currentUserId={user?.S_ID || user?.id}
+                    onEdit={() => setEditing(note)}
+                    onDeleteSuccess={onRefetch}
+                    authorLabel={noteLabel}
+                  />
+                );
+              })}
             </div>
           )}
         </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MessageSquare, Send, Edit2, Trash2, Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ComplaintButton from "../ComplaintButton";
@@ -9,9 +9,17 @@ import { selectAuth } from "../../redux/slice/authSlice";
 import { ConfirmationBox } from "../common/ConfirmationBox";
 import api from "../../api/axios";
 
-const QnACard = ({ post, isAuth, onEdit, onDelete }) => {
+const QnACard = ({
+  post,
+  isAuth,
+  currentUserId: currentUserIdProp,
+  onEdit,
+  onDelete,
+  authorLabel,
+}) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { user } = useSelector(selectAuth);
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [answerText, setAnswerText] = useState("");
@@ -31,11 +39,18 @@ const QnACard = ({ post, isAuth, onEdit, onDelete }) => {
 
   if (!post) return null;
 
-  const { user } = useSelector(selectAuth);
-  const isOwner = post.Author_Id === user?.id;
+  const currentUserId = currentUserIdProp || user?.id || user?.S_ID;
+  const isOwner = Number(post.Author_Id) === Number(currentUserId);
 
-  // Single source of truth for current user's display name
-  const currentUsername = user?.username || user?.Username || user?.name || "";
+  useEffect(() => {
+    const raw = post?.Answers;
+    if (!raw) {
+      setLocalAnswers([]);
+      return;
+    }
+
+    setLocalAnswers(typeof raw === "string" ? JSON.parse(raw) : raw);
+  }, [post?.Answers]);
 
   const askedDate = post.Added_On
     ? new Date(post.Added_On).toLocaleDateString("en-IN", {
@@ -70,7 +85,7 @@ const QnACard = ({ post, isAuth, onEdit, onDelete }) => {
         createAnswer({
           Answer: answerText,
           Q_ID: post.Q_ID,
-          Answered_By: user.id || user.S_ID,
+          Answered_By: currentUserId,
         }),
       ).unwrap();
 
@@ -180,7 +195,7 @@ const QnACard = ({ post, isAuth, onEdit, onDelete }) => {
                 )}
               </div>
               <span className="text-sm font-semibold text-slate-700">
-                {post.Question_Author}
+                {authorLabel || post.Question_Author}
               </span>
               <span className="text-xs text-slate-400">
                 • Asked on {askedDate || "Just now"}
@@ -255,7 +270,8 @@ const QnACard = ({ post, isAuth, onEdit, onDelete }) => {
             <div className="space-y-4 mb-8">
               {localAnswers.length > 0 ? (
                 localAnswers.map((ans) => {
-                  const isAnswerOwner = ans.Answer_Author === currentUsername;
+                  const isAnswerOwner =
+                    Number(ans.Answered_By) === Number(currentUserId);
                   const isEditingThis = editingAnswerId === ans.A_ID;
 
                   return (

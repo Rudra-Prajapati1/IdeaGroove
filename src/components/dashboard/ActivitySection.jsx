@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import EventCard from "@/components/cards/EventCard";
 import GroupCard from "@/components/cards/GroupCard";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,17 +9,22 @@ import {
   selectUserEventsStatus,
 } from "../../redux/slice/eventsSlice";
 import {
+  fetchUserGroups,
   selectUserGroups,
+  selectUserGroupsError,
   selectUserGroupsStatus,
 } from "../../redux/slice/chatRoomsSlice";
 import {
+  fetchUserQuestions,
   selectUserQuestions,
+  selectUserQuestionsError,
   selectUserQuestionsStatus,
 } from "../../redux/slice/qnaSlice";
 import {
+  fetchUserNotes,
   selectUserNotes,
-  selectUserNotesStatus,
   selectUserNotesError,
+  selectUserNotesStatus,
 } from "../../redux/slice/notesSlice";
 import {
   CalendarDays,
@@ -31,12 +36,14 @@ import {
 } from "lucide-react";
 import DiscussionForum from "./DiscussionForum";
 import NotesSection from "./NotesSection";
-import { selectIsAuthenticated } from "../../redux/slice/authSlice";
+import { selectIsAuthenticated, selectUser } from "../../redux/slice/authSlice";
 import Controls from "../common/Controls";
 import AddEventOverlay from "../events/AddEvent";
 import AddGroupOverlay from "../groups/AddGroup";
 
-const ActivitySection = ({ isPublic }) => {
+const USER_ACTIVITY_LIMIT = 1000;
+
+const ActivitySection = ({ isPublic, userId }) => {
   const dispatch = useDispatch();
 
   const optionList = [
@@ -47,74 +54,192 @@ const ActivitySection = ({ isPublic }) => {
   ];
 
   const [option, setOption] = useState("Events");
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all");
+  const [eventSearch, setEventSearch] = useState("");
+  const [eventFilter, setEventFilter] = useState("all");
+  const [groupSearch, setGroupSearch] = useState("");
+  const [groupFilter, setGroupFilter] = useState("all");
+  const [qnaSearch, setQnaSearch] = useState("");
+  const [qnaFilter, setQnaFilter] = useState("all");
+  const [qnaDegree, setQnaDegree] = useState("");
+  const [qnaSubject, setQnaSubject] = useState("");
+  const [notesSearch, setNotesSearch] = useState("");
+  const [notesFilter, setNotesFilter] = useState("all");
+  const [notesDegree, setNotesDegree] = useState("");
+  const [notesSubject, setNotesSubject] = useState("");
   const [addEvent, setAddEvent] = useState(false);
   const [addGroup, setAddGroup] = useState(false);
 
   const isAuth = useSelector(selectIsAuthenticated);
-
-  /* ================= EVENTS ================= */
+  const currentUser = useSelector(selectUser);
+  const currentUserId = currentUser?.S_ID || currentUser?.id || null;
+  const isOwnDashboard =
+    currentUserId && userId
+      ? Number(currentUserId) === Number(userId)
+      : false;
 
   const userEvents = useSelector(selectUserEvents);
   const eventsStatus = useSelector(selectUserEventsStatus);
   const userEventsError = useSelector(selectUserEventsError);
 
-  const filteredEvents = userEvents.filter((event) => {
-    const eventDate = new Date(event.Event_Date);
-    const today = new Date();
-
-    const matchesSearch =
-      event?.Description?.toLowerCase().includes(search.toLowerCase()) ?? false;
-
-    if (filter === "upcoming" && eventDate < today) return false;
-    if (filter === "past" && eventDate >= today) return false;
-
-    return matchesSearch;
-  });
-
-  console.log(filteredEvents);
-
-  useEffect(() => {
-    console.log(eventsStatus);
-    // dispatch(fetchUserEvents());
-    console.log(userEvents);
-  }, [eventsStatus]);
-  /* ================= GROUPS ================= */
-
   const userGroups = useSelector(selectUserGroups);
   const groupsStatus = useSelector(selectUserGroupsStatus);
-
-  const filteredGroups = userGroups
-    .filter((group) => {
-      return (
-        group?.Room_Name?.toLowerCase().includes(search.toLowerCase()) ?? false
-      );
-    })
-    .sort((a, b) => {
-      const dateA = new Date(a.Created_On);
-      const dateB = new Date(b.Created_On);
-
-      if (filter === "newest_to_oldest") return dateB - dateA;
-      if (filter === "oldest_to_newest") return dateA - dateB;
-
-      return 0;
-    });
-
-  /* ================= QUESTIONS ================= */
+  const groupsError = useSelector(selectUserGroupsError);
 
   const userQuestions = useSelector(selectUserQuestions);
   const qnaStatus = useSelector(selectUserQuestionsStatus);
-
-  /* ================= NOTES ================= */
+  const qnaError = useSelector(selectUserQuestionsError);
 
   const userNotes = useSelector(selectUserNotes);
   const notesStatus = useSelector(selectUserNotesStatus);
   const notesError = useSelector(selectUserNotesError);
 
+  const refetchUserEvents = () => {
+    if (!userId) return;
+    dispatch(
+      fetchUserEvents({ userId, page: 1, limit: USER_ACTIVITY_LIMIT }),
+    );
+  };
+
+  const refetchUserGroups = () => {
+    if (!userId) return;
+    dispatch(
+      fetchUserGroups({ userId, page: 1, limit: USER_ACTIVITY_LIMIT }),
+    );
+  };
+
+  const refetchUserQuestions = () => {
+    if (!userId) return;
+    dispatch(fetchUserQuestions(userId));
+  };
+
+  const refetchUserNotes = () => {
+    if (!userId) return;
+    dispatch(
+      fetchUserNotes({ userId, page: 1, limit: USER_ACTIVITY_LIMIT }),
+    );
+  };
+
+  const filteredEvents = userEvents.filter((event) => {
+    const eventDate = new Date(event.Event_Date);
+    const today = new Date();
+    const searchValue = eventSearch.toLowerCase();
+    const matchesSearch = searchValue
+      ? event?.Description?.toLowerCase().includes(searchValue) ||
+        event?.Contact_Person?.toLowerCase().includes(searchValue) ||
+        false
+      : true;
+
+    if (eventFilter === "upcoming" && eventDate < today) return false;
+    if (eventFilter === "past" && eventDate >= today) return false;
+
+    return matchesSearch;
+  });
+
+  const filteredGroups = userGroups
+    .filter((group) => {
+      const searchValue = groupSearch.toLowerCase();
+      if (!searchValue) {
+        return true;
+      }
+
+      return (
+        group?.Room_Name?.toLowerCase().includes(searchValue) ||
+        group?.Description?.toLowerCase().includes(searchValue) ||
+        group?.Hobby_Name?.toLowerCase().includes(searchValue) ||
+        false
+      );
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.Activity_On || a.Created_On);
+      const dateB = new Date(b.Activity_On || b.Created_On);
+
+      if (groupFilter === "newest_to_oldest") return dateB - dateA;
+      if (groupFilter === "oldest_to_newest") return dateA - dateB;
+
+      return 0;
+    });
+
+  const filteredQuestions = userQuestions
+    .filter((question) => {
+      const searchValue = qnaSearch.toLowerCase();
+      const matchesSearch = searchValue
+        ? question?.Question?.toLowerCase().includes(searchValue) ||
+          question?.Subject_Name?.toLowerCase().includes(searchValue) ||
+          false
+        : true;
+      const matchesDegree = qnaDegree
+        ? String(question?.Degree_ID) === String(qnaDegree)
+        : true;
+      const matchesSubject = qnaSubject
+        ? String(question?.Subject_ID) === String(qnaSubject)
+        : true;
+
+      return matchesSearch && matchesDegree && matchesSubject;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.Activity_On || a.Added_On);
+      const dateB = new Date(b.Activity_On || b.Added_On);
+
+      if (qnaFilter === "oldest_to_newest") return dateA - dateB;
+      if (qnaFilter === "newest_to_oldest") return dateB - dateA;
+
+      return 0;
+    });
+
+  const filteredNotes = userNotes
+    .filter((note) => {
+      const searchValue = notesSearch.toLowerCase();
+      const matchesSearch = searchValue
+        ? note?.Description?.toLowerCase().includes(searchValue) ||
+          note?.Subject_Name?.toLowerCase().includes(searchValue) ||
+          note?.Degree_Name?.toLowerCase().includes(searchValue) ||
+          false
+        : true;
+      const matchesDegree = notesDegree
+        ? String(note?.Degree_ID) === String(notesDegree)
+        : true;
+      const matchesSubject = notesSubject
+        ? String(note?.Subject_ID) === String(notesSubject)
+        : true;
+
+      return matchesSearch && matchesDegree && matchesSubject;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.Added_on);
+      const dateB = new Date(b.Added_on);
+
+      if (notesFilter === "oldest_to_newest") return dateA - dateB;
+      if (notesFilter === "newest_to_oldest") return dateB - dateA;
+
+      return 0;
+    });
+
+  const getEventLabel = () => {
+    if (!isOwnDashboard) return null;
+    return "Uploaded by you";
+  };
+
+  const getGroupLabel = (group) => {
+    if (!isOwnDashboard) return null;
+    return group?.Group_Relationship === "created"
+      ? "Created by you"
+      : "Joined by you";
+  };
+
+  const getQuestionLabel = (question) => {
+    if (!isOwnDashboard) return null;
+    if (Number(question?.Is_Own_Question) === 1) return "Asked by you";
+    if (Number(question?.Has_User_Answer) === 1) return "Answered by you";
+    return null;
+  };
+
+  const getNoteLabel = () => {
+    if (!isOwnDashboard) return null;
+    return "Uploaded by you";
+  };
+
   return (
     <section>
-      {/* TOP OPTIONS */}
       <div className="text-primary py-4 px-16 mt-4">
         <div className="font-poppins font-light flex flex-row items-center justify-between w-9/10 lg:h-40 md:h-20 sm:h-10 m-auto mb-12">
           {optionList.map((op) => {
@@ -140,24 +265,28 @@ const ActivitySection = ({ isPublic }) => {
         </div>
       </div>
 
-      {/* ================= EVENTS ================= */}
       {option === "Events" && (
         <div className="mt-16 w-10/12 m-auto bg-[#fffbeb] px-12 py-12 rounded-2xl">
-          {eventsStatus === "loading" && <p>Loading Events...</p>}
+          {(eventsStatus === "loading" || (eventsStatus === "idle" && userId)) && (
+            <p>Loading Events...</p>
+          )}
           {eventsStatus === "failed" && (
             <p>Error loading Events: {userEventsError}</p>
           )}
-          {(eventsStatus === "succeeded" || eventsStatus === "idle") && (
+          {eventsStatus === "succeeded" && (
             <>
               {addEvent && (
-                <AddEventOverlay onClose={() => setAddEvent(false)} />
+                <AddEventOverlay
+                  onClose={() => setAddEvent(false)}
+                  onSuccess={refetchUserEvents}
+                />
               )}
               <div className="max-w-6xl mx-auto px-4 -mt-20 flex justify-between items-center mb-8">
                 <Controls
-                  search={search}
-                  setSearch={setSearch}
-                  filter={filter}
-                  setFilter={setFilter}
+                  search={eventSearch}
+                  setSearch={setEventSearch}
+                  filter={eventFilter}
+                  setFilter={setEventFilter}
                   searchPlaceholder="Search events..."
                   filterOptions={{
                     All: "all",
@@ -185,7 +314,11 @@ const ActivitySection = ({ isPublic }) => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {filteredEvents.map((event) => (
-                    <EventCard key={event.E_ID} event={event} />
+                    <EventCard
+                      key={event.E_ID}
+                      event={event}
+                      authorLabel={getEventLabel()}
+                    />
                   ))}
                 </div>
               )}
@@ -194,23 +327,29 @@ const ActivitySection = ({ isPublic }) => {
         </div>
       )}
 
-      {/* ================= GROUPS ================= */}
       {option === "Groups" && (
         <div className="mt-16 w-10/12 m-auto bg-[#fffbeb] px-12 py-12 rounded-2xl">
-          {groupsStatus === "loading" && <p>Loading Groups...</p>}
-          {groupsStatus === "failed" && <p>Error loading Groups</p>}
-          {(groupsStatus === "succeeded" || groupsStatus === "idle") && (
+          {(groupsStatus === "loading" || (groupsStatus === "idle" && userId)) && (
+            <p>Loading Groups...</p>
+          )}
+          {groupsStatus === "failed" && (
+            <p>Error loading Groups: {groupsError}</p>
+          )}
+          {groupsStatus === "succeeded" && (
             <>
               {addGroup && (
-                <AddGroupOverlay onClose={() => setAddGroup(false)} />
+                <AddGroupOverlay
+                  onClose={() => setAddGroup(false)}
+                  onSuccess={refetchUserGroups}
+                />
               )}
 
               <div className="max-w-6xl mx-auto px-4 -mt-20 flex justify-between items-center mb-8">
                 <Controls
-                  search={search}
-                  setSearch={setSearch}
-                  filter={filter}
-                  setFilter={setFilter}
+                  search={groupSearch}
+                  setSearch={setGroupSearch}
+                  filter={groupFilter}
+                  setFilter={setGroupFilter}
                   searchPlaceholder="Search groups..."
                   filterOptions={{
                     All: "all",
@@ -240,7 +379,24 @@ const ActivitySection = ({ isPublic }) => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {filteredGroups.map((group) => (
-                    <GroupCard key={group.Room_ID} group={group} />
+                    <GroupCard
+                      key={group.Room_ID}
+                      group={group}
+                      onDeleteSuccess={refetchUserGroups}
+                      ownerLabel={getGroupLabel(group)}
+                      dateLabel={
+                        isOwnDashboard &&
+                        group?.Group_Relationship === "joined"
+                          ? "Joined on"
+                          : undefined
+                      }
+                      dateValue={
+                        isOwnDashboard &&
+                        group?.Group_Relationship === "joined"
+                          ? group?.Joined_On
+                          : group?.Created_On
+                      }
+                    />
                   ))}
                 </div>
               )}
@@ -249,21 +405,67 @@ const ActivitySection = ({ isPublic }) => {
         </div>
       )}
 
-      {/* ================= QnA ================= */}
       {option === "QnA" && (
         <div className="mt-8">
-          <DiscussionForum />
+          {(qnaStatus === "loading" || (qnaStatus === "idle" && userId)) && (
+            <div className="w-10/12 m-auto py-12">
+              <p>Loading QnA...</p>
+            </div>
+          )}
+          {qnaStatus === "failed" && (
+            <div className="w-10/12 m-auto py-12">
+              <p>Error loading QnA: {qnaError}</p>
+            </div>
+          )}
+          {qnaStatus === "succeeded" && (
+            <DiscussionForum
+              discussions={filteredQuestions}
+              search={qnaSearch}
+              filter={qnaFilter}
+              selectedDegree={qnaDegree}
+              selectedSubject={qnaSubject}
+              onSearchChange={setQnaSearch}
+              onFilterChange={setQnaFilter}
+              onDegreeChange={setQnaDegree}
+              onSubjectChange={setQnaSubject}
+              onRefetch={refetchUserQuestions}
+              isRefetching={qnaStatus === "loading"}
+              showAskAction={!isPublic}
+              getDiscussionLabel={getQuestionLabel}
+            />
+          )}
         </div>
       )}
 
-      {/* ================= NOTES ================= */}
       {option === "Notes" && (
         <div className="mt-8">
-          <NotesSection
-            notes={userNotes}
-            status={notesStatus}
-            error={notesError}
-          />
+          {(notesStatus === "loading" || (notesStatus === "idle" && userId)) && (
+            <div className="w-10/12 m-auto py-12">
+              <p>Loading Notes...</p>
+            </div>
+          )}
+          {notesStatus === "failed" && (
+            <div className="w-10/12 m-auto py-12">
+              <p>Error loading Notes: {notesError}</p>
+            </div>
+          )}
+          {notesStatus === "succeeded" && (
+            <NotesSection
+              notes={filteredNotes}
+              search={notesSearch}
+              filter={notesFilter}
+              selectedDegree={notesDegree}
+              selectedSubject={notesSubject}
+              onSearchChange={setNotesSearch}
+              onFilterChange={setNotesFilter}
+              onDegreeChange={setNotesDegree}
+              onSubjectChange={setNotesSubject}
+              isRefetching={notesStatus === "loading"}
+              onRefetch={refetchUserNotes}
+              showUploadAction={!isPublic}
+              getNoteLabel={getNoteLabel}
+            />
+          )}
         </div>
       )}
     </section>

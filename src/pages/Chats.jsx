@@ -80,6 +80,7 @@ const Chats = () => {
           activeRoom={activeRoom}
           rooms={rooms}
           roomsStatus={roomsStatus}
+          typingUsers={typingUsers}
           unreadCounts={unreadCounts}
           onlineUsers={onlineUsers}
           currentUserId={studentId}

@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { deleteNote } from "../../redux/slice/notesSlice";
 import { ConfirmationBox } from "../common/ConfirmationBox";
 import toast from "react-hot-toast";
+import api from "../../api/axios";
 
 const NotesCard = ({
   note,
@@ -14,6 +15,7 @@ const NotesCard = ({
   currentUserId,
   onEdit,
   onDeleteSuccess,
+  authorLabel,
 }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -24,8 +26,6 @@ const NotesCard = ({
   const [thumbError, setThumbError] = useState(false);
 
   const isOwner = isAuth && Number(note.Author_ID) === Number(currentUserId);
-
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const formattedDate = note.Added_on
     ? new Date(note.Added_on).toLocaleDateString("en-IN", {
@@ -68,7 +68,7 @@ const NotesCard = ({
   };
 
   /* =================== DOWNLOAD =================== */
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!isAuth) {
       toast.error("Please login to download notes");
       return;
@@ -81,30 +81,29 @@ const NotesCard = ({
     // Use fetch to get the file as a blob — avoids Cloudinary 401 on fl_attachment
     toast.loading("Preparing download...", { id: "download" });
 
-    fetch(note.Note_File)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch file");
-        return res.blob();
-      })
-      .then((blob) => {
-        const blobUrl = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = blobUrl;
-        // Use stored File_Name or derive from URL
-        const fileName =
-          note.File_Name || note.Note_File.split("/").pop() || "notes.pdf";
-        link.download = fileName.endsWith(".pdf")
-          ? fileName
-          : `${fileName}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(blobUrl);
-        toast.success("Download started!", { id: "download" });
-      })
-      .catch(() => {
-        toast.error("Failed to download file", { id: "download" });
-      });
+    try {
+      const { data } = await api.get(`/notes/download/${note.N_ID}`);
+
+      if (!data?.url) {
+        throw new Error("Download URL missing");
+      }
+
+      const link = document.createElement("a");
+      link.href = data.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success("Download started!", { id: "download" });
+    } catch (err) {
+      const message =
+        err?.response?.status === 401
+          ? "Please login again to download notes"
+          : "Failed to download file";
+      toast.error(message, { id: "download" });
+    }
   };
 
   return (
@@ -162,7 +161,7 @@ const NotesCard = ({
             <div className="flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-slate-400" />
               <span className="font-medium text-slate-700">
-                {note.Author || "Anonymous"}
+                {authorLabel || note.Author || "Anonymous"}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
