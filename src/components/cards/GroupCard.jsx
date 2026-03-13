@@ -46,9 +46,7 @@ const GroupCard = ({
   const isOwner = Number(group.Created_By) === Number(currentUserId);
 
   const isMember = Array.isArray(group.Members)
-    ? group.Members.some(
-        (m) => Number(m.Student_ID) === Number(currentUserId),
-      )
+    ? group.Members.some((m) => Number(m.Student_ID) === Number(currentUserId))
     : false;
 
   const formattedDate = group.Created_On
@@ -126,7 +124,9 @@ const GroupCard = ({
           {!isOwner && isAuth && (
             <ComplaintButton
               onClick={() =>
-                navigate(`/submit-complaint/group/${group.Room_ID}/${group.Room_Name}`)
+                navigate(
+                  `/submit-complaint/groups/${group.Room_ID}/${group.Room_Name}`,
+                )
               }
               element="group"
             />
@@ -152,7 +152,9 @@ const GroupCard = ({
 
             <div className="flex items-center gap-1.5 text-gray-400 text-xs">
               <Info className="w-3.5 h-3.5" />
-              <span>{dateLabel || "Created on"} {secondaryDate}</span>
+              <span>
+                {dateLabel || "Created on"} {secondaryDate}
+              </span>
             </div>
           </div>
 

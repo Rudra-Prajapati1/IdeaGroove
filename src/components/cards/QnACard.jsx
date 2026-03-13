@@ -229,7 +229,11 @@ const QnACard = ({
                 </div>
               ) : (
                 <ComplaintButton
-                  onClick={() => navigate(`/submit-complaint/question/${post.Q_ID}/${post.Question}`)}
+                  onClick={() =>
+                    navigate(
+                      `/submit-complaint/question/${post.Q_ID}/${post.Question}`,
+                    )
+                  }
                   element="question"
                 />
               )}
@@ -294,12 +298,14 @@ const QnACard = ({
                           </span>
                         </p>
 
-                        <button>
-                          <ComplaintButton
-                  onClick={() => navigate(`/submit-complaint/answer/${ans.A_ID}/${ans.Answer}`)}
-                  element="answer"
-                />
-                        </button>
+                        <ComplaintButton
+                          onClick={() =>
+                            navigate(
+                              `/submit-complaint/answer/${ans.A_ID}/${ans.Answer}`,
+                            )
+                          }
+                          element="answer"
+                        />
 
                         {isAnswerOwner && !isEditingThis && (
                           <div className="flex items-center gap-1">
