@@ -2,13 +2,15 @@ import React, { useEffect, useState } from "react";
 import Input from "../../components/auth/Input";
 import { Eye, EyeClosed } from "lucide-react";
 import toast from "react-hot-toast";
-import axios from "axios";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import api from "../../api/axios";
+import { selectUser, setAuthUser } from "../../redux/slice/authSlice";
 
 const Login = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
+  const currentUser = useSelector(selectUser);
 
   const [adminData, setAdminData] = useState({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
@@ -19,13 +21,10 @@ const Login = () => {
   };
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user?.role === "admin") {
-      // Redirect to dashboard, or the page they were trying to access
-      const origin = location.state?.from?.pathname || "/admin/dashboard";
-      navigate(origin, { replace: true });
+    if (currentUser?.role === "admin") {
+      navigate("/admin/dashboard", { replace: true });
     }
-  }, [navigate, location]);
+  }, [currentUser, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -44,21 +43,15 @@ const Login = () => {
       if (data.success) {
         toast.success(data.message || "Login Successful!");
 
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
+        dispatch(
+          setAuthUser({
             role: "admin",
             username: data.admin?.username || adminData.username,
-            // Add token if your backend provides it for stateless requests
             token: data.token || null,
           }),
         );
 
         setAdminData({ username: "", password: "" });
-
-        setTimeout(() => {
-          navigate("/admin/dashboard", { replace: true });
-        }, 500);
       }
     } catch (error) {
       console.error("Login Error:", error);
