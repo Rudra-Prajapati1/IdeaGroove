@@ -61,7 +61,7 @@ const Dashboard = () => {
         setLoading(true);
         try {
           const res = await axios.get(
-            `http://localhost:3000/api/students/profile/${id}`,
+            `http://localhost:8080/api/students/profile/${id}`,
           );
           setDisplayUser(res.data);
         } catch (err) {
