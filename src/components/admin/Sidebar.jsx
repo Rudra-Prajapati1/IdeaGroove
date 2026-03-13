@@ -2,8 +2,11 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { sidebarLinks } from "../../links/sidebarLinks";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { useDispatch } from "react-redux";
+import { expireSession } from "../../redux/slice/authSlice";
 
 const Sidebar = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleAction = async (e, link) => {
@@ -20,7 +23,7 @@ const Sidebar = () => {
         );
 
         // 2. Clear Frontend Session
-        localStorage.removeItem("user"); // Ensure this matches your Login.jsx key
+        dispatch(expireSession());
 
         // 3. UI Feedback
         toast.success("Logged out successfully");
@@ -30,7 +33,7 @@ const Sidebar = () => {
       } catch (error) {
         console.error("Logout Error:", error);
         // Even if the backend fails, we usually clear local data for safety
-        localStorage.removeItem("user");
+        dispatch(expireSession());
         navigate("/admin/login", { replace: true });
         toast.error("Session ended, but there was a server error.");
       }

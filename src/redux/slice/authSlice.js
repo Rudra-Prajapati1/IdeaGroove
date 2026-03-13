@@ -14,6 +14,8 @@ const getUserFromStorage = () => {
 };
 
 const storedUser = getUserFromStorage();
+const isStoredAdmin = storedUser?.role === "admin";
+const hasStoredUserSession = !!storedUser && !isStoredAdmin;
 
 export const restoreSession = createAsyncThunk(
   "auth/restoreSession",
@@ -31,8 +33,8 @@ export const restoreSession = createAsyncThunk(
 
 const initialState = {
   user: storedUser,
-  isAuthenticated: !!storedUser,
-  sessionChecked: !storedUser,
+  isAuthenticated: hasStoredUserSession,
+  sessionChecked: !storedUser || isStoredAdmin,
   sessionLoading: false,
   loading: false,
   error: null,
@@ -144,8 +146,23 @@ const authSlice = createSlice({
     clearAuthError: (state) => {
       state.error = null;
     },
+    setAuthUser: (state, action) => {
+      state.user = action.payload || null;
+      state.isAuthenticated =
+        !!action.payload && action.payload.role !== "admin";
+      state.sessionChecked = true;
+      state.sessionLoading = false;
+      state.loading = false;
+      state.error = null;
+
+      if (action.payload) {
+        localStorage.setItem("user", JSON.stringify(action.payload));
+      } else {
+        localStorage.removeItem("user");
+      }
+    },
     updateUserInAuth: (state, action) => {
-      state.user = { ...state.user, ...action.payload };
+      state.user = { ...(state.user || {}), ...action.payload };
       localStorage.setItem("user", JSON.stringify(state.user));
     },
   },
@@ -257,8 +274,13 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, expireSession, clearAuthError, updateUserInAuth } =
-  authSlice.actions;
+export const {
+  logout,
+  expireSession,
+  clearAuthError,
+  setAuthUser,
+  updateUserInAuth,
+} = authSlice.actions;
 
 export default authSlice.reducer;
 
