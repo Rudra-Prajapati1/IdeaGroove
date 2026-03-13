@@ -17,7 +17,7 @@ import toast from "react-hot-toast";
 import { createPortal } from "react-dom";
 import { ConfirmationBox } from "../common/ConfirmationBox";
 
-const EventCard = ({ event, onEdit }) => {
+const EventCard = ({ event, onEdit, authorLabel }) => {
   const dispatch = useDispatch();
   const isAuth = useSelector(selectIsAuthenticated);
   const user = useSelector(selectUser);
@@ -52,7 +52,9 @@ const EventCard = ({ event, onEdit }) => {
   const day = dateObj.getDate();
 
   const isOwner =
-    user && event.Added_By === (user.S_ID || user.id || user.Student_ID);
+    user &&
+    Number(event.Added_By) ===
+      Number(user.S_ID || user.id || user.Student_ID);
 
   useEffect(() => {
     if (!previewOpen) return;
@@ -183,7 +185,8 @@ const EventCard = ({ event, onEdit }) => {
 
           <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between gap-2">
             <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold shrink-0">
-              By {event.Organizer_Name || event.Contact_Person || "Admin"}
+              {authorLabel ||
+                `By ${event.Organizer_Name || event.Contact_Person || "Admin"}`}
             </p>
 
             <div className="flex items-center gap-1">

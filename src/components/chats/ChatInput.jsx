@@ -11,7 +11,7 @@ const ChatInput = ({
 }) => {
   const [message, setMessage] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [previewFile, setPreviewFile] = useState(null); // { url, type, name }
+  const [previewFile, setPreviewFile] = useState(null);
   const fileInputRef = useRef(null);
 
   if (!activeRoom) return null;
@@ -19,7 +19,12 @@ const ChatInput = ({
   const handleSend = () => {
     if (previewFile) {
       // ✅ FIX: Pass previewFile.name as 4th argument
-      sendFileMessage(activeRoom.Room_ID, previewFile.url, previewFile.type, previewFile.name);
+      sendFileMessage(
+        activeRoom.Room_ID,
+        previewFile.url,
+        previewFile.type,
+        previewFile.name,
+      );
       if (message.trim()) {
         sendMessage(activeRoom.Room_ID, message.trim());
       }
@@ -106,7 +111,7 @@ const ChatInput = ({
         </div>
       )}
 
-      <div className="p-4 flex items-center gap-3">
+      <div className="p-4 flex items-end gap-3">
         <input
           ref={fileInputRef}
           type="file"
@@ -128,12 +133,12 @@ const ChatInput = ({
           )}
         </button>
 
-        <input
-          type="text"
+        <textarea
           placeholder={
             previewFile ? "Add a caption (optional)..." : "Type a message..."
           }
-          className="flex-1 border rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-primary"
+          className="flex-1 border rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-primary resize-none min-h-[42px] max-h-32 overflow-y-auto"
+          rows={1}
           value={message}
           onChange={handleChange}
           onKeyDown={handleKeyDown}

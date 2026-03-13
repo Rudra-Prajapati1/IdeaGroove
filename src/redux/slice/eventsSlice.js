@@ -78,7 +78,6 @@ export const fetchUserEvents = createAsyncThunk(
       const { data } = await api.get(
         `/events/user/${userId}?page=${page}&limit=${limit}`,
       );
-      console.log(data);
       return data;
     } catch (err) {
       return rejectWithValue("Failed to fetch user events");
@@ -244,6 +243,12 @@ const eventsSlice = createSlice({
       .addCase(deleteEvent.fulfilled, (state, action) => {
         state.deleteStatus = "succeeded";
         eventsAdapter.removeOne(state, action.payload.eventId);
+        state.userEvents = state.userEvents.filter(
+          (event) => event.E_ID !== action.payload.eventId,
+        );
+        state.previewEvents = state.previewEvents.filter(
+          (event) => event.E_ID !== action.payload.eventId,
+        );
       })
       .addCase(deleteEvent.rejected, (state, action) => {
         state.deleteStatus = "failed";

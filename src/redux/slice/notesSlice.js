@@ -210,6 +210,12 @@ const notesSlice = createSlice({
       .addCase(deleteNote.fulfilled, (state, action) => {
         state.deleteStatus = "succeeded";
         notesAdapter.removeOne(state, action.payload.N_ID);
+        state.userNotes = state.userNotes.filter(
+          (note) => note.N_ID !== action.payload.N_ID,
+        );
+        state.previewNotes = state.previewNotes.filter(
+          (note) => note.N_ID !== action.payload.N_ID,
+        );
       })
       .addCase(deleteNote.rejected, (state, action) => {
         state.deleteStatus = "failed";

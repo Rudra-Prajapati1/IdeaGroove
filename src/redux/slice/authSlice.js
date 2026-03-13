@@ -13,9 +13,27 @@ const getUserFromStorage = () => {
   }
 };
 
+const storedUser = getUserFromStorage();
+
+export const restoreSession = createAsyncThunk(
+  "auth/restoreSession",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/auth/session");
+      return res.data.user;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to restore session.",
+      );
+    }
+  },
+);
+
 const initialState = {
-  user: getUserFromStorage(),
-  isAuthenticated: !!getUserFromStorage(),
+  user: storedUser,
+  isAuthenticated: !!storedUser,
+  sessionChecked: !storedUser,
+  sessionLoading: false,
   loading: false,
   error: null,
   otpSent: false,
@@ -104,6 +122,8 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
+      state.sessionChecked = true;
+      state.sessionLoading = false;
       state.loading = false;
       state.error = null;
       state.otpSent = false;
@@ -111,6 +131,15 @@ const authSlice = createSlice({
       state.resetLinkSent = false;
       localStorage.removeItem("user");
       toast.success("Logged out successfully");
+    },
+    expireSession: (state) => {
+      state.user = null;
+      state.isAuthenticated = false;
+      state.sessionChecked = true;
+      state.sessionLoading = false;
+      state.loading = false;
+      state.error = null;
+      localStorage.removeItem("user");
     },
     clearAuthError: (state) => {
       state.error = null;
@@ -123,6 +152,25 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     // Login
     builder
+      .addCase(restoreSession.pending, (state) => {
+        state.sessionLoading = true;
+      })
+      .addCase(restoreSession.fulfilled, (state, action) => {
+        state.sessionLoading = false;
+        state.sessionChecked = true;
+        state.user = state.user
+          ? { ...state.user, ...action.payload }
+          : action.payload;
+        state.isAuthenticated = true;
+        localStorage.setItem("user", JSON.stringify(state.user));
+      })
+      .addCase(restoreSession.rejected, (state) => {
+        state.sessionLoading = false;
+        state.sessionChecked = true;
+        state.user = null;
+        state.isAuthenticated = false;
+        localStorage.removeItem("user");
+      })
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -131,6 +179,8 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         state.isAuthenticated = true;
+        state.sessionChecked = true;
+        state.sessionLoading = false;
         localStorage.setItem("user", JSON.stringify(action.payload));
         toast.success("Login successful!");
       })
@@ -149,6 +199,8 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         state.isAuthenticated = true;
+        state.sessionChecked = true;
+        state.sessionLoading = false;
         localStorage.setItem("user", JSON.stringify(action.payload));
         toast.success("Account created successfully!");
       })
@@ -205,7 +257,8 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearAuthError, updateUserInAuth } = authSlice.actions;
+export const { logout, expireSession, clearAuthError, updateUserInAuth } =
+  authSlice.actions;
 
 export default authSlice.reducer;
 
@@ -213,5 +266,6 @@ export default authSlice.reducer;
 export const selectAuth = (state) => state.auth;
 export const selectUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
+export const selectAuthSessionChecked = (state) => state.auth.sessionChecked;
 export const selectAuthLoading = (state) => state.auth.loading;
 export const selectAuthError = (state) => state.auth.error;

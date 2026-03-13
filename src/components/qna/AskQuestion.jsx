@@ -16,7 +16,7 @@ import {
   selectSubjectsByDegree,
 } from "../../redux/slice/degreeSubjectSlice";
 
-const AskQuestionModal = ({ onClose, onSubmit, editing }) => {
+const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
   const dispatch = useDispatch();
 
   const { user } = useSelector((state) => state.auth);
@@ -83,8 +83,11 @@ const AskQuestionModal = ({ onClose, onSubmit, editing }) => {
 
         await dispatch(createQuestion(payload)).unwrap();
 
-        // Refetch qna list (CRITICAL for JOIN query)
-        await dispatch(fetchQnA({ page: 1, limit: 10 }));
+        if (onSuccess) {
+          await onSuccess();
+        } else {
+          await dispatch(fetchQnA({ page: 1, limit: 10 }));
+        }
 
         toast.success("Question posted successfully!");
         onClose();

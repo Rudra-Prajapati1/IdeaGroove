@@ -3,6 +3,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { io } from "socket.io-client";
 import api from "../api/axios";
 import {
+  selectAuthSessionChecked,
+  selectIsAuthenticated,
+} from "../redux/slice/authSlice";
+import {
   setRoomHistory,
   addMessage,
   prependMessages,
@@ -39,27 +43,34 @@ export function useChat(studentId) {
   const rooms = useSelector(selectChatRooms);
   const roomsStatus = useSelector(selectChatRoomsStatus);
   const roomsError = useSelector(selectChatRoomsError);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const sessionChecked = useSelector(selectAuthSessionChecked);
   const isConnected = useSelector(selectIsConnected);
   const typingUsers = useSelector(selectTypingUsers);
   const onlineUsers = useSelector(selectOnlineUsers);
   const unreadCounts = useSelector(selectUnreadCounts);
   const messages = useSelector(selectAllMessages);
+  const roomIdsKey = rooms.map((room) => room.Room_ID).join(",");
+  const effectiveRoomsStatus =
+    studentId && !sessionChecked ? "loading" : roomsStatus;
+  const canInitializeChat =
+    Boolean(studentId) && isAuthenticated && sessionChecked;
 
   useEffect(() => {
     roomsRef.current = rooms;
   }, [rooms]);
 
   useEffect(() => {
-    if (studentId) {
+    if (canInitializeChat) {
       dispatch(setCurrentUserId(String(studentId)));
     }
-  }, [studentId, dispatch]);
+  }, [canInitializeChat, studentId, dispatch]);
 
   useEffect(() => {
-    if (studentId) {
+    if (canInitializeChat) {
       dispatch(fetchUserChatRooms());
     }
-  }, [studentId, dispatch]);
+  }, [canInitializeChat, dispatch]);
 
   const subscribeToAllRooms = useCallback(() => {
     const socket = socketRef.current;
@@ -84,7 +95,17 @@ export function useChat(studentId) {
   }, [isConnected, subscribeToAllRooms]);
 
   useEffect(() => {
-    if (!studentId) return;
+    const socket = socketRef.current;
+    if (!socket?.connected || !roomIdsKey) return;
+    const roomIds = roomIdsKey.split(",").map(Number);
+
+    socket.emit("rooms:unread_counts", {
+      roomIds,
+    });
+  }, [isConnected, roomIdsKey]);
+
+  useEffect(() => {
+    if (!canInitializeChat) return;
 
     const socket = io(SOCKET_URL, {
       autoConnect: false,
@@ -107,18 +128,18 @@ export function useChat(studentId) {
     });
 
     socket.on("room:history", ({ roomId, messages: msgs }) => {
-      console.log(`[Socket] room:history for room ${roomId}:`, msgs.length);
+      // console.log(`[Socket] room:history for room ${roomId}:`, msgs.length);
       dispatch(setRoomHistory({ roomId, messages: msgs }));
     });
 
     socket.on("message:new", ({ roomId, message }) => {
-      console.log("[Socket] message:new", message);
+      // console.log("[Socket] message:new", message);
       const isMine = String(message.Sender_ID) === String(studentId);
       dispatch(addMessage({ roomId, message, skipUnread: isMine }));
     });
 
     socket.on("message:more", ({ roomId, messages: msgs }) => {
-      console.log("[Socket] message:more", msgs.length);
+      // console.log("[Socket] message:more", msgs.length);
       dispatch(prependMessages({ roomId, messages: msgs }));
     });
 
@@ -135,7 +156,7 @@ export function useChat(studentId) {
     });
 
     socket.on("message:seen_update", ({ roomId, seenBy }) => {
-      console.log("[Socket] message:seen_update", roomId, seenBy);
+      // console.log("[Socket] message:seen_update", roomId, seenBy);
       dispatch(updateSeenMessages({ roomId, seenBy }));
     });
 
@@ -144,32 +165,34 @@ export function useChat(studentId) {
     });
 
     socket.on("message:edited", ({ messageId, newText }) => {
-      console.log("[Socket] message:edited", messageId);
+      // console.log("[Socket] message:edited", messageId);
       dispatch(
         updateMessage({
           messageId,
           changes: { Message_Text: newText, Is_Edited: 1 },
         }),
       );
+      dispatch(fetchUserChatRooms());
     });
 
     socket.on("message:deleted", ({ messageId }) => {
-      console.log("[Socket] message:deleted", messageId);
+      // console.log("[Socket] message:deleted", messageId);
       dispatch(updateMessage({ messageId, changes: { Is_Deleted: 1 } }));
+      dispatch(fetchUserChatRooms());
     });
 
     socket.on("error", (error) => {
-      console.error("[Socket] Error:", error);
+      // console.error("[Socket] Error:", error);
     });
 
     return () => {
       socket.disconnect();
     };
-  }, [studentId, dispatch]);
+  }, [canInitializeChat, studentId, dispatch]);
 
   const joinRoom = useCallback(
     (roomId) => {
-      console.log("[Chat] Joining room", roomId);
+      // console.log("[Chat] Joining room", roomId);
       dispatch(setActiveRoom(roomId));
       dispatch(markRoomSeen(roomId));
       socketRef.current?.emit("room:join", { roomId, studentId });
@@ -179,16 +202,15 @@ export function useChat(studentId) {
 
   const leaveRoom = useCallback(
     (roomId) => {
-      console.log("[Chat] Leaving room", roomId);
+      // console.log("[Chat] Leaving room", roomId);
       dispatch(setActiveRoom(null));
-      socketRef.current?.emit("room:leave", { roomId });
     },
     [dispatch],
   );
 
   const sendMessage = useCallback((roomId, message) => {
     if (!message?.trim()) return;
-    console.log("[Chat] Sending message", roomId);
+    // console.log("[Chat] Sending message", roomId);
     socketRef.current?.emit("message:send", {
       roomId,
       message: message.trim(),
@@ -196,38 +218,41 @@ export function useChat(studentId) {
   }, []);
 
   // ✅ FIX: Accept and pass fileName to socket
-  const sendFileMessage = useCallback((roomId, fileUrl, messageType, fileName) => {
-    console.log("[Chat] Sending file", roomId, messageType, fileName);
-    socketRef.current?.emit("message:send_file", {
-      roomId,
-      fileUrl,
-      messageType,
-      fileName: fileName || null,
-    });
-  }, []);
+  const sendFileMessage = useCallback(
+    (roomId, fileUrl, messageType, fileName) => {
+      // console.log("[Chat] Sending file", roomId, messageType, fileName);
+      socketRef.current?.emit("message:send_file", {
+        roomId,
+        fileUrl,
+        messageType,
+        fileName: fileName || null,
+      });
+    },
+    [],
+  );
 
   const editMessage = useCallback((roomId, messageId, newText) => {
-    console.log("[Chat] Editing message", messageId);
+    // console.log("[Chat] Editing message", messageId);
     socketRef.current?.emit("message:edit", { roomId, messageId, newText });
   }, []);
 
   const deleteMessageSocket = useCallback((roomId, messageId) => {
-    console.log("[Chat] Deleting message", messageId);
+    // console.log("[Chat] Deleting message", messageId);
     socketRef.current?.emit("message:delete", { roomId, messageId });
   }, []);
 
   const markSeenViaRest = useCallback(async (roomId) => {
     try {
       await api.post("/chats/mark-seen", { room_id: roomId });
-      console.log("[Chat] Marked seen via REST API");
+      // console.log("[Chat] Marked seen via REST API");
     } catch (err) {
-      console.error("[Chat] Failed to mark seen via REST:", err);
+      // console.error("[Chat] Failed to mark seen via REST:", err);
     }
   }, []);
 
   const markSeen = useCallback(
     (roomId) => {
-      console.log("[Chat] Mark seen", roomId);
+      // console.log("[Chat] Mark seen", roomId);
       dispatch(markRoomSeen(roomId));
       if (socketRef.current?.connected) {
         socketRef.current.emit("message:seen", { roomId });
@@ -262,7 +287,7 @@ export function useChat(studentId) {
 
   return {
     rooms,
-    roomsStatus,
+    roomsStatus: effectiveRoomsStatus,
     roomsError,
     messages,
     typingUsers,

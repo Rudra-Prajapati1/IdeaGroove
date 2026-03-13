@@ -2,66 +2,57 @@ import React, { useEffect, useState } from "react";
 import HeroSection from "../components/dashboard/HeroSection";
 import ActivitySection from "../components/dashboard/ActivitySection";
 import { useSelector, useDispatch } from "react-redux";
-import { selectUser, selectIsAuthenticated } from "../redux/slice/authSlice";
-import {
-  fetchUserEvents,
-  selectUserEvents,
-  selectUserEventsStatus,
-} from "../redux/slice/eventsSlice";
-import {
-  fetchUserGroups,
-  selectUserGroupsStatus,
-} from "../redux/slice/chatRoomsSlice";
-import {
-  fetchUserNotes,
-  selectUserNotesStatus,
-} from "../redux/slice/notesSlice";
-import {
-  fetchUserQuestions,
-  selectUserQuestionsStatus,
-} from "../redux/slice/qnaSlice";
+import { selectUser } from "../redux/slice/authSlice";
+import { fetchUserEvents } from "../redux/slice/eventsSlice";
+import { fetchUserGroups } from "../redux/slice/chatRoomsSlice";
+import { fetchUserNotes } from "../redux/slice/notesSlice";
+import { fetchUserQuestions } from "../redux/slice/qnaSlice";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
+
+const USER_ACTIVITY_LIMIT = 1000;
 
 const Dashboard = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const currentUser = useSelector(selectUser);
-  const isAuthenticated = useSelector(selectIsAuthenticated);
   const navigate = useNavigate();
 
   const [displayUser, setDisplayUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const events = useSelector(selectUserEvents);
-
-  // User-specific statuses
-  const eventsStatus = useSelector(selectUserEventsStatus);
-  const groupsStatus = useSelector(selectUserGroupsStatus);
-  const notesStatus = useSelector(selectUserNotesStatus);
-  const qnaStatus = useSelector(selectUserQuestionsStatus);
+  const targetUserId = id
+    ? displayUser?.S_ID || displayUser?.id || null
+    : currentUser?.S_ID || currentUser?.id || null;
 
   useEffect(() => {
-    if (isAuthenticated && currentUser?.S_ID) {
-      const userId = currentUser.S_ID;
-      if (eventsStatus === "idle")
-        dispatch(fetchUserEvents({ userId, page: 1, limit: 20 }));
-      console.log(events);
-      if (groupsStatus === "idle")
-        dispatch(fetchUserGroups({ userId, page: 1, limit: 20 }));
-      if (notesStatus === "idle")
-        dispatch(fetchUserNotes({ userId, page: 1, limit: 20 }));
-      if (qnaStatus === "idle") dispatch(fetchUserQuestions(userId));
+    if (!targetUserId) {
+      return;
     }
-  }, [
-    isAuthenticated,
-    currentUser,
-    eventsStatus,
-    groupsStatus,
-    notesStatus,
-    qnaStatus,
-    dispatch,
-  ]);
+
+    dispatch(
+      fetchUserEvents({
+        userId: targetUserId,
+        page: 1,
+        limit: USER_ACTIVITY_LIMIT,
+      }),
+    );
+    dispatch(
+      fetchUserGroups({
+        userId: targetUserId,
+        page: 1,
+        limit: USER_ACTIVITY_LIMIT,
+      }),
+    );
+    dispatch(
+      fetchUserNotes({
+        userId: targetUserId,
+        page: 1,
+        limit: USER_ACTIVITY_LIMIT,
+      }),
+    );
+    dispatch(fetchUserQuestions(targetUserId));
+  }, [dispatch, targetUserId]);
 
   useEffect(() => {
     if (id) {
@@ -103,7 +94,10 @@ const Dashboard = () => {
     <main className="min-h-screen bg-[#fffbeb]">
       <HeroSection user={displayUser} isPublic={!!id} />
       <div className="max-w-9xl mx-auto pb-12">
-        <ActivitySection userId={displayUser?.S_ID} isPublic={!!id} />
+        <ActivitySection
+          userId={displayUser?.S_ID || displayUser?.id}
+          isPublic={!!id}
+        />
       </div>
     </main>
   );

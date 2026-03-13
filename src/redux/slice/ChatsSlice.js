@@ -12,6 +12,8 @@ const messagesAdapter = createEntityAdapter({
   sortComparer: (a, b) => new Date(a.Sent_On) - new Date(b.Sent_On),
 });
 
+const DELETED_MESSAGE_PREVIEW = "Message deleted";
+
 /* ─── Initial State ──────────────────────────────────────────────────────── */
 const initialState = {
   messages: messagesAdapter.getInitialState(),
@@ -26,6 +28,93 @@ const initialState = {
   isConnected: false,
   status: "idle",
   error: null,
+};
+
+const getLastMessagePreview = (room, currentUserId) => {
+  if (!room) return "";
+
+  const preview =
+    room.Last_Is_Deleted
+      ? DELETED_MESSAGE_PREVIEW
+      : room.Last_Type && room.Last_Type !== "text"
+      ? `Sent a ${room.Last_Type}`
+      : room.Last_Message_Raw || room.Last_Message || "";
+
+  if (!preview || room.Room_Type !== "group") {
+    return preview;
+  }
+
+  const isCurrentUser =
+    currentUserId != null &&
+    String(room.Last_Sender_ID) === String(currentUserId);
+  const senderLabel = isCurrentUser
+    ? "You"
+    : room.Last_Sender_Name || room.Last_Sender_Username || "";
+
+  return senderLabel ? `${senderLabel}: ${preview}` : preview;
+};
+
+const hydrateRoomPreview = (room, currentUserId) => ({
+  ...room,
+  Last_Is_Deleted: room.Last_Is_Deleted ? 1 : 0,
+  Last_Is_Seen: room.Last_Is_Seen ? 1 : 0,
+  Last_Message_Raw: room.Last_Is_Deleted
+    ? DELETED_MESSAGE_PREVIEW
+    : room.Last_Message_Raw || room.Last_Message || "",
+  Last_Message: getLastMessagePreview(room, currentUserId),
+});
+
+const syncRoomPreviewFromMessages = (state, roomId) => {
+  const roomIndex = state.rooms.findIndex(
+    (room) => room.Room_ID === Number(roomId),
+  );
+  if (roomIndex === -1) return;
+
+  const roomMessages = messagesAdapter
+    .getSelectors()
+    .selectAll(state.messages)
+    .filter((message) => message.Room_ID === Number(roomId));
+
+  const lastMessage = roomMessages[roomMessages.length - 1];
+
+  if (!lastMessage) {
+    state.rooms[roomIndex] = hydrateRoomPreview(
+      {
+        ...state.rooms[roomIndex],
+        Last_Message: "",
+        Last_Message_Raw: "",
+        Last_Type: null,
+        Last_Message_At: null,
+        Last_Sender_ID: null,
+        Last_Sender_Name: null,
+        Last_Sender_Username: null,
+        Last_Is_Deleted: 0,
+        Last_Is_Seen: 0,
+      },
+      state.currentUserId,
+    );
+    return;
+  }
+
+  state.rooms[roomIndex] = hydrateRoomPreview(
+    {
+      ...state.rooms[roomIndex],
+      Last_Message: lastMessage.Is_Deleted
+        ? DELETED_MESSAGE_PREVIEW
+        : lastMessage.Message_Text || "",
+      Last_Message_Raw: lastMessage.Is_Deleted
+        ? DELETED_MESSAGE_PREVIEW
+        : lastMessage.Message_Text || "",
+      Last_Type: lastMessage.Message_Type,
+      Last_Message_At: lastMessage.Sent_On,
+      Last_Sender_ID: lastMessage.Sender_ID,
+      Last_Sender_Name: lastMessage.Sender_Name || null,
+      Last_Sender_Username: lastMessage.Sender_Username || null,
+      Last_Is_Deleted: lastMessage.Is_Deleted ? 1 : 0,
+      Last_Is_Seen: lastMessage.Is_Seen ? 1 : 0,
+    },
+    state.currentUserId,
+  );
 };
 
 /* ─── Async Thunk: Fetch Rooms via REST ───────────────────────────────────── */
@@ -54,6 +143,9 @@ const chatsSlice = createSlice({
 
     setCurrentUserId: (state, action) => {
       state.currentUserId = action.payload;
+      state.rooms = state.rooms.map((room) =>
+        hydrateRoomPreview(room, state.currentUserId),
+      );
     },
 
     setActiveRoom: (state, action) => {
@@ -74,6 +166,7 @@ const chatsSlice = createSlice({
 
       messagesAdapter.removeMany(state.messages, oldIds);
       messagesAdapter.upsertMany(state.messages, messages);
+      syncRoomPreviewFromMessages(state, roomId);
       state.status = "succeeded";
     },
 
@@ -86,11 +179,26 @@ const chatsSlice = createSlice({
         (r) => r.Room_ID === Number(roomId),
       );
       if (roomIndex !== -1) {
-        state.rooms[roomIndex] = {
+        const nextRoom = {
           ...state.rooms[roomIndex],
-          Last_Message: message.Message_Text,
+          Last_Message: message.Is_Deleted
+            ? DELETED_MESSAGE_PREVIEW
+            : message.Message_Text,
+          Last_Message_Raw: message.Is_Deleted
+            ? DELETED_MESSAGE_PREVIEW
+            : message.Message_Text || "",
+          Last_Type: message.Message_Type,
           Last_Message_At: message.Sent_On,
+          Last_Sender_ID: message.Sender_ID,
+          Last_Sender_Name: message.Sender_Name || null,
+          Last_Sender_Username: message.Sender_Username || null,
+          Last_Is_Deleted: message.Is_Deleted ? 1 : 0,
+          Last_Is_Seen: message.Is_Seen ? 1 : 0,
         };
+        state.rooms[roomIndex] = hydrateRoomPreview(
+          nextRoom,
+          state.currentUserId,
+        );
       }
 
       const isActiveRoom = state.activeRoom === Number(roomId);
@@ -151,11 +259,16 @@ const chatsSlice = createSlice({
         .filter((m) => m.Room_ID === Number(roomId) && m.Sender_ID !== seenBy)
         .map((m) => ({ id: m.Message_ID, changes: { Is_Seen: 1 } }));
       messagesAdapter.updateMany(state.messages, updates);
+      syncRoomPreviewFromMessages(state, roomId);
     },
 
     updateMessage: (state, action) => {
       const { messageId, changes } = action.payload;
+      const currentMessage = state.messages.entities[messageId];
       messagesAdapter.updateOne(state.messages, { id: messageId, changes });
+      if (currentMessage?.Room_ID) {
+        syncRoomPreviewFromMessages(state, currentMessage.Room_ID);
+      }
     },
   },
 
@@ -167,7 +280,9 @@ const chatsSlice = createSlice({
       })
       .addCase(fetchUserChatRooms.fulfilled, (state, action) => {
         state.roomsStatus = "succeeded";
-        state.rooms = action.payload;
+        state.rooms = action.payload.map((room) =>
+          hydrateRoomPreview(room, state.currentUserId),
+        );
 
         const counts = {};
         action.payload.forEach((room) => {
@@ -208,9 +323,12 @@ const messageSelectors = messagesAdapter.getSelectors(
 
 export const selectAllMessages = messageSelectors.selectAll;
 
+// ✅ FIX: Removed `&& m.Is_Deleted === 0` filter so deleted messages are kept
+// in the list. ChatBody already renders "Message deleted" when Is_Deleted is
+// truthy, so both sender AND receiver now see the WhatsApp-style placeholder.
 export const selectChatsByRoomId = (roomId) =>
   createSelector([messageSelectors.selectAll], (msgs) =>
-    msgs.filter((m) => m.Room_ID === Number(roomId) && m.Is_Deleted === 0),
+    msgs.filter((m) => m.Room_ID === Number(roomId)),
   );
 
 export const selectChatRooms = (state) => state.chats.rooms;

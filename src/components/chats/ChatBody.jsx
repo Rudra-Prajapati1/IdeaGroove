@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import { useSelector } from "react-redux";
 import {
   selectChatsByRoomId,
@@ -16,6 +22,7 @@ import {
 } from "lucide-react";
 
 const EMPTY_ARRAY = [];
+const EDIT_WINDOW_MS = 5 * 60 * 1000;
 
 const getDateLabel = (dateStr) => {
   const date = new Date(dateStr);
@@ -47,6 +54,34 @@ const DateDivider = ({ label }) => (
   </div>
 );
 
+const getMemberDisplayName = (room, studentId) => {
+  if (!room || !studentId) return null;
+  const member = room.Members?.find(
+    (item) => String(item.Student_ID) === String(studentId),
+  );
+  return member?.name || member?.username || null;
+};
+
+const getTypingLabel = (room, typers) => {
+  if (!typers.length) return "";
+
+  const names = [
+    ...new Set(
+      typers.map((id) => getMemberDisplayName(room, id)).filter(Boolean),
+    ),
+  ];
+
+  if (names.length === 0) {
+    return typers.length === 1
+      ? "Someone is typing..."
+      : "Multiple people are typing...";
+  }
+
+  if (names.length === 1) return `${names[0]} is typing...`;
+  if (names.length === 2) return `${names[0]} and ${names[1]} are typing...`;
+  return `${names[0]} and ${names.length - 1} others are typing...`;
+};
+
 // ✅ Opens PDF via Google Docs viewer — prevents auto-download
 // and shows the PDF inline in the browser tab
 const getPdfViewUrl = (url) => {
@@ -54,11 +89,66 @@ const getPdfViewUrl = (url) => {
   return `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=false`;
 };
 
+// ✅ FIX: Smart dropdown that detects available space and opens up or down
+const MessageMenu = ({
+  onEdit,
+  onDelete,
+  canEdit,
+  buttonRef,
+  scrollContainerRef,
+}) => {
+  const menuRef = useRef(null);
+  const [openUpward, setOpenUpward] = useState(true);
+
+  useEffect(() => {
+    if (
+      !buttonRef?.current ||
+      !scrollContainerRef?.current ||
+      !menuRef?.current
+    )
+      return;
+
+    const btnRect = buttonRef.current.getBoundingClientRect();
+    const containerRect = scrollContainerRef.current.getBoundingClientRect();
+    const menuHeight = menuRef.current.offsetHeight || 80; // fallback estimate
+
+    // Space above the button relative to the scroll container top
+    const spaceAbove = btnRect.top - containerRect.top;
+    // Space below
+    const spaceBelow = containerRect.bottom - btnRect.bottom;
+
+    // Prefer opening upward; only flip downward if not enough space above
+    setOpenUpward(spaceAbove >= menuHeight || spaceAbove >= spaceBelow);
+  }, [buttonRef, scrollContainerRef]);
+
+  return (
+    <div
+      ref={menuRef}
+      className={`absolute ${openUpward ? "bottom-8" : "top-8"} right-0 bg-white border border-primary/20 rounded-xl shadow-lg z-50 overflow-hidden w-28`}
+    >
+      {canEdit && (
+        <button
+          onClick={onEdit}
+          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-primary hover:bg-primary/10 transition"
+        >
+          <Pencil className="w-3.5 h-3.5" /> Edit
+        </button>
+      )}
+      <button
+        onClick={onDelete}
+        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 transition"
+      >
+        <Trash2 className="w-3.5 h-3.5" /> Delete
+      </button>
+    </div>
+  );
+};
+
 const ChatBody = ({
   activeRoom = null,
   currentUserId,
   typingUsers = {},
-  loadMore,
+  _loadMore,
   editMessage,
   deleteMessageSocket,
 }) => {
@@ -68,6 +158,10 @@ const ChatBody = ({
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
   const [menuMsgId, setMenuMsgId] = useState(null);
+
+  // ✅ FIX: Keep a ref per message for the MoreVertical button so MessageMenu
+  // can measure available space relative to the scroll container
+  const menuButtonRefs = useRef({});
 
   const chatsSelector = useMemo(() => {
     if (!activeRoom) return () => EMPTY_ARRAY;
@@ -81,6 +175,7 @@ const ChatBody = ({
         (id) => String(id) !== String(currentUserId),
       )
     : [];
+  const typingLabel = getTypingLabel(activeRoom, roomTypers);
 
   useEffect(() => {
     if (!containRef.current) return;
@@ -91,6 +186,13 @@ const ChatBody = ({
     const close = () => setMenuMsgId(null);
     document.addEventListener("click", close);
     return () => document.removeEventListener("click", close);
+  }, []);
+
+  const canEditMessage = useCallback((msg) => {
+    if (!msg || msg.Is_Deleted) return false;
+    const sentAt = new Date(msg.Sent_On).getTime();
+    if (Number.isNaN(sentAt)) return false;
+    return Date.now() - sentAt <= EDIT_WINDOW_MS;
   }, []);
 
   const handleEditSubmit = (msg) => {
@@ -108,6 +210,10 @@ const ChatBody = ({
   };
 
   const startEdit = (msg) => {
+    if (!canEditMessage(msg)) {
+      setMenuMsgId(null);
+      return;
+    }
     setEditingId(msg.Message_ID);
     setEditText(msg.Message_Text);
     setMenuMsgId(null);
@@ -165,18 +271,26 @@ const ChatBody = ({
           const senderUsername = msg.Sender_Username || "Student";
           const isEditing = editingId === msg.Message_ID;
           const showMenu = menuMsgId === msg.Message_ID;
+          const canEdit = canEditMessage(msg);
 
           // ✅ File URL lives in File_Path for image/file, Message_Text for text
           const fileUrl = msg.File_Path || null;
+
+          // ✅ FIX: ensure a stable ref exists for each message button
+          if (!menuButtonRefs.current[msg.Message_ID]) {
+            menuButtonRefs.current[msg.Message_ID] = React.createRef();
+          }
 
           return (
             <div
               key={msg.Message_ID}
               className={`flex mb-3 ${isMe ? "justify-end" : "justify-start"}`}
             >
+              {/* ✅ FIX: Only show the MoreVertical button if the message is NOT deleted */}
               {isMe && !msg.Is_Deleted && (
                 <div className="relative self-center mr-1">
                   <button
+                    ref={menuButtonRefs.current[msg.Message_ID]}
                     onClick={(e) => {
                       e.stopPropagation();
                       setMenuMsgId(showMenu ? null : msg.Message_ID);
@@ -185,21 +299,16 @@ const ChatBody = ({
                   >
                     <MoreVertical className="w-4 h-4" />
                   </button>
+
+                  {/* ✅ FIX: Smart-positioned menu via MessageMenu component */}
                   {showMenu && (
-                    <div className="absolute bottom-8 right-0 bg-white border border-primary/20 rounded-xl shadow-lg z-50 overflow-hidden w-28">
-                      <button
-                        onClick={() => startEdit(msg)}
-                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-primary hover:bg-primary/10 transition"
-                      >
-                        <Pencil className="w-3.5 h-3.5" /> Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(msg)}
-                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 transition"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Delete
-                      </button>
-                    </div>
+                    <MessageMenu
+                      onEdit={() => startEdit(msg)}
+                      onDelete={() => handleDelete(msg)}
+                      canEdit={canEdit}
+                      buttonRef={menuButtonRefs.current[msg.Message_ID]}
+                      scrollContainerRef={containRef}
+                    />
                   )}
                 </div>
               )}
@@ -231,6 +340,8 @@ const ChatBody = ({
                   )}
 
                   {msg.Is_Deleted ? (
+                    // ✅ FIX: Both sender and receiver see the same "Message deleted"
+                    // placeholder (italic, muted) — exactly like WhatsApp
                     <em className="opacity-50 font-normal text-xs">
                       Message deleted
                     </em>
@@ -246,10 +357,16 @@ const ChatBody = ({
                         }}
                         className="bg-white/20 border border-white/40 rounded px-2 py-0.5 text-sm text-white outline-none w-full"
                       />
-                      <button onClick={() => handleEditSubmit(msg)} className="shrink-0">
+                      <button
+                        onClick={() => handleEditSubmit(msg)}
+                        className="shrink-0"
+                      >
                         <Check className="w-4 h-4 text-green-300 hover:text-green-100" />
                       </button>
-                      <button onClick={() => setEditingId(null)} className="shrink-0">
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="shrink-0"
+                      >
                         <X className="w-4 h-4 text-red-300 hover:text-red-100" />
                       </button>
                     </div>
@@ -305,7 +422,9 @@ const ChatBody = ({
                       </div>
                     </div>
                   ) : (
-                    <span className="wrap-break-word">{msg.Message_Text}</span>
+                    <span className="whitespace-pre-wrap wrap-break-word">
+                      {msg.Message_Text}
+                    </span>
                   )}
 
                   {!isEditing && (
@@ -327,7 +446,7 @@ const ChatBody = ({
                           }`}
                         />
                       )}
-                      {isMe && msg.Is_Edited === 1 && !msg.Is_Deleted && (
+                      {Boolean(msg.Is_Edited) && !msg.Is_Deleted && (
                         <span className="text-[10px] opacity-60 ml-1">
                           edited
                         </span>
@@ -348,11 +467,7 @@ const ChatBody = ({
                 <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:150ms]" />
                 <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:300ms]" />
               </span>
-              <span className="text-xs opacity-70">
-                {roomTypers.length === 1
-                  ? "Someone is typing..."
-                  : "Multiple people are typing..."}
-              </span>
+              <span className="text-xs opacity-70">{typingLabel}</span>
             </div>
           </div>
         )}

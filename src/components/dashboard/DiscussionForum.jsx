@@ -16,17 +16,19 @@ import toast from "react-hot-toast";
 import SearchableDropdown from "../common/SearchableDropdown";
 
 const DiscussionForum = ({
-  discussions,
-  search,
-  filter,
-  selectedDegree,
-  selectedSubject,
-  onSearchChange,
-  onFilterChange,
-  onDegreeChange,
-  onSubjectChange,
-  onRefetch,
-  isRefetching,
+  discussions = [],
+  search = "",
+  filter = "all",
+  selectedDegree = "",
+  selectedSubject = "",
+  onSearchChange = () => {},
+  onFilterChange = () => {},
+  onDegreeChange = () => {},
+  onSubjectChange = () => {},
+  onRefetch = () => {},
+  isRefetching = false,
+  showAskAction = true,
+  getDiscussionLabel = null,
 }) => {
   const dispatch = useDispatch();
   const isAuth = useSelector(selectIsAuthenticated);
@@ -102,7 +104,7 @@ const DiscussionForum = ({
   };
 
   const handleDeletePost = (postId) => {
-    console.log("Deleted QnA ID:", postId);
+    onRefetch(postId);
   };
 
   const handleEditClick = (post) => {
@@ -120,6 +122,7 @@ const DiscussionForum = ({
           }}
           editing={editing}
           onSubmit={handleQuestionSubmit}
+          onSuccess={onRefetch}
         />
       )}
 
@@ -137,13 +140,15 @@ const DiscussionForum = ({
               "Oldest to Newest": "oldest_to_newest",
             }}
           />
-          <ActionButton
-            label="Ask Question"
-            icon={Plus}
-            disabled={!isAuth}
-            disabledMessage="Please login to ask a question"
-            onClick={() => setShowAskModal(true)}
-          />
+          {showAskAction && (
+            <ActionButton
+              label="Ask Question"
+              icon={Plus}
+              disabled={!isAuth}
+              disabledMessage="Please login to ask a question"
+              onClick={() => setShowAskModal(true)}
+            />
+          )}
         </div>
       </div>
 
@@ -220,16 +225,21 @@ const DiscussionForum = ({
               )}
             </div>
           ) : (
-            discussions.map((post) => (
-              <QnACard
-                key={post.Q_ID || post.A_ID}
-                post={post}
-                isAuth={isAuth}
-                currentUserId={currentUserId}
-                onEdit={() => handleEditClick(post)}
-                onDelete={handleDeletePost}
-              />
-            ))
+            discussions.map((post) => {
+              const discussionLabel = getDiscussionLabel?.(post);
+
+              return (
+                <QnACard
+                  key={post.Q_ID || post.A_ID}
+                  post={post}
+                  isAuth={isAuth}
+                  currentUserId={currentUserId}
+                  onEdit={() => handleEditClick(post)}
+                  onDelete={handleDeletePost}
+                  authorLabel={discussionLabel}
+                />
+              );
+            })
           )}
         </div>
       </div>
