@@ -236,6 +236,8 @@ const SubmitComplaint = () => {
       return toast.error("Please fill all required fields");
     }
 
+    console.log(finalType);
+
     try {
       await dispatch(
         createComplaint({
