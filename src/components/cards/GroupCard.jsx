@@ -92,7 +92,10 @@ const GroupCard = ({
         joinGroup({ Room_ID: group.Room_ID, Student_ID: currentUserId }),
       ).unwrap();
       toast.success("You have successfully joined the group!");
-      setTimeout(() => navigate("/chats"), 500);
+      setTimeout(
+        () => navigate("/chats", { state: { roomId: group.Room_ID } }),
+        500,
+      );
     } catch (err) {
       toast.error(err || "Failed to join group");
     } finally {
@@ -175,7 +178,9 @@ const GroupCard = ({
           {isOwner ? (
             <>
               <button
-                onClick={() => navigate("/chats")}
+                onClick={() =>
+                  navigate("/chats", { state: { roomId: group.Room_ID } })
+                }
                 className="flex-1 bg-primary text-white rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-[#153416] transition-colors text-sm cursor-pointer"
               >
                 Chat <MessageCircle className="w-4 h-4" />
@@ -199,7 +204,9 @@ const GroupCard = ({
           ) : isMember ? (
             <>
               <button
-                onClick={() => navigate("/chats")}
+                onClick={() =>
+                  navigate("/chats", { state: { roomId: group.Room_ID } })
+                }
                 className="flex-1 bg-primary text-white rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-[#153416] transition-colors text-sm cursor-pointer"
               >
                 Go to Chat <MessageCircle className="w-4 h-4" />

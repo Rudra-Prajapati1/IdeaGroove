@@ -24,11 +24,14 @@ const HeroSection = ({ user, isPublic = false }) => {
       return;
     }
     try {
-      await api.post("/chats/create-room", {
+      const res = await api.post("/chats/create-room", {
         receiver_id: user?.S_ID || user?.id,
         room_type: "direct",
       });
-      navigate("/chats");
+      const roomId = res.data?.roomId;
+      navigate("/chats", {
+        state: roomId ? { roomId } : null,
+      });
     } catch (err) {
       console.error("DM error:", err);
       navigate("/chats");
