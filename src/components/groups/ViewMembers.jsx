@@ -32,11 +32,11 @@ const ViewMembers = ({
         {/* Modal Header: Image + Basic Info */}
         <div className="bg-white p-8 text-[#0D2E0E] relative">
           <div className="flex items-center gap-5">
-            <img
+            {/* <img
               src={group_temp_image}
               alt={group.Room_Name}
               className="w-20 h-20 rounded-2xl object-cover border-2 border-white/20 shadow-xl"
-            />
+            /> */}
             <div>
               <h2 className="text-2xl font-bold font-poppins">
                 {group.Room_Name}

@@ -144,6 +144,9 @@ const GroupCard = ({
           <div className="space-y-2.5 mb-3">
             <div className="flex items-center gap-1.5 text-gray-800 text-sm">
               <span className="font-medium">
+                {group.Hobby_Name} | 
+              </span>
+              <span className="font-medium">
                 {ownerLabel || `Admin : ${group.Creator_Name}`}
               </span>
             </div>
@@ -209,7 +212,7 @@ const GroupCard = ({
                 }
                 className="flex-1 bg-primary text-white rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-[#153416] transition-colors text-sm cursor-pointer"
               >
-                Go to Chat <MessageCircle className="w-4 h-4" />
+                Go to Chats <MessageCircle className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setIsLeaveOpen(true)}
