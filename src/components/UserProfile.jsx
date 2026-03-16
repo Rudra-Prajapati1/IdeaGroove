@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
-import { UserPlus } from "lucide-react";
+import { ArrowLeft, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   fetchStudents,
@@ -50,6 +50,7 @@ const UserProfile = () => {
   return (
     <div className="min-h-screen bg-[#FFFBEB] p-8 font-sans">
       <div className="max-w-7xl mx-auto flex justify-between items-end mb-8">
+
         <h1 className="text-2xl font-bold text-slate-800">
           Discover Creative Minds
         </h1>

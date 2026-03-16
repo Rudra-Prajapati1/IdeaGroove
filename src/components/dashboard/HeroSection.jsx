@@ -6,9 +6,11 @@ import {
   ArrowLeft,
   Calendar,
   GraduationCap,
+  Heart,
   Mail,
   MessageCircle,
   School,
+  Sparkles,
 } from "lucide-react";
 
 const HeroSection = ({ user, isPublic = false }) => {
@@ -37,6 +39,8 @@ const HeroSection = ({ user, isPublic = false }) => {
       navigate("/chats");
     }
   };
+
+  console.log("Hobbies:", user?.Hobbies);
 
   return (
     <section className="relative bg-linear-to-br from-[#1B431C] via-[#235324] to-[#153416] min-h-[500px] flex flex-col justify-center overflow-hidden">
@@ -68,7 +72,7 @@ const HeroSection = ({ user, isPublic = false }) => {
 
           {/* Conditional Rendering based on isPublic */}
           {isPublic ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 animate-in fade-in slide-in-from-left-4 duration-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 animate-in fade-in slide-in-from-left-4 duration-700">
               <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
                 <Mail className="text-green-400 w-5 h-5" />
                 <span className="text-sm lg:text-lg opacity-90">
@@ -96,8 +100,8 @@ const HeroSection = ({ user, isPublic = false }) => {
 
 {/* Hobbies - full width */}
 {user?.Hobbies?.length > 0 && (
-  <div className="sm:col-span-2 flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
-    <GraduationCap className="text-green-400 w-5 h-5 mt-0.5 shrink-0" />
+  <div className="sm:col-span-1 flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
+    <Sparkles className="text-green-400 w-5 h-5 mt-0.5 shrink-0" />
     <div className="flex flex-wrap gap-2">
       {user.Hobbies.map((hobby, i) => (
         <span
