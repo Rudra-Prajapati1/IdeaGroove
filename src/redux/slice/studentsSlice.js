@@ -214,11 +214,8 @@ const studentsSlice = createSlice({
       .addCase(deleteStudentAccount.fulfilled, (state, action) => {
         studentsAdapter.removeOne(state, action.payload);
 
-        if (
-          state.currentStudent &&
-          state.currentStudent.S_ID === action.payload
-        ) {
-          state.currentStudent = null;
+        if (state.currentStudent && state.currentStudent.S_ID === action.payload) {
+          state.currentStudent = null; 
         }
       })
 

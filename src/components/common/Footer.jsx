@@ -29,7 +29,7 @@ const Footer = () => {
 
           <div>
             <h3 className="border-2 lg:py-2 px-4 rounded-xl w-fit mx-auto hover:bg-white hover:text-primary transition-all duration-300">
-              <NavLink to="/termsCondition">TERMS & CONDITIONS</NavLink>
+              <NavLink to="/terms">TERMS & CONDITIONS</NavLink>
             </h3>
           </div>
         </section>
@@ -76,13 +76,13 @@ const Footer = () => {
           {isLoggedIn && (
             <div>
               <h3 className="border-2 lg:py-2 px-4 rounded-xl w-fit mx-auto hover:bg-white hover:text-primary transition-all duration-300">
-                <NavLink to="/submitComplaint">FEEDBACKS & COMPLAINTS</NavLink>
+                <NavLink to="/submit-complaint">COMPLAINTS</NavLink>
               </h3>
             </div>
           )}
           <div>
             <h3 className="border-2 lg:py-2 px-4 rounded-xl w-fit mx-auto hover:bg-white hover:text-primary transition-all duration-300">
-              <NavLink to="/privacyPolicies">PRIVACY POLICIES</NavLink>
+              <NavLink to="/privacy">PRIVACY POLICIES</NavLink>
             </h3>
           </div>
         </section>

@@ -454,7 +454,14 @@ const SubmitComplaint = () => {
             </div>
             <div className="col-span-1"></div>
           </div>
-          {processedComplaints.map((item) => {
+           {processedComplaints.length === 0 ? (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <AlertTriangle size={32} className="text-gray-300 mb-3" />
+      <p className="text-gray-400 font-semibold text-sm">No complaints found</p>
+      <p className="text-gray-300 text-xs mt-1">Try selecting a different filter</p>
+    </div>
+  ) : (
+          processedComplaints.map((item) => {
             const isExpanded = expandedId === item.Complaint_ID;
             const displayStatus =
               item.Status?.toUpperCase().replace(/-/g, " ") || "PENDING";
@@ -488,7 +495,7 @@ const SubmitComplaint = () => {
                     )}
                   </div>
                   <div className="col-span-2 text-center text-sm font-semibold text-gray-600">
-                    {new Date(item.Date).toLocaleDateString()}
+                    {new Date(item.Date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                   </div>
                   <div className="col-span-1 flex justify-center">
                     {(() => {
@@ -561,7 +568,12 @@ const SubmitComplaint = () => {
                           Admin Update
                         </span>
                         <p className="text-sm text-gray-700 leading-relaxed">
-                          "{item.Admin_Update || "Currently under review."}"
+                          "{ item.Status?.toUpperCase().replace(/-/g, " ") === "RESOLVED"
+                            ? "Your complaint has been reviewed and resolved. Thank you for helping us improve IdeaGroove."
+                            : item.Status?.toUpperCase().replace(/-/g, " ") === "IN PROGRESS"
+                            ? "Our team is actively looking into your complaint. We'll update you soon."
+                            : "Thank you for reporting. Your complaint is currently pending review by our admin team."
+                          }"
                         </p>
                       </div>
                     </div>
@@ -569,7 +581,7 @@ const SubmitComplaint = () => {
                 )}
               </div>
             );
-          })}
+          }))}
         </div>
       </section>
     </div>
