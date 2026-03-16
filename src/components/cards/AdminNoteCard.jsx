@@ -55,10 +55,11 @@ const AdminNoteCard = ({ note, onModerate }) => {
             {note.file}
           </h3>
 
-          {/* Description */}
-          <p className="text-xs text-gray-400 line-clamp-2 mb-4 leading-relaxed">
-            {note.title}
-          </p>
+          {note.title && (
+            <p className="text-xs text-gray-400 line-clamp-2 mb-4 leading-relaxed">
+              Description: {note.title}
+            </p>
+          )}
 
           {/* Meta */}
           <div className="flex items-center justify-between text-[11px] text-gray-400">
