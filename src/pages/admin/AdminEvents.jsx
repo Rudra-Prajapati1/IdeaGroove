@@ -6,7 +6,6 @@ import StatsRow from "../../components/admin/StatsRow";
 import AdminEventsGrid from "../../components/admin/AdminEventsGrid";
 import EmailConfirmationModal from "../../components/admin/EmailConfirmationModal";
 import { useEffect } from "react";
-import EventsReportGeneration from "../../components/cards/EventsReportGeneration";
 
 // const initialEvents = [
 //   {
@@ -256,7 +255,6 @@ const AdminEvents = () => {
         onSubjectFilter={setEventFilter}
         secondTitle="All Events"
       />
-      <EventsReportGeneration events={filteredEvents} />
 
       <StatsRow stats={eventsStats} />
 

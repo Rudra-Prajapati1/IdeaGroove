@@ -193,12 +193,12 @@ const AdminComplaintsGrid = ({
                 {/* Profile Modal */}
                 {isProfileOpen && (
                   <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm p-4"
                     onClick={(e) =>
                       e.target === e.currentTarget && setIsProfileOpen(false)
                     }
                   >
-                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <div className="relative bg-white rounded-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
                       <StudentProfile
                         id={item.Student_ID}
                         onClose={() => setIsProfileOpen(false)}

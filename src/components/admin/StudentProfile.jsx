@@ -50,8 +50,6 @@ const StudentProfile = ({ id, onClose }) => {
     fetchActivities();
   }, [filter, id]);
 
-  console.log(activities);
-
   useEffect(() => {
     const activeTab = tabRefs.current[filter];
     if (activeTab && containerRef.current) {
@@ -391,12 +389,29 @@ const StudentProfile = ({ id, onClose }) => {
                           {item.title}
                         </p>
                         <p className="text-xs text-gray-400 mt-1 font-medium">
-                          Category:{" "}
-                          <span className="text-gray-600">{item.type}</span> •
-                          Course:{" "}
-                          <span className="uppercase text-gray-600 font-bold">
-                            {item.course}
-                          </span>
+                          {item.type && (
+                            <>
+                              {item.course?.toLowerCase() === "creator" ||
+                              item.course?.toLowerCase() === "member"
+                                ? "Hobby"
+                                : "Category"}
+                              :{" "}
+                              <span className="text-gray-600">{item.type}</span>
+                            </>
+                          )}
+                          {item.type && item.course && " • "}
+                          {item.course && (
+                            <>
+                              {item.course?.toLowerCase() === "creator" ||
+                              item.course?.toLowerCase() === "member"
+                                ? "Role"
+                                : "Course"}
+                              :{" "}
+                              <span className="uppercase text-gray-600 font-bold">
+                                {item.course}
+                              </span>
+                            </>
+                          )}
                         </p>
                       </div>
                     </div>
