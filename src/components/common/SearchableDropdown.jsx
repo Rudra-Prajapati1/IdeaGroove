@@ -12,6 +12,12 @@ const SearchableDropdown = ({
   const [search, setSearch] = useState("");
   const dropdownRef = useRef(null);
 
+  useEffect(() => {
+    if (!open) {
+      setSearch(value || "");
+    }
+  }, [open, value]);
+
   // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -66,7 +72,12 @@ const SearchableDropdown = ({
           type="text"
           placeholder={placeholder}
           value={search}
-          onFocus={() => setOpen(true)}
+          onFocus={() => {
+            if (value && search === value) {
+              setSearch("");
+            }
+            setOpen(true);
+          }}
           onChange={(e) => {
             setSearch(e.target.value);
             setOpen(true);

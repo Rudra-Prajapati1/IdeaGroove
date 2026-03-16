@@ -17,6 +17,7 @@ import PageHeader from "../components/common/PageHeader";
 import ActionButton from "../components/common/ActionButton";
 import Loading from "../components/common/Loading";
 import { LucideGroup } from "lucide-react";
+import PaginationControls from "../components/common/PaginationControls";
 
 const Groups = () => {
   const dispatch = useDispatch();
@@ -168,27 +169,11 @@ const Groups = () => {
                 )}
               </div>
 
-              {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-4 mt-12">
-                  <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((prev) => prev - 1)}
-                    className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-                  >
-                    Previous
-                  </button>
-                  <span className="font-semibold">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((prev) => prev + 1)}
-                    className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
             </>
           )}
         </div>

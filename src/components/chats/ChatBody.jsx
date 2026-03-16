@@ -13,6 +13,7 @@ import {
 import Loading from "../common/Loading";
 import {
   CheckCheck,
+  Info,
   MoreVertical,
   Pencil,
   Trash2,
@@ -20,6 +21,7 @@ import {
   Check,
   FileText,
 } from "lucide-react";
+import MessageInfoModal from "./MessageInfoModal";
 
 const EMPTY_ARRAY = [];
 const EDIT_WINDOW_MS = 5 * 60 * 1000;
@@ -91,8 +93,10 @@ const getPdfViewUrl = (url) => {
 
 // ✅ FIX: Smart dropdown that detects available space and opens up or down
 const MessageMenu = ({
+  onInfo,
   onEdit,
   onDelete,
+  showInfo = false,
   canEdit,
   buttonRef,
   scrollContainerRef,
@@ -126,6 +130,14 @@ const MessageMenu = ({
       ref={menuRef}
       className={`absolute ${openUpward ? "bottom-8" : "top-8"} right-0 bg-white border border-primary/20 rounded-xl shadow-lg z-50 overflow-hidden w-28`}
     >
+      {showInfo && (
+        <button
+          onClick={onInfo}
+          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-primary hover:bg-primary/10 transition"
+        >
+          <Info className="w-3.5 h-3.5" /> Info
+        </button>
+      )}
       {canEdit && (
         <button
           onClick={onEdit}
@@ -147,6 +159,7 @@ const MessageMenu = ({
 const ChatBody = ({
   activeRoom = null,
   currentUserId,
+  isConnected = true,
   typingUsers = {},
   _loadMore,
   editMessage,
@@ -158,6 +171,7 @@ const ChatBody = ({
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
   const [menuMsgId, setMenuMsgId] = useState(null);
+  const [messageInfoTarget, setMessageInfoTarget] = useState(null);
 
   // ✅ FIX: Keep a ref per message for the MoreVertical button so MessageMenu
   // can measure available space relative to the scroll container
@@ -176,6 +190,9 @@ const ChatBody = ({
       )
     : [];
   const typingLabel = getTypingLabel(activeRoom, roomTypers);
+  const messageInfoAnchorRef = messageInfoTarget
+    ? menuButtonRefs.current[messageInfoTarget.Message_ID]
+    : null;
 
   useEffect(() => {
     if (!containRef.current) return;
@@ -187,6 +204,10 @@ const ChatBody = ({
     document.addEventListener("click", close);
     return () => document.removeEventListener("click", close);
   }, []);
+
+  useEffect(() => {
+    setMessageInfoTarget(null);
+  }, [activeRoom?.Room_ID]);
 
   const canEditMessage = useCallback((msg) => {
     if (!msg || msg.Is_Deleted) return false;
@@ -216,6 +237,11 @@ const ChatBody = ({
     }
     setEditingId(msg.Message_ID);
     setEditText(msg.Message_Text);
+    setMenuMsgId(null);
+  };
+
+  const openMessageInfo = (msg) => {
+    setMessageInfoTarget(msg);
     setMenuMsgId(null);
   };
 
@@ -252,6 +278,13 @@ const ChatBody = ({
         ref={containRef}
         className="relative z-10 h-full overflow-y-auto px-6 py-4 space-y-1"
       >
+        {!isConnected && (
+          <div className="sticky top-0 z-20 mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-sm">
+            Connection issue detected. Messages may take a moment to send or
+            refresh.
+          </div>
+        )}
+
         {chatStatus === "loading" && <Loading />}
 
         {chatStatus === "succeeded" && chats.length === 0 && (
@@ -272,6 +305,7 @@ const ChatBody = ({
           const isEditing = editingId === msg.Message_ID;
           const showMenu = menuMsgId === msg.Message_ID;
           const canEdit = canEditMessage(msg);
+          const canShowInfo = isMe && !msg.Is_Deleted;
 
           // ✅ File URL lives in File_Path for image/file, Message_Text for text
           const fileUrl = msg.File_Path || null;
@@ -300,11 +334,12 @@ const ChatBody = ({
                     <MoreVertical className="w-4 h-4" />
                   </button>
 
-                  {/* ✅ FIX: Smart-positioned menu via MessageMenu component */}
                   {showMenu && (
                     <MessageMenu
+                      onInfo={() => openMessageInfo(msg)}
                       onEdit={() => startEdit(msg)}
                       onDelete={() => handleDelete(msg)}
+                      showInfo={canShowInfo}
                       canEdit={canEdit}
                       buttonRef={menuButtonRefs.current[msg.Message_ID]}
                       scrollContainerRef={containRef}
@@ -316,7 +351,7 @@ const ChatBody = ({
               <div
                 className={`max-w-[70%] px-4 py-2 rounded-xl flex items-start gap-3 text-sm font-inter ${
                   isMe
-                    ? "bg-primary text-white rounded-br-none"
+                    ? "bg-[#256821] text-white rounded-br-none"
                     : "bg-white border border-primary text-primary rounded-bl-none"
                 }`}
               >
@@ -472,6 +507,13 @@ const ChatBody = ({
           </div>
         )}
       </div>
+
+      <MessageInfoModal
+        open={Boolean(messageInfoTarget)}
+        message={messageInfoTarget}
+        anchorRef={messageInfoAnchorRef}
+        onClose={() => setMessageInfoTarget(null)}
+      />
     </div>
   );
 };

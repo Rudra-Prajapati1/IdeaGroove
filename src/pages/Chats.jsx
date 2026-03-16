@@ -8,10 +8,13 @@ import { useSelector } from "react-redux";
 import { selectUser } from "../redux/slice/authSlice";
 import { useChat } from "../hooks/useChat";
 import { selectChatsByRoomId } from "../redux/slice/chatsSlice";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Chats = () => {
   const currentUser = useSelector(selectUser);
   const [activeRoom, setActiveRoom] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const studentId = currentUser
     ? String(currentUser.S_ID ?? currentUser.id ?? "")
@@ -65,11 +68,57 @@ const Chats = () => {
     prevLengthRef.current = 0;
   }, [activeRoomId]);
 
-  const handleSelectRoom = (room) => {
-    if (activeRoom?.Room_ID) leaveRoom(activeRoom.Room_ID);
-    setActiveRoom(room);
-    joinRoom(room.Room_ID);
-  };
+  const handleSelectRoom = React.useCallback(
+    (room) => {
+      if (!room?.Room_ID) return;
+      if (
+        activeRoom?.Room_ID &&
+        Number(activeRoom.Room_ID) !== Number(room.Room_ID)
+      ) {
+        leaveRoom(activeRoom.Room_ID);
+      }
+      setActiveRoom(room);
+      joinRoom(room.Room_ID);
+    },
+    [activeRoom?.Room_ID, joinRoom, leaveRoom],
+  );
+
+  const targetRoomId = location.state?.roomId
+    ? Number(location.state.roomId)
+    : null;
+
+  const clearTargetRoomState = React.useCallback(() => {
+    if (!location.state?.roomId) return;
+    const nextState = { ...location.state };
+    delete nextState.roomId;
+    navigate(location.pathname, {
+      replace: true,
+      state: Object.keys(nextState).length > 0 ? nextState : null,
+    });
+  }, [location.pathname, location.state, navigate]);
+
+  useEffect(() => {
+    if (!targetRoomId || roomsStatus !== "succeeded") return;
+
+    const targetRoom = rooms.find(
+      (room) => Number(room.Room_ID) === Number(targetRoomId),
+    );
+
+    if (!targetRoom) return;
+
+    if (Number(activeRoom?.Room_ID) !== Number(targetRoom.Room_ID)) {
+      handleSelectRoom(targetRoom);
+    }
+
+    clearTargetRoomState();
+  }, [
+    activeRoom?.Room_ID,
+    clearTargetRoomState,
+    handleSelectRoom,
+    rooms,
+    roomsStatus,
+    targetRoomId,
+  ]);
 
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins">
@@ -88,7 +137,6 @@ const Chats = () => {
         <div className="flex flex-col flex-1 border-5 border-primary rounded-r-2xl">
           <ChatHeader
             activeRoom={activeRoom}
-            isConnected={isConnected}
             onlineUsers={onlineUsers}
             currentUserId={studentId}
           />
@@ -96,6 +144,7 @@ const Chats = () => {
             <ChatBody
               activeRoom={activeRoom}
               currentUserId={studentId}
+              isConnected={isConnected}
               typingUsers={typingUsers}
               loadMore={loadMore}
               editMessage={editMessage}

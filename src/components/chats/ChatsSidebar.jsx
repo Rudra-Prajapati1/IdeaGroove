@@ -2,6 +2,12 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import React, { useState } from "react";
 import ChatList from "./ChatList";
 
+const FILTER_LABELS = {
+  all: "All chats",
+  groups: "Groups",
+  individuals: "Individuals",
+};
+
 const ChatsSidebar = ({
   onSelectRoom,
   activeRoom,
@@ -42,6 +48,13 @@ const ChatsSidebar = ({
           >
             <SlidersHorizontal className="w-4 h-4" />
           </button>
+        </div>
+
+        <div className="mt-2 flex items-center gap-2 px-1">
+          <span className="text-xs text-primary/50">Showing</span>
+          <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-xs font-medium text-primary">
+            {FILTER_LABELS[filter]}
+          </span>
         </div>
 
         {showFilters && (

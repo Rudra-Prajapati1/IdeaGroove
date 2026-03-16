@@ -160,7 +160,9 @@ const ViewMembers = ({
           {!isOwner &&
             (isMember ? (
               <button
-                onClick={() => navigate("/chats")}
+                onClick={() =>
+                  navigate("/chats", { state: { roomId: group.Room_ID } })
+                }
                 className="flex-2 bg-primary text-white py-3 px-6 rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 hover:bg-[#153416] transition-all active:scale-95 flex items-center gap-2"
               >
                 Go to Chat <MessageCircle className="w-4 h-4" />
