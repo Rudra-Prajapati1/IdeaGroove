@@ -39,18 +39,33 @@ const AdminComplaints = () => {
         const complaintsArray = Array.isArray(data)
           ? data
           : data.complaints || data.data || [];
+        const resolvedCount = complaintsArray.filter(
+          (c) => c.Status === "Resolved",
+        ).length;
+        const pendingCount = complaintsArray.filter(
+          (c) => c.Status === "Pending" || c.Status === "In-Progress",
+        ).length;
         setComplaintsStats([
-          { ...complaintsStats[0], value: complaintsArray.length },
           {
-            ...complaintsStats[1],
-            value: complaintsArray.filter((c) => c.Status === "Resolved")
-              .length,
+            title: "Total Complaints",
+            value: complaintsArray.length,
+            infoText: `${pendingCount} awaiting action`,
+            color: "green",
+            type: "total",
           },
           {
-            ...complaintsStats[2],
-            value: complaintsArray.filter(
-              (c) => c.Status === "Pending" || c.Status === "In-Progress",
-            ).length,
+            title: "Resolved",
+            value: resolvedCount,
+            infoText: `${complaintsArray.length ? Math.round((resolvedCount / complaintsArray.length) * 100) : 0}% resolution rate`,
+            color: "yellow",
+            type: "pending",
+          },
+          {
+            title: "Pending",
+            value: pendingCount,
+            infoText: `${pendingCount} open complaints`,
+            color: "red",
+            type: "blocked",
           },
         ]);
         setComplaints(complaintsArray);

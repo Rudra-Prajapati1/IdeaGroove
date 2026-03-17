@@ -23,6 +23,8 @@ import {
   Heart,
   Tag,
   Filter,
+  Search,
+  Plus,
 } from "lucide-react";
 
 // FILTER KEY RULES — must match backend controller exactly:
@@ -113,10 +115,14 @@ const SECTIONS = [
       { key: "Created_On", label: "Created On", default: true },
       { key: "student_name", label: "Created By", default: true },
       { key: "member_count", label: "Members", default: true },
+      { key: "member_names", label: "Member Names", default: true },
       { key: "hobby_name", label: "Hobby", default: true },
       { key: "Is_Active", label: "Status", default: true },
     ],
-    filters: [{ key: "hobby", label: "Hobby", source: "hobbyApi" }],
+    filters: [
+      { key: "hobby", label: "Hobby", source: "hobbyApi" },
+      { key: "groups", label: "Groups", source: "rowMulti", rowKey: "Room_Name" },
+    ],
   },
   {
     id: "notes",
@@ -169,6 +175,7 @@ const SECTIONS = [
       { key: "student_name", label: "Asked By", default: true },
       { key: "answer_count", label: "Answers", default: true },
       { key: "top_answer", label: "Top Answer", default: true },
+      { key: "all_answers", label: "All Answers", default: true },
       { key: "Subject_Name", label: "Subject", default: true },
       { key: "Is_Active", label: "Status", default: true },
     ],
@@ -179,6 +186,12 @@ const SECTIONS = [
         label: "Subject",
         source: "degreeApi",
         subjectFilter: true,
+      },
+      {
+        key: "questions",
+        label: "Questions",
+        source: "rowMulti",
+        rowKey: "Question",
       },
     ],
   },
@@ -666,6 +679,160 @@ const ReportSearchableSelect = ({
 };
 
 // ─── Filter Controls ──────────────────────────────────────────────────────
+const ReportSearchInput = ({
+  label,
+  icon: Icon,
+  value,
+  onChange,
+  placeholder,
+}) => (
+  <div className="flex flex-col gap-0.5">
+    <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 pl-0.5">
+      {label}
+    </span>
+    <div className="relative flex items-center">
+      {Icon && (
+        <Icon
+          size={11}
+          className="absolute left-2 text-gray-400 pointer-events-none"
+        />
+      )}
+      <input
+        type="text"
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value || null)}
+        placeholder={placeholder || `Search ${label}...`}
+        className="w-full text-xs font-medium border border-gray-200 rounded-lg bg-white text-gray-600 hover:border-gray-300 focus:outline-none focus:ring-1 transition-all py-2 pr-3"
+        style={{ paddingLeft: Icon ? "24px" : "8px", minWidth: "180px" }}
+      />
+    </div>
+  </div>
+);
+
+const ReportMultiSelect = ({
+  label,
+  icon: Icon,
+  options,
+  value,
+  onChange,
+  color,
+}) => {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef(null);
+  const selectedValues = Array.isArray(value) ? value : [];
+
+  useEffect(() => {
+    const h = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+        setSearch("");
+      }
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  const filtered = options.filter(
+    (option) =>
+      String(option).toLowerCase().includes(search.toLowerCase()) &&
+      !selectedValues.includes(String(option)),
+  );
+
+  const addValue = (nextValue) => {
+    onChange([...selectedValues, String(nextValue)]);
+    setSearch("");
+  };
+
+  const removeValue = (target) => {
+    const next = selectedValues.filter((item) => item !== target);
+    onChange(next.length ? next : null);
+  };
+
+  return (
+    <div className="flex flex-col gap-1 relative min-w-[260px]" ref={ref}>
+      <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 pl-0.5">
+        {label}
+      </span>
+      <button
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex items-center gap-1.5 text-xs font-medium border rounded-lg bg-white hover:border-gray-300 focus:outline-none transition-all cursor-pointer py-2 pr-2"
+        style={{ paddingLeft: "8px" }}
+      >
+        {Icon && <Icon size={11} className="text-gray-400 flex-shrink-0 mr-1" />}
+        <span className="flex-1 text-left truncate text-gray-600">
+          {selectedValues.length > 0
+            ? `${selectedValues.length} selected`
+            : `Add ${label}`}
+        </span>
+        <ChevronDown
+          size={10}
+          className={`text-gray-400 flex-shrink-0 ml-1 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {selectedValues.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {selectedValues.map((item) => (
+            <span
+              key={item}
+              className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold text-white"
+              style={{ backgroundColor: color }}
+            >
+              {item}
+              <button
+                onClick={() => removeValue(item)}
+                className="text-white/80 hover:text-white"
+              >
+                x
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-72 overflow-hidden">
+          <div className="p-2 border-b border-gray-100">
+            <div className="relative">
+              <Search
+                size={12}
+                className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                autoFocus
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={`Search ${label}...`}
+                className="w-full text-xs border border-gray-200 rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:ring-1 focus:ring-gray-300 placeholder-gray-300"
+              />
+            </div>
+          </div>
+          <div className="max-h-48 overflow-y-auto py-1">
+            {filtered.length === 0 ? (
+              <p className="px-3 py-3 text-[11px] text-gray-400 text-center">
+                No results
+              </p>
+            ) : (
+              filtered.map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => addValue(opt)}
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-left transition-colors hover:bg-gray-50 text-gray-600"
+                >
+                  <span className="truncate">{String(opt)}</span>
+                  <Plus size={13} style={{ color }} />
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const FILTER_ICONS = {
   event_status: Tag,
   degree: GraduationCap,
@@ -673,6 +840,10 @@ const FILTER_ICONS = {
   hobby: Heart,
   type: Filter,
   college: GraduationCap,
+  members: Users,
+  groups: Users,
+  questions: MessageSquare,
+  searchText: Search,
 };
 
 const FilterControls = ({
@@ -682,6 +853,7 @@ const FilterControls = ({
   sectionRows,
   degreeSubjectMap,
   hobbyOptions,
+  rowFilterOptions,
 }) => {
   if (!section.filters?.length) return null;
   const cur = filters[section.id] || {};
@@ -689,6 +861,18 @@ const FilterControls = ({
   const getOptions = (f) => {
     if (f.source === "hardcoded") return f.options ?? [];
     if (f.source === "hobbyApi") return hobbyOptions;
+    if (f.source === "rowMulti") {
+      const cached = rowFilterOptions?.[section.id]?.[f.key];
+      if (Array.isArray(cached) && cached.length > 0) return cached;
+      const col = f.rowKey ?? f.key;
+      return [
+        ...new Set(
+          sectionRows.map((r) => r[col]).filter((v) => v != null && v !== ""),
+        ),
+      ]
+        .sort()
+        .map(String);
+    }
     if (f.source === "fromRows") {
       const col = f.rowKey ?? f.key;
       return [
@@ -725,9 +909,9 @@ const FilterControls = ({
 
   return (
     <div className="flex flex-wrap items-end gap-2.5 px-4 pb-2.5 pt-2 border-b border-gray-50">
-      <div className="flex items-center gap-1 self-center">
-        <Filter size={9} className="text-gray-400" />
-        <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">
+      <div className="flex items-center gap-1.5 self-center">
+        <Filter size={11} className="text-gray-400" />
+        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
           Filters
         </span>
       </div>
@@ -735,6 +919,30 @@ const FilterControls = ({
         const Icon = FILTER_ICONS[f.key] ?? Filter;
         const val = cur[f.key] ?? null;
         const opts = getOptions(f);
+        if (f.source === "searchText") {
+          return (
+            <ReportSearchInput
+              key={f.key}
+              label={f.label}
+              icon={Icon}
+              value={val}
+              onChange={(v) => update(f.key, v)}
+            />
+          );
+        }
+        if (f.source === "rowMulti") {
+          return (
+            <ReportMultiSelect
+              key={f.key}
+              label={f.label}
+              icon={Icon}
+              options={opts}
+              value={val}
+              color={section.color}
+              onChange={(v) => update(f.key, v)}
+            />
+          );
+        }
         if (f.source === "hardcoded") {
           return (
             <ReportSimpleSelect
@@ -783,6 +991,7 @@ const AdminReportBuilder = () => {
   const [generating, setGenerating] = useState(false);
   const [degreeSubjectMap, setDegreeSubjectMap] = useState({});
   const [hobbyOptions, setHobbyOptions] = useState([]);
+  const [rowFilterOptions, setRowFilterOptions] = useState({});
 
   // ── One-time lookup fetches ────────────────────────────────────────────
   useEffect(() => {
@@ -812,6 +1021,7 @@ const AdminReportBuilder = () => {
         );
       })
       .catch(() => {});
+
   }, [baseUrl]);
 
   // ── Fetch a single section ────────────────────────────────────────────
@@ -838,6 +1048,28 @@ const AdminReportBuilder = () => {
           throw new Error(`HTTP ${res.status}`);
         }
         const json = await res.json();
+        setRowFilterOptions((prev) => {
+          const next = { ...(prev[section.id] || {}) };
+          (section.filters || []).forEach((filterConfig) => {
+            if (filterConfig.source !== "rowMulti") return;
+            const rowKey = filterConfig.rowKey ?? filterConfig.key;
+            const options = [
+              ...new Set(
+                (json.rows || [])
+                  .map((row) => row[rowKey])
+                  .filter((value) => value != null && value !== ""),
+              ),
+            ]
+              .sort()
+              .map(String);
+            if (options.length > 0) {
+              next[filterConfig.key] = [
+                ...new Set([...(next[filterConfig.key] || []), ...options]),
+              ];
+            }
+          });
+          return { ...prev, [section.id]: next };
+        });
         console.log(
           `[ReportBuilder] ${section.id} OK — keys: ${Object.keys(json).join(", ")} — rows: ${json.rows?.length ?? "?"}`,
         );
@@ -1145,6 +1377,115 @@ const AdminReportBuilder = () => {
         return y + 6;
       };
 
+      const ensurePageSpace = (requiredHeight, currentY, label) => {
+        if (currentY + requiredHeight <= ph - 18) return currentY;
+        doc.addPage();
+        drawPageHeader(label);
+        return 47;
+      };
+
+      const drawDetailSubtables = (section, rows, startY) => {
+        if (!rows?.length || !["groups", "qna"].includes(section.id)) {
+          return startY;
+        }
+
+        const detailRows = rows
+          .map((row) => {
+            if (section.id === "groups") {
+              const members = String(row.member_names || "")
+                .split(",")
+                .map((item) => item.trim())
+                .filter(Boolean);
+              return members.length
+                ? {
+                    title: row.Room_Name || "Group",
+                    subtitle: `${members.length} member${members.length === 1 ? "" : "s"}`,
+                    items: members,
+                    headerColor: [67, 56, 202],
+                    heading: "Member Details",
+                  }
+                : null;
+            }
+
+            const answers = String(row.all_answers || "")
+              .split("|")
+              .map((item) => item.trim())
+              .filter(Boolean);
+            return answers.length
+              ? {
+                  title: row.Question || "Question",
+                  subtitle: `${answers.length} answer${answers.length === 1 ? "" : "s"}`,
+                  items: answers,
+                  headerColor: [6, 95, 70],
+                  heading: "Question & Answer Details",
+                }
+              : null;
+          })
+          .filter(Boolean);
+
+        if (!detailRows.length) return startY;
+
+        let y = ensurePageSpace(16, startY, section.label);
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...section.rgb);
+        doc.text(
+          section.id === "groups" ? "Member Details" : "Question & Answer Details",
+          10,
+          y,
+        );
+        y += 5;
+
+        detailRows.forEach((detail, index) => {
+          const rowHeight = Math.max(detail.items.length, 1) * 6;
+          const blockHeight = 14 + 7 + rowHeight;
+          y = ensurePageSpace(blockHeight + 4, y, section.label);
+
+          doc.setFillColor(...detail.headerColor);
+          doc.roundedRect(10, y, pw - 20, blockHeight, 2, 2, "F");
+          doc.setFontSize(7.5);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(255, 255, 255);
+          doc.text(detail.title, 13, y + 5);
+          doc.setFontSize(6.5);
+          doc.setFont("helvetica", "normal");
+          doc.text(detail.subtitle, pw - 13, y + 5, { align: "right" });
+
+          doc.setFillColor(255, 255, 255);
+          doc.roundedRect(12, y + 7, pw - 24, blockHeight - 9, 1.5, 1.5, "F");
+          doc.setFillColor(239, 242, 247);
+          doc.rect(12, y + 7, pw - 24, 6, "F");
+          doc.setFontSize(6.5);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(55, 65, 81);
+          doc.text("#", 15, y + 11);
+          doc.text(section.id === "groups" ? "Member Name" : "Answer", 22, y + 11);
+
+          let innerY = y + 17;
+          detail.items.forEach((item, itemIndex) => {
+            if (itemIndex % 2 === 0) {
+              doc.setFillColor(249, 250, 251);
+              doc.rect(12, innerY - 4, pw - 24, 6, "F");
+            }
+            doc.setFontSize(6.5);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(75, 85, 99);
+            doc.text(String(itemIndex + 1), 15, innerY);
+            const truncated =
+              item.length > 95 ? `${item.slice(0, 94)}...` : item;
+            doc.text(truncated, 22, innerY);
+            innerY += 6;
+          });
+
+          y += blockHeight + 4;
+          if (index < detailRows.length - 1) {
+            y = ensurePageSpace(12, y, section.label);
+          }
+        });
+
+        return y + 2;
+      };
+
       for (const section of SECTIONS) {
         if (
           !selected[section.id] ||
@@ -1241,6 +1582,7 @@ const AdminReportBuilder = () => {
           );
           y += 5;
           y = drawDataTable(rows, activeCols, y);
+          y = drawDetailSubtables(section, rows, y);
         } catch (e) {
           console.error(`PDF ${section.id}:`, e);
         }
@@ -1268,27 +1610,27 @@ const AdminReportBuilder = () => {
         <button
           onClick={generatePDF}
           disabled={selectedCount === 0 || generating}
-          className="group flex items-center gap-2 bg-white border border-gray-200 hover:border-green-700 hover:bg-green-800 px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
+          className="group flex items-center justify-center gap-3 bg-white border border-gray-200 hover:border-green-700 hover:bg-green-800 px-6 py-3 rounded-xl text-base font-semibold text-gray-600 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed min-w-[240px]"
         >
           <div className="p-1 rounded-lg bg-green-50 group-hover:bg-white/20 transition-colors">
             {generating ? (
               <Loader2
-                size={13}
+                size={16}
                 className="text-green-700 group-hover:text-white animate-spin"
               />
             ) : (
               <FileBarChart2
-                size={13}
+                size={16}
                 className="text-green-700 group-hover:text-white transition-colors"
               />
             )}
           </div>
           <span>{generating ? "Generating..." : "Generate Report"}</span>
-          <span className="text-[10px] font-bold bg-green-100 group-hover:bg-white/20 text-green-700 group-hover:text-white px-1.5 py-0.5 rounded-md transition-colors">
+          <span className="text-xs font-bold bg-green-100 group-hover:bg-white/20 text-green-700 group-hover:text-white px-2 py-0.5 rounded-md transition-colors">
             PDF
           </span>
           {selectedCount > 0 && !generating && (
-            <span className="text-[10px] font-bold bg-amber-100 group-hover:bg-white/20 text-amber-700 group-hover:text-white px-1.5 py-0.5 rounded-md transition-colors">
+            <span className="text-xs font-bold bg-amber-100 group-hover:bg-white/20 text-amber-700 group-hover:text-white px-2 py-0.5 rounded-md transition-colors">
               {selectedCount} section{selectedCount > 1 ? "s" : ""}
             </span>
           )}
@@ -1339,7 +1681,7 @@ const AdminReportBuilder = () => {
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-black text-gray-800 text-sm tracking-tight">
+                        <h3 className="font-black text-gray-800 text-lg tracking-tight">
                           {section.label}
                         </h3>
                         <span
@@ -1348,12 +1690,12 @@ const AdminReportBuilder = () => {
                           {section.tag}
                         </span>
                         {isOn && (
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-white/70 text-gray-500 border border-gray-200">
-                            {colCount}/{section.columns.length} cols
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-white/70 text-gray-500 border border-gray-200">
+                          {colCount}/{section.columns.length} cols
+                        </span>
+                      )}
+                    </div>
+                      <p className="text-sm text-gray-500 mt-0.5 leading-snug">
                         {section.desc}
                       </p>
                     </div>
@@ -1371,9 +1713,9 @@ const AdminReportBuilder = () => {
               </div>
 
               {!isOn && (
-                <div className="px-4 py-3 flex items-center gap-2 text-gray-300 border-t border-gray-50">
-                  <EyeOff size={13} />
-                  <span className="text-xs">
+                  <div className="px-4 py-3 flex items-center gap-2 text-gray-300 border-t border-gray-50">
+                    <EyeOff size={13} />
+                  <span className="text-sm">
                     Toggle to preview live data and include in PDF
                   </span>
                 </div>
@@ -1388,19 +1730,20 @@ const AdminReportBuilder = () => {
                     sectionRows={rows}
                     degreeSubjectMap={degreeSubjectMap}
                     hobbyOptions={hobbyOptions}
+                    rowFilterOptions={rowFilterOptions}
                   />
 
                   <div className="px-4 pt-3 pb-3">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1.5">
                         <Columns size={11} className="text-gray-400" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        <span className="text-[11px] font-black uppercase tracking-widest text-gray-400">
                           PDF Columns
                         </span>
                       </div>
                       <button
                         onClick={() => toggleAllCols(section.id, section)}
-                        className="text-[9px] font-bold text-gray-400 hover:text-gray-600 transition-colors"
+                        className="text-[11px] font-bold text-gray-400 hover:text-gray-600 transition-colors"
                       >
                         {section.columns.every(
                           (c) => colState[section.id][c.key],
@@ -1425,7 +1768,7 @@ const AdminReportBuilder = () => {
                   <div>
                     <div className="flex items-center justify-between px-4 py-2 bg-gray-50/50">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        <span className="text-[11px] font-black uppercase tracking-widest text-gray-400">
                           Live Preview
                         </span>
                         {isLoad && (

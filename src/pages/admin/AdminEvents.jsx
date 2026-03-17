@@ -118,20 +118,36 @@ const AdminEvents = () => {
           Organizer_Name: ev.Organizer_Name,
           Added_On: ev.Added_On,
           Poster_File: ev.Poster_File,
+          Interested: ev.Interested || 0,
+          Not_Interested: ev.Not_Interested || 0,
           status: ev.Is_Active,
         }));
 
+        const totalEvents = data.total || formattedEvents.length;
+        const activeEvents = formattedEvents.filter((ev) => ev.status === 1);
+        const blockedEvents = formattedEvents.filter((ev) => ev.status !== 1);
+
         setEventsStats([
-          { ...eventsStats[0], value: data.total || formattedEvents.length },
           {
-            ...eventsStats[1],
-            value: formattedEvents.filter((ev) => ev.status === "active")
-              .length,
+            title: "Total Events",
+            value: totalEvents,
+            infoText: `${activeEvents.length} active on feed`,
+            color: "green",
+            type: "total",
           },
           {
-            ...eventsStats[2],
-            value: formattedEvents.filter((ev) => ev.status === "blocked")
-              .length,
+            title: "Active Events",
+            value: activeEvents.length,
+            infoText: `${totalEvents ? Math.round((activeEvents.length / totalEvents) * 100) : 0}% visible events`,
+            color: "yellow",
+            type: "pending",
+          },
+          {
+            title: "Blocked Events",
+            value: blockedEvents.length,
+            infoText: `${blockedEvents.length} hidden from users`,
+            color: "red",
+            type: "blocked",
           },
         ]);
         setEvents(formattedEvents);

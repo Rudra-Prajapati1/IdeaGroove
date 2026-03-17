@@ -68,18 +68,35 @@ const AdminGroups = () => {
           status: group.Is_Active === 1 ? "active" : "blocked",
         }));
 
+        const totalGroups = data.pagination.total || formattedGroups.length;
+        const activeGroups = formattedGroups.filter(
+          (g) => g.status === "active",
+        );
+        const blockedGroups = formattedGroups.filter(
+          (g) => g.status === "blocked",
+        );
+
         setGroupsStats([
           {
-            ...groupsStats[0],
-            value: data.pagination.total || formattedGroups.length,
+            title: "Total Groups",
+            value: totalGroups,
+            infoText: `${activeGroups.length} active communities`,
+            color: "green",
+            type: "total",
           },
           {
-            ...groupsStats[1],
-            value: formattedGroups.filter((g) => g.status === "active").length,
+            title: "Active Groups",
+            value: activeGroups.length,
+            infoText: `${totalGroups ? Math.round((activeGroups.length / totalGroups) * 100) : 0}% currently active`,
+            color: "yellow",
+            type: "pending",
           },
           {
-            ...groupsStats[2],
-            value: formattedGroups.filter((g) => g.status === "blocked").length,
+            title: "Inactive Groups",
+            value: blockedGroups.length,
+            infoText: `${blockedGroups.length} blocked or archived`,
+            color: "red",
+            type: "blocked",
           },
         ]);
         setGroups(formattedGroups);

@@ -4,8 +4,9 @@ import {
   CheckCircle,
   CalendarDays,
   User,
-  Clock,
   ExternalLink,
+  ThumbsDown,
+  ThumbsUp,
 } from "lucide-react";
 import StudentProfile from "../admin/StudentProfile";
 
@@ -50,26 +51,33 @@ const AdminEventCard = ({ event, onModerate }) => {
               {isUpcoming ? "Upcoming" : "Past"}
             </span>
           </div>
+        </div>
 
-          {/* Event date pinned to bottom of image */}
-          <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-white">
-            <CalendarDays size={13} className="opacity-80" />
-            <span className="text-sm font-bold drop-shadow-md">
+        {/* Body */}
+        <div className="p-4 flex flex-col flex-1">
+          {/* Title */}
+          <h2 className="text-base md:text-lg font-extrabold text-gray-900 line-clamp-2 leading-snug font-poppins group-hover:text-[#1B431C] transition-colors mb-3">
+            {event.Description}
+          </h2>
+
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-[11px] font-semibold text-amber-700">
+              <CalendarDays size={12} />
               {new Date(event.Event_Date).toLocaleDateString("en-GB", {
                 day: "2-digit",
                 month: "short",
                 year: "numeric",
               })}
             </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700">
+              <ThumbsUp size={12} />
+              Interested {event.Interested || 0}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-[11px] font-semibold text-rose-700">
+              <ThumbsDown size={12} />
+              Not Interested {event.Not_Interested || 0}
+            </span>
           </div>
-        </div>
-
-        {/* Body */}
-        <div className="p-4 flex flex-col flex-1">
-          {/* Title */}
-          <h2 className="text-base md:text-lg font-extrabold text-gray-900 line-clamp-2 leading-snug font-poppins group-hover:text-[#1B431C] transition-colors mb-4">
-            {event.Description}
-          </h2>
 
           {/* Meta row */}
           <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-50">
@@ -93,15 +101,6 @@ const AdminEventCard = ({ event, onModerate }) => {
                 className="opacity-0 group-hover/author:opacity-100 transition-opacity"
               />
             </button>
-
-            <div className="flex items-center gap-1 text-[10px] text-gray-700">
-              <Clock size={10} />
-              {new Date(event.Added_On).toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })}
-            </div>
           </div>
         </div>
 
@@ -138,7 +137,7 @@ const AdminEventCard = ({ event, onModerate }) => {
             e.target === e.currentTarget && setIsProfileOpen(false)
           }
         >
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="relative bg-[#f8faf8] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
             <StudentProfile
               id={event.Organizer_ID}
               onClose={() => setIsProfileOpen(false)}

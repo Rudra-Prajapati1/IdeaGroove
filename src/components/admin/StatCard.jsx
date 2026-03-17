@@ -33,7 +33,6 @@ const themeMap = {
 const StatCard = ({
   title,
   value,
-  infoText,
   color = "green",
   type = "total",
 }) => {
@@ -57,12 +56,6 @@ const StatCard = ({
         </span>
 
         <span className="text-4xl font-bold text-gray-900">{value}</span>
-
-        {infoText && (
-          <span className={`text-sm font-medium ${theme.info}`}>
-            {infoText}
-          </span>
-        )}
       </div>
 
       {/* ICON */}

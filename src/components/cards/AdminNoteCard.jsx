@@ -2,6 +2,7 @@ import {
   CheckCircle,
   Ban,
   Calendar,
+  Download,
   FileText,
   User,
   ExternalLink,
@@ -12,6 +13,24 @@ import StudentProfile from "../admin/StudentProfile";
 const AdminNoteCard = ({ note, onModerate }) => {
   const isActive = note.status === "active";
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    if (!note.noteFile) return;
+
+    try {
+      setIsDownloading(true);
+      const link = document.createElement("a");
+      link.href = note.noteFile;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <>
@@ -44,9 +63,6 @@ const AdminNoteCard = ({ note, onModerate }) => {
             <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md uppercase tracking-tight">
               {note.subject}
             </span>
-            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md uppercase">
-              {note.degree}
-            </span>
           </div>
 
           {/* Title */}
@@ -55,9 +71,9 @@ const AdminNoteCard = ({ note, onModerate }) => {
             {note.file}
           </h3>
 
-          {note.title && (
+          {note.description && (
             <p className="text-xs text-gray-400 line-clamp-2 mb-4 leading-relaxed">
-              Description: {note.title}
+              {note.description}
             </p>
           )}
 
@@ -99,6 +115,14 @@ const AdminNoteCard = ({ note, onModerate }) => {
         {/* Action Footer */}
         <div className="px-4 py-3 border-t border-gray-50 flex gap-2 bg-gray-50/40">
           <button
+            onClick={handleDownload}
+            disabled={!note.noteFile || isDownloading}
+            className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold border border-gray-200 text-gray-600 bg-white hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download size={14} />
+            {isDownloading ? "Opening..." : "Download"}
+          </button>
+          <button
             onClick={() => onModerate(isActive ? "block" : "unblock", note.id)}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all
               ${
@@ -130,7 +154,7 @@ const AdminNoteCard = ({ note, onModerate }) => {
             e.target === e.currentTarget && setIsProfileOpen(false)
           }
         >
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="relative bg-[#f8faf8] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
             <StudentProfile
               id={note.userId} // Assuming Added_By contains the S_ID of the uploader
               onClose={() => setIsProfileOpen(false)}

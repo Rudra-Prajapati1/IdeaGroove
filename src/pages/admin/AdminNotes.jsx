@@ -86,33 +86,39 @@ const AdminNotes = () => {
       const formattedNotes = data.notes.map((n) => ({
         id: n.N_ID,
         title: n.Description,
+        description: n.Description,
         degree: n.Degree_Name,
         subject: n.Subject_Name,
         uploadedBy: n.Author,
         userId: n.Author_ID,
         file: n.File_Name || n.Note_File,
+        noteFile: n.Note_File,
         status: n.Is_Active === 1 ? "active" : "blocked",
       }));
+
+      const totalNotes = data.total || formattedNotes.length;
+      const activeNotes = formattedNotes.filter((n) => n.status === "active");
+      const blockedNotes = formattedNotes.filter((n) => n.status === "blocked");
 
       setNotesStats([
         {
           title: "Total Notes Uploaded",
-          value: data.total,
-          infoText: "All notes in system",
+          value: totalNotes,
+          infoText: `${activeNotes.length} active right now`,
           color: "green",
           type: "total",
         },
         {
           title: "Active Notes",
-          value: formattedNotes.filter((n) => n.status === "active").length,
-          infoText: "Currently Active",
+          value: activeNotes.length,
+          infoText: `${totalNotes ? Math.round((activeNotes.length / totalNotes) * 100) : 0}% of total notes`,
           color: "yellow",
           type: "pending",
         },
         {
           title: "InActive Notes",
-          value: formattedNotes.filter((n) => n.status === "blocked").length,
-          infoText: "Blocked & Deleted Notes",
+          value: blockedNotes.length,
+          infoText: `${blockedNotes.length} blocked or removed`,
           color: "red",
           type: "blocked",
         },

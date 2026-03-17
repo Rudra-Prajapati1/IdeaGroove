@@ -154,7 +154,7 @@ const ReportConfigModal = ({ isOpen, onClose, onGenerate }) => {
 
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <div
-          className="pointer-events-auto bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+          className="pointer-events-auto bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden"
           style={{ animation: "modalIn 0.2s ease-out" }}
         >
           {/* Header */}
@@ -164,10 +164,10 @@ const ReportConfigModal = ({ isOpen, onClose, onGenerate }) => {
                 <FileText size={18} className="text-emerald-300" />
               </div>
               <div>
-                <h2 className="text-white font-bold text-base font-poppins">
+                <h2 className="text-white font-bold text-lg font-poppins">
                   Configure Report
                 </h2>
-                <p className="text-emerald-300/70 text-[11px]">
+                <p className="text-emerald-300/70 text-sm">
                   Choose what to include in the PDF
                 </p>
               </div>
@@ -185,7 +185,7 @@ const ReportConfigModal = ({ isOpen, onClose, onGenerate }) => {
             <div className="px-6 pt-5 pb-3">
               <div className="flex items-center gap-2 mb-3">
                 <Calendar size={13} className="text-gray-400" />
-                <span className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                <span className="text-sm font-black text-gray-400 uppercase tracking-widest">
                   Date Range
                 </span>
               </div>
@@ -195,7 +195,7 @@ const ReportConfigModal = ({ isOpen, onClose, onGenerate }) => {
                   <button
                     key={preset.id}
                     onClick={() => setDatePreset(preset.id)}
-                    className={`flex flex-col items-start px-3 py-2.5 rounded-xl border text-left transition-all
+                      className={`flex flex-col items-start px-4 py-3 rounded-xl border text-left transition-all
                       ${
                         datePreset === preset.id
                           ? "bg-[#1B431C] border-[#1B431C] text-white"
@@ -203,12 +203,12 @@ const ReportConfigModal = ({ isOpen, onClose, onGenerate }) => {
                       } ${preset.id === "all" ? "col-span-2" : ""}`}
                   >
                     <span
-                      className={`text-xs font-bold ${datePreset === preset.id ? "text-white" : "text-gray-700"}`}
+                      className={`text-sm font-bold ${datePreset === preset.id ? "text-white" : "text-gray-700"}`}
                     >
                       {preset.label}
                     </span>
                     <span
-                      className={`text-[10px] mt-0.5 ${datePreset === preset.id ? "text-emerald-200" : "text-gray-400"}`}
+                      className={`text-xs mt-0.5 ${datePreset === preset.id ? "text-emerald-200" : "text-gray-400"}`}
                     >
                       {preset.desc}
                     </span>
@@ -252,7 +252,7 @@ const ReportConfigModal = ({ isOpen, onClose, onGenerate }) => {
                     size={11}
                     className="text-emerald-600 flex-shrink-0"
                   />
-                  <span className="text-[11px] text-emerald-700 font-semibold">
+                <span className="text-sm text-emerald-700 font-semibold">
                     {datePreset === "custom"
                       ? customFrom && customTo
                         ? customFrom + "  →  " + customTo
@@ -268,12 +268,12 @@ const ReportConfigModal = ({ isOpen, onClose, onGenerate }) => {
 
             {/* ── SECTIONS ───────────────────────────────────────── */}
             <div className="px-6 pt-4 pb-2 flex items-center justify-between">
-              <span className="text-xs font-black text-gray-400 uppercase tracking-widest">
+              <span className="text-sm font-black text-gray-400 uppercase tracking-widest">
                 Report Sections
               </span>
               <button
                 onClick={toggleAll}
-                className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900 transition-colors"
+                className="flex items-center gap-1.5 text-sm font-bold text-emerald-700 hover:text-emerald-900 transition-colors"
               >
                 {allOn ? <CheckSquare size={14} /> : <Square size={14} />}
                 {allOn ? "Deselect All" : "Select All"}
@@ -289,24 +289,24 @@ const ReportConfigModal = ({ isOpen, onClose, onGenerate }) => {
                   <button
                     key={section.id}
                     onClick={() => toggle(section.id)}
-                    className={`w-full flex items-center gap-4 p-3.5 rounded-xl border transition-all duration-150 text-left
+                    className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-150 text-left
                       ${checked ? `${c.bg} ${c.border} border` : "bg-gray-50 border border-gray-100 hover:border-gray-200"}`}
                   >
                     <div
                       className={`p-2 rounded-lg ${checked ? c.bg : "bg-gray-100"} flex-shrink-0`}
                     >
-                      <Icon
-                        size={16}
-                        className={checked ? c.text : "text-gray-400"}
-                      />
+                        <Icon
+                          size={18}
+                          className={checked ? c.text : "text-gray-400"}
+                        />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p
-                        className={`text-sm font-bold ${checked ? "text-gray-800" : "text-gray-400"}`}
+                        className={`text-base font-bold ${checked ? "text-gray-800" : "text-gray-400"}`}
                       >
                         {section.label}
                       </p>
-                      <p className="text-[10px] text-gray-400 mt-0.5 truncate">
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">
                         {section.desc}
                       </p>
                     </div>
@@ -339,7 +339,7 @@ const ReportConfigModal = ({ isOpen, onClose, onGenerate }) => {
 
           {/* Footer */}
           <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between gap-3">
-            <p className="text-xs text-gray-400 font-medium">
+            <p className="text-sm text-gray-400 font-medium">
               <span className="font-black text-gray-600">{selectedCount}</span>{" "}
               of {SECTIONS.length} sections
               {datePreset !== "all" && (
@@ -351,7 +351,7 @@ const ReportConfigModal = ({ isOpen, onClose, onGenerate }) => {
             <div className="flex gap-2">
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-500 font-semibold hover:bg-gray-100 transition-all"
+                className="px-5 py-2.5 rounded-xl border border-gray-200 text-base text-gray-500 font-semibold hover:bg-gray-100 transition-all"
               >
                 Cancel
               </button>
@@ -361,7 +361,7 @@ const ReportConfigModal = ({ isOpen, onClose, onGenerate }) => {
                   selectedCount === 0 ||
                   (isCustom && (!customFrom || !customTo))
                 }
-                className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#1B431C] text-white text-sm font-semibold hover:bg-[#153416] transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-[#1B431C] text-white text-base font-semibold hover:bg-[#153416] transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
               >
                 Generate PDF
                 <ChevronRight size={14} />

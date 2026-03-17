@@ -170,6 +170,7 @@ import {
   CheckCircle,
   Calendar,
   ShieldCheck,
+  Tag,
   Users,
   ExternalLink,
 } from "lucide-react";
@@ -229,44 +230,63 @@ const AdminGroupCard = ({ group, onModerate }) => {
 
         {/* Body */}
         <div className="p-4 flex flex-col gap-4 text-sm">
-          {/* Admin (UNCHANGED readability structure) */}
-          <button
-            onClick={() => setIsProfileOpen(true)}
-            title="View student profile"
-            className="group/author flex items-center gap-2 text-[13px] text-gray-500 hover:text-[#1B431C] transition-colors w-fit"
-          >
-            <ShieldCheck
-              size={14}
-              className="text-gray-400 group-hover/author:text-[#1B431C] transition-colors"
-            />
-            <span>
-              Admin:{" "}
-              <span className="font-semibold text-gray-700 underline underline-offset-2 decoration-dashed decoration-gray-300 group-hover/author:decoration-[#1B431C] transition-colors">
-                {group.Creator_Name}
-              </span>
-            </span>
-            <ExternalLink
-              size={13}
-              className="opacity-60 group-hover/author:opacity-100 transition-opacity"
-            />
-          </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              onClick={() => setIsProfileOpen(true)}
+              title="View student profile"
+              className="group/author rounded-2xl border border-gray-100 bg-gray-50/70 p-3 text-left hover:border-emerald-200 hover:bg-emerald-50/50 transition-colors"
+            >
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-gray-400 font-semibold mb-1">
+                <ShieldCheck
+                  size={14}
+                  className="text-gray-400 group-hover/author:text-[#1B431C] transition-colors"
+                />
+                Admin
+              </div>
+              <div className="flex items-center gap-2 text-[13px] text-gray-600 group-hover/author:text-[#1B431C] transition-colors">
+                <span className="font-semibold text-gray-700 underline underline-offset-2 decoration-dashed decoration-gray-300 group-hover/author:decoration-[#1B431C] transition-colors">
+                  {group.Creator_Name}
+                </span>
+                <ExternalLink
+                  size={13}
+                  className="opacity-60 group-hover/author:opacity-100 transition-opacity"
+                />
+              </div>
+            </button>
 
-          {/* Created On */}
-          <div className="flex items-center gap-2 text-gray-600">
-            <Calendar size={14} className="text-gray-400" />
-            <span>
-              Created on{" "}
-              <span className="font-semibold">
+            <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-gray-400 font-semibold mb-1">
+                <Users size={14} className="text-gray-400" />
+                Members
+              </div>
+              <p className="font-semibold text-gray-700">
+                {group.Member_Count || 0} joined
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-gray-400 font-semibold mb-1">
+                <Calendar size={14} className="text-gray-400" />
+                Created On
+              </div>
+              <p className="font-semibold text-gray-700">
                 {new Date(group.Created_On).toLocaleDateString("en-GB", {
                   day: "2-digit",
                   month: "short",
                   year: "numeric",
                 })}
-              </span>
-            </span>
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-gray-400 font-semibold mb-1">
+                <Tag size={14} className="text-gray-400" />
+                Role
+              </div>
+              <p className="font-semibold text-gray-700">Admin</p>
+            </div>
           </div>
 
-          {/* View Members */}
           <button
             disabled={!isAuth}
             onClick={() => setIsModalOpen(true)}
@@ -317,7 +337,7 @@ const AdminGroupCard = ({ group, onModerate }) => {
             e.target === e.currentTarget && setIsProfileOpen(false)
           }
         >
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto">
+          <div className="relative bg-[#f8faf8] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto">
             <StudentProfile
               id={group.Creator_ID}
               onClose={() => setIsProfileOpen(false)}

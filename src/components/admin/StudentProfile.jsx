@@ -1,15 +1,57 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Download, X, FileText, TrendingUp } from "lucide-react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Calendar,
+  FileText,
+  MessageSquare,
+  Users,
+  X,
+} from "lucide-react";
+import AdminViewMembers from "./AdminViewMember";
+
+const formatDisplayDate = (value, fallback = "Recently") => {
+  if (!value) return fallback;
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return fallback;
+
+  return parsed.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const getMetaLabel = (item) => {
+  const normalizedRole = item.course?.toLowerCase();
+
+  if (normalizedRole === "admin" || normalizedRole === "creator") {
+    return "Role";
+  }
+
+  if (normalizedRole === "member") {
+    return "Role";
+  }
+
+  return "Course";
+};
 
 const StudentProfile = ({ id, onClose }) => {
   const [filter, setFilter] = useState("none");
   const [activities, setActivities] = useState([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [profile, setProfile] = useState(null);
+  const [selectedGroup, setSelectedGroup] = useState(null);
 
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const tabRefs = useRef({});
   const containerRef = useRef(null);
+
+  const hobbiesList = useMemo(() => {
+    if (!Array.isArray(profile?.hobbies)) return [];
+    return profile.hobbies
+      .map((hobby) => hobby?.Hobby_Name)
+      .filter(Boolean);
+  }, [profile?.hobbies]);
 
   useEffect(() => {
     if (!id) return;
@@ -77,9 +119,9 @@ const StudentProfile = ({ id, onClose }) => {
   const complaintsPercent = totalCount ? (complaints / totalCount) * 100 : 0;
 
   return (
-    <div className="bg-white w-full font-sans">
+    <div className="bg-[#f8faf8] w-full font-sans">
       {/* Top Green Header */}
-      <div className="bg-white text-[#0f3d1e] p-5 flex justify-between items-center sticky top-0 z-10">
+      <div className="bg-[#f8faf8] text-[#0f3d1e] p-5 flex justify-between items-center sticky top-0 z-30 border-b border-emerald-100/60">
         <div>
           <h1 className="text-lg font-bold tracking-tight">Student Report</h1>
         </div>
@@ -142,11 +184,22 @@ const StudentProfile = ({ id, onClose }) => {
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
                 Hobbies
               </p>
-              <p className="text-sm font-bold text-gray-800">
-                {profile?.hobbies?.length > 0
-                  ? profile.hobbies.map((h) => h.Hobby_Name).join(", ")
-                  : "No hobbies listed"}
-              </p>
+              {hobbiesList.length > 0 ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {hobbiesList.map((hobby) => (
+                    <span
+                      key={hobby}
+                      className="rounded-xl bg-emerald-50 px-3 py-2 text-sm font-bold text-[#0f3d1e]"
+                    >
+                      {hobby}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm font-bold text-gray-800">
+                  No hobbies listed
+                </p>
+              )}
             </div>
             <div>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
@@ -319,29 +372,31 @@ const StudentProfile = ({ id, onClose }) => {
           </div>
         </div>
 
-        <div
-          ref={containerRef}
-          className="relative flex items-center gap-1 bg-gray-100 p-1 rounded-xl w-fit"
-        >
-          {/* Sliding indicator */}
+        <div className="sticky top-[72px] z-20 pt-2 pb-4 bg-[#f8faf8]">
           <div
-            className="absolute top-1 bottom-1 left-0 bg-[#1B431C] rounded-lg shadow-sm transition-all duration-300 ease-in-out"
-            style={indicatorStyle}
-          />
+            ref={containerRef}
+            className="relative flex items-center gap-1 bg-gray-100 p-1 rounded-xl w-fit shadow-sm"
+          >
+          {/* Sliding indicator */}
+            <div
+              className="absolute top-1 bottom-1 left-0 bg-[#1B431C] rounded-lg shadow-sm transition-all duration-300 ease-in-out"
+              style={indicatorStyle}
+            />
 
-          {["Notes", "QnA", "Events", "Groups", "Complaints"].map(
-            (category) => (
-              <button
-                key={category}
-                ref={(el) => (tabRefs.current[category] = el)}
-                onClick={() => setFilter(category)}
-                className={`relative z-10 px-4 py-1.5 rounded-lg text-sm font-bold uppercase tracking-wide transition-colors duration-300
+            {["Notes", "QnA", "Events", "Groups", "Complaints"].map(
+              (category) => (
+                <button
+                  key={category}
+                  ref={(el) => (tabRefs.current[category] = el)}
+                  onClick={() => setFilter(category)}
+                  className={`relative z-10 px-4 py-1.5 rounded-lg text-sm font-bold uppercase tracking-wide transition-colors duration-300
             ${filter === category ? "text-white" : "text-gray-400 hover:text-gray-600"}`}
-              >
-                {category}
-              </button>
-            ),
-          )}
+                >
+                  {category}
+                </button>
+              ),
+            )}
+          </div>
         </div>
 
         {/* Dynamic Activity List */}
@@ -375,7 +430,7 @@ const StudentProfile = ({ id, onClose }) => {
                 activities.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between pb-6 border-b border-gray-50 last:border-0 group/item"
+                    className="flex items-start justify-between gap-4 pb-6 border-b border-gray-50 last:border-0 group/item"
                   >
                     <div className="flex items-center gap-5">
                       <div className="bg-emerald-50 p-3 rounded-2xl group-hover/item:bg-[#0f3d1e] transition-colors">
@@ -392,7 +447,8 @@ const StudentProfile = ({ id, onClose }) => {
                           {item.type && (
                             <>
                               {item.course?.toLowerCase() === "creator" ||
-                              item.course?.toLowerCase() === "member"
+                              item.course?.toLowerCase() === "member" ||
+                              item.course?.toLowerCase() === "admin"
                                 ? "Hobby"
                                 : "Category"}
                               :{" "}
@@ -402,10 +458,7 @@ const StudentProfile = ({ id, onClose }) => {
                           {item.type && item.course && " • "}
                           {item.course && (
                             <>
-                              {item.course?.toLowerCase() === "creator" ||
-                              item.course?.toLowerCase() === "member"
-                                ? "Role"
-                                : "Course"}
+                              {getMetaLabel(item)}
                               :{" "}
                               <span className="uppercase text-gray-600 font-bold">
                                 {item.course}
@@ -413,11 +466,82 @@ const StudentProfile = ({ id, onClose }) => {
                             </>
                           )}
                         </p>
+
+                        {filter === "QnA" && Array.isArray(item.answers) && (
+                          <div className="mt-3 space-y-2">
+                            {item.answers.length > 0 ? (
+                              item.answers.map((answer) => (
+                                <div
+                                  key={answer.id}
+                                  className="rounded-2xl border border-emerald-100 bg-emerald-50/60 px-4 py-3"
+                                >
+                                  <div className="flex items-start gap-2 text-[#0f3d1e]">
+                                    <MessageSquare size={14} className="mt-0.5" />
+                                    <div>
+                                      <p className="text-sm font-semibold text-gray-800">
+                                        {answer.answer}
+                                      </p>
+                                      <p className="text-[11px] mt-1 text-gray-500 font-medium">
+                                        Answered by{" "}
+                                        <span className="font-bold text-[#0f3d1e]">
+                                          {answer.answeredBy ||
+                                            answer.answeredByUsername ||
+                                            "Unknown"}
+                                        </span>
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-xs text-gray-400 italic">
+                                No answers available for this question.
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {filter === "Events" && item.eventDate && (
+                          <div className="mt-3 flex flex-wrap items-center gap-3">
+                            <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                              <Calendar size={13} />
+                              Event Date: {formatDisplayDate(item.eventDate)}
+                            </div>
+                            <span className="text-xs font-medium text-gray-400">
+                              Added on {formatDisplayDate(item.date)}
+                            </span>
+                          </div>
+                        )}
+
+                        {filter === "Groups" && (
+                          <div className="mt-3 flex flex-wrap items-center gap-3">
+                            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-[#0f3d1e]">
+                              <Users size={13} />
+                              {item.memberCount || 0} Members
+                            </span>
+                            <button
+                              onClick={() =>
+                                setSelectedGroup({
+                                  id: item.roomId,
+                                  Name: item.title,
+                                  Based_On: item.type,
+                                  Description: item.description,
+                                  Member_Count: item.memberCount,
+                                })
+                              }
+                              className="rounded-full border border-[#1B431C] px-3 py-1 text-xs font-semibold text-[#1B431C] hover:bg-[#1B431C] hover:text-white transition-colors"
+                            >
+                              View Members
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <span className="text-[10px] font-black text-gray-300 uppercase group-hover/item:text-gray-500">
-                      {item.time}
-                    </span>
+                    {filter !== "Events" && (
+                      <span className="text-[10px] font-black text-gray-300 uppercase group-hover/item:text-gray-500 shrink-0 pt-1">
+                        {formatDisplayDate(item.date)}
+                      </span>
+                    )}
                   </div>
                 ))
               ) : (
@@ -435,6 +559,13 @@ const StudentProfile = ({ id, onClose }) => {
           </div>
         )}
       </div>
+
+      {selectedGroup && (
+        <AdminViewMembers
+          group={selectedGroup}
+          setIsModalOpen={() => setSelectedGroup(null)}
+        />
+      )}
     </div>
   );
 };

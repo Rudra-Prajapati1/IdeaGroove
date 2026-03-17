@@ -10,21 +10,21 @@ export const dashboardUserStats = [
   {
     title: "Total Users",
     value: 0,
-    infoText: "All users in system",
+    infoText: "",
     color: "green",
     type: "total",
   },
   {
     title: "Active Users",
     value: 0,
-    infoText: "Currently active",
+    infoText: "",
     color: "yellow",
     type: "pending",
   },
   {
     title: "Inactive Users",
     value: 0,
-    infoText: "Needs attention",
+    infoText: "",
     color: "red",
     type: "blocked",
   },
@@ -78,9 +78,27 @@ const AdminDashboard = () => {
 
         setYearOptions(formattedYears);
         setStats([
-          { ...stats[0], value: data.length },
-          { ...stats[1], value: activeCount },
-          { ...stats[2], value: inactiveCount },
+          {
+            title: "Total Users",
+            value: data.length,
+            infoText: `${degreeOptions.length || new Set(data.map((u) => u.Degree?.Degree_Name || u.Degree_Name).filter(Boolean)).size} degree groups`,
+            color: "green",
+            type: "total",
+          },
+          {
+            title: "Active Users",
+            value: activeCount,
+            infoText: `${data.length ? Math.round((activeCount / data.length) * 100) : 0}% of all users`,
+            color: "yellow",
+            type: "pending",
+          },
+          {
+            title: "Inactive Users",
+            value: inactiveCount,
+            infoText: `${inactiveCount} need review`,
+            color: "red",
+            type: "blocked",
+          },
         ]);
 
         setUsers(data);

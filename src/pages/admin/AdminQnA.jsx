@@ -192,15 +192,35 @@ const AdminQnA = () => {
           })),
         }));
 
+        const totalQuestions = data.total || filteredQnAs.length;
+        const activeQuestions = filteredQnAs.filter(
+          (q) => q.status === "active",
+        );
+        const blockedQuestions = filteredQnAs.filter(
+          (q) => q.status === "blocked",
+        );
+
         setQnaStats([
-          { ...qnaStats[0], value: data.total || filteredQnAs.length },
           {
-            ...qnaStats[1],
-            value: filteredQnAs.filter((q) => q.status === "active").length,
+            title: "Total Questions",
+            value: totalQuestions,
+            infoText: `${filteredQnAs.reduce((sum, q) => sum + q.answersCount, 0)} total answers`,
+            color: "green",
+            type: "total",
           },
           {
-            ...qnaStats[2],
-            value: filteredQnAs.filter((q) => q.status === "blocked").length,
+            title: "Active Questions",
+            value: activeQuestions.length,
+            infoText: `${totalQuestions ? Math.round((activeQuestions.length / totalQuestions) * 100) : 0}% visible questions`,
+            color: "yellow",
+            type: "pending",
+          },
+          {
+            title: "InActive Questions",
+            value: blockedQuestions.length,
+            infoText: `${blockedQuestions.length} moderated questions`,
+            color: "red",
+            type: "blocked",
           },
         ]);
         setQnas(filteredQnAs);

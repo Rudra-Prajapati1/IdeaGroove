@@ -8,7 +8,6 @@ import {
   User,
   ChevronDown,
   ChevronUp,
-  GraduationCap,
   ExternalLink,
 } from "lucide-react";
 import StudentProfile from "../admin/StudentProfile";
@@ -18,6 +17,8 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
   const isActive = qna.status === "active";
   const answers = qna.answers || [];
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const activeAnswers = answers.filter((ans) => ans.status === "active").length;
+  const inactiveAnswers = answers.length - activeAnswers;
 
   return (
     <div
@@ -108,9 +109,19 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
       {/* --- EXPANDED ANSWERS SECTION --- */}
       {isExpanded && (
         <div className="bg-gray-50 p-6 border-t border-gray-100 animate-in slide-in-from-top-2 duration-200">
-          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
-            Answers
-          </h4>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+              Answers
+            </h4>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                Active {activeAnswers}
+              </span>
+              <span className="rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-red-600">
+                Inactive {inactiveAnswers}
+              </span>
+            </div>
+          </div>
           <div className="space-y-3">
             {answers.length > 0 ? (
               answers.map((ans) => {
@@ -207,7 +218,7 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
             e.target === e.currentTarget && setIsProfileOpen(false)
           }
         >
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="relative bg-[#f8faf8] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
             <StudentProfile
               id={qna.authorId} // Assuming Added_By contains the S_ID of the uploader
               onClose={() => setIsProfileOpen(false)}

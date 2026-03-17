@@ -108,7 +108,7 @@ const UserCard = ({ user, onModerate }) => {
             e.target === e.currentTarget && setIsProfileOpen(false)
           }
         >
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="relative bg-[#f8faf8] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
             <StudentProfile
               id={user?.S_ID}
               onClose={() => setIsProfileOpen(false)}

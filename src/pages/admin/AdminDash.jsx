@@ -13,8 +13,11 @@ import {
   ChevronRight,
   Eye,
   Circle,
-  Download,
   Filter,
+  CalendarCheck2,
+  MessageSquareText,
+  NotepadText,
+  ShieldAlert,
 } from "lucide-react";
 import { useEffect } from "react";
 import StudentProfile from "../../components/admin/StudentProfile";
@@ -38,7 +41,8 @@ const AdminDash = () => {
     dateFrom: "",
     dateTo: "",
   });
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [selectedActivityStudentId, setSelectedActivityStudentId] =
+    useState(null);
   const [appliedFilters, setAppliedFilters] = useState(filters);
 
   const ACTIVITIES_PER_PAGE = 10;
@@ -160,46 +164,40 @@ const AdminDash = () => {
 
   const stats = [
     {
-      label: "Total Users",
+      label: "Total Students",
       value: statsData?.totalUsers || 0,
       color: "emerald",
       icon: Users,
-      desc: "Active scholars",
     },
     {
       label: "Total Notes",
       value: statsData?.totalNotes || 0,
       color: "rose",
       icon: Notebook,
-      desc: "Notes Uploaded",
     },
     {
       label: "Total Questions",
       value: statsData?.totalQuestions || 0,
       color: "blue",
       icon: FileText,
-      desc: "Community queries",
     },
     {
       label: "Active Groups",
       value: statsData?.activeGroups || 0,
       color: "purple",
       icon: UsersRound,
-      desc: "Study circles",
     },
     {
       label: "Upcoming Events",
       value: statsData?.upcomingEvents || 0,
       color: "amber",
       icon: Calendar,
-      desc: "Next 7 days",
     },
     {
       label: "Complaints",
       value: statsData?.complaints || 0,
       color: "orange",
       icon: AlertTriangle,
-      desc: "Unresolved issues",
     },
   ];
 
@@ -299,6 +297,23 @@ const AdminDash = () => {
     }
   };
 
+  const getActivityIcon = (type) => {
+    switch (type?.toUpperCase()) {
+      case "EVENT":
+        return CalendarCheck2;
+      case "QUESTION":
+        return MessageSquareText;
+      case "NOTE":
+        return NotepadText;
+      case "GROUP":
+        return UsersRound;
+      case "COMPLAINT":
+        return ShieldAlert;
+      default:
+        return Activity;
+    }
+  };
+
   return (
     <section className="flex flex-col gap-6 relative min-h-screen">
       <div className="flex justify-between items-center">
@@ -337,9 +352,6 @@ const AdminDash = () => {
                   <h2 className="text-3xl font-black text-slate-800 tracking-tight">
                     {card.value}
                   </h2>
-                  <p className="text-[11px] text-slate-400 mt-2 font-medium italic">
-                    {card.desc}
-                  </p>
                 </div>
               </div>
               <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-50">
@@ -503,27 +515,26 @@ const AdminDash = () => {
                     {student.grand_total}
                   </div>
                 </div>
-
-                {selectedStudentId && (
-                  <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-                    onClick={(e) =>
-                      e.target === e.currentTarget && setSelectedStudentId(null)
-                    }
-                  >
-                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden">
-                      <StudentProfile
-                        id={selectedStudentId}
-                        onClose={() => setSelectedStudentId(null)}
-                      />
-                    </div>
-                  </div>
-                )}
               </div>
             ))}
           </div>
         </div>
       </div>
+      {selectedStudentId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={(e) =>
+            e.target === e.currentTarget && setSelectedStudentId(null)
+          }
+        >
+          <div className="relative bg-[#f8faf8] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden">
+            <StudentProfile
+              id={selectedStudentId}
+              onClose={() => setSelectedStudentId(null)}
+            />
+          </div>
+        </div>
+      )}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-6 border-b bg-primary border-gray-50 flex justify-between items-center">
           <div className="flex items-center gap-2 text-white">
@@ -572,10 +583,7 @@ const AdminDash = () => {
 
             <tbody className="text-sm divide-y divide-gray-50">
               {paginatedActivities.map((row, i) => (
-                <tr
-                  key={i}
-                  className="hover:bg-gray-50/50 transition-colors group"
-                >
+                <tr key={i} className="hover:bg-gray-50/50 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       {row?.profile_pic ? (
@@ -599,7 +607,13 @@ const AdminDash = () => {
                   </td>
 
                   <td className="px-6 py-4 text-gray-500 font-medium">
-                    {row.title_or_action}
+                    <div className="flex items-center gap-2">
+                      {(() => {
+                        const ActivityIcon = getActivityIcon(row.activity_type);
+                        return <ActivityIcon size={16} className="text-gray-400" />;
+                      })()}
+                      <span>{row.title_or_action}</span>
+                    </div>
                   </td>
 
                   <td className="px-6 py-4">
@@ -630,32 +644,31 @@ const AdminDash = () => {
                   <td className="px-6 py-4 text-center">
                     <button
                       className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
-                      onClick={() => setIsProfileOpen(true)}
+                      onClick={() => setSelectedActivityStudentId(row.student_id)}
                     >
                       <Eye size={18} />
                     </button>
                   </td>
-                  {/* Profile Modal */}
-                  {isProfileOpen && (
-                    <div
-                      className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm p-4"
-                      onClick={(e) =>
-                        e.target === e.currentTarget && setIsProfileOpen(false)
-                      }
-                    >
-                      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
-                        <StudentProfile
-                          id={row.student_id}
-                          onClose={() => setIsProfileOpen(false)}
-                        />
-                      </div>
-                    </div>
-                  )}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        {selectedActivityStudentId && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm p-4"
+            onClick={(e) =>
+              e.target === e.currentTarget && setSelectedActivityStudentId(null)
+            }
+          >
+            <div className="relative bg-[#f8faf8] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <StudentProfile
+                id={selectedActivityStudentId}
+                onClose={() => setSelectedActivityStudentId(null)}
+              />
+            </div>
+          </div>
+        )}
         {paginatedActivities.length > 0 && (
           <div className="p-4 flex justify-between items-center border-t border-gray-100 bg-gray-50/30">
             <span className="text-[11px] text-gray-400 font-bold uppercase tracking-tight">
