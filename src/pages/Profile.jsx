@@ -342,6 +342,7 @@ import {
   selectAllDegrees,
   selectAllHobbiesMaster,
 } from "../redux/slice/studentsSlice";
+import { logout } from "../redux/slice/authSlice";
 
 import {
   User,
@@ -359,12 +360,17 @@ import {
   X,
   ChevronDown,
   Camera,
+  EyeOff,
+  Eye,
+  KeyRound,
+  ArrowLeft,
 } from "lucide-react";
 
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import defaultProfilePic from "/DarkLogo.png";
 import { ConfirmationBox } from "../components/common/ConfirmationBox";
+import api from "../api/axios";
 
 /* ─────────────────────────── SearchableDropdown ─────────────────────────── */
 const SearchableDropdown = ({
@@ -497,7 +503,6 @@ const HobbiesField = ({
 
       {isEditing ? (
         <div className="bg-[#f4fbf5] border-2 border-[#c8e6c9] rounded-2xl p-4">
-          {/* Search bar */}
           <div className="flex items-center gap-2 bg-white border border-[#c8e6c9] rounded-xl px-3 py-2 mb-3 focus-within:border-[#1A3C20] transition-all">
             <Search size={14} className="text-[#4caf50]" />
             <input
@@ -513,14 +518,12 @@ const HobbiesField = ({
             )}
           </div>
 
-          {/* Selected count badge */}
           {selectedIds.length > 0 && (
             <p className="text-xs text-[#4caf50] font-semibold mb-2">
               {selectedIds.length} selected
             </p>
           )}
 
-          {/* Hobby pills */}
           <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto pr-1">
             {filtered.map((hobby) => {
               const selected = selectedIds.includes(hobby.Hobby_ID);
@@ -605,6 +608,134 @@ const InfoField = ({
   </div>
 );
 
+/* ─────────────────────────── PasswordField ─────────────────────────── */
+// ✅ Defined OUTSIDE ChangePasswordModal to prevent re-mount on every keystroke
+const PasswordField = ({ label, fieldKey, form, setForm, show, setShow }) => (
+  <div>
+    <label className="block text-xs font-bold mb-2 uppercase tracking-widest text-[#3a6b42]">
+      {label}
+    </label>
+    <div className="flex items-center gap-3 bg-[#f4fbf5] border-2 border-[#c8e6c9] rounded-2xl px-5 py-3 focus-within:border-[#1A3C20] transition-all">
+      <KeyRound size={16} className="text-[#4caf50]" />
+      <input
+        type={show[fieldKey] ? "text" : "password"}
+        value={form[fieldKey]}
+        onChange={(e) => setForm((p) => ({ ...p, [fieldKey]: e.target.value }))}
+        placeholder={`Enter ${label.toLowerCase()}`}
+        className="flex-1 bg-transparent outline-none text-sm text-[#1A3C20] placeholder:text-gray-400 font-medium"
+      />
+      <button
+        type="button"
+        onClick={() => setShow((p) => ({ ...p, [fieldKey]: !p[fieldKey] }))}
+      >
+        {show[fieldKey] ? (
+          <EyeOff size={16} className="text-gray-400" />
+        ) : (
+          <Eye size={16} className="text-gray-400" />
+        )}
+      </button>
+    </div>
+  </div>
+);
+
+/* ─────────────────────────── ChangePasswordModal ─────────────────────────── */
+const ChangePasswordModal = ({ onClose, studentId }) => {
+  const [form, setForm] = useState({ old: "", new: "", confirm: "" });
+  const [show, setShow] = useState({ old: false, new: false, confirm: false });
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!form.old || !form.new || !form.confirm)
+      return toast.error("Please fill all fields");
+    if (form.new !== form.confirm)
+      return toast.error("New passwords do not match");
+    if (form.new.length < 6)
+      return toast.error("Password must be at least 6 characters");
+
+    setLoading(true);
+    try {
+      await api.post("/auth/changePassword", {
+        S_ID: studentId,
+        oldPassword: form.old,
+        newPassword: form.new,
+      });
+      toast.success("Password changed successfully!");
+      onClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to change password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div className="bg-white rounded-4xl max-w-md w-full p-8 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+        <button
+          onClick={onClose}
+          className="absolute top-6 right-6 text-gray-400 hover:text-gray-600"
+        >
+          <X size={20} />
+        </button>
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="w-16 h-16 bg-[#e8f5e9] text-[#1A3C20] rounded-full flex items-center justify-center mb-4">
+            <KeyRound size={32} />
+          </div>
+          <h3 className="text-2xl font-black text-[#1A3C20] mb-1">
+            Change Password
+          </h3>
+          <p className="text-gray-400 text-sm">
+            Enter your current and new password
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <PasswordField
+            label="Old Password"
+            fieldKey="old"
+            form={form}
+            setForm={setForm}
+            show={show}
+            setShow={setShow}
+          />
+          <PasswordField
+            label="New Password"
+            fieldKey="new"
+            form={form}
+            setForm={setForm}
+            show={show}
+            setShow={setShow}
+          />
+          <PasswordField
+            label="Confirm New Password"
+            fieldKey="confirm"
+            form={form}
+            setForm={setForm}
+            show={show}
+            setShow={setShow}
+          />
+        </div>
+
+        <div className="flex flex-col gap-3 mt-6">
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="w-full py-4 bg-[#1A3C20] text-white rounded-2xl font-bold hover:bg-[#2d6b38] transition-colors shadow-lg disabled:opacity-50"
+          >
+            {loading ? "Updating..." : "Update Password"}
+          </button>
+          <button
+            onClick={onClose}
+            className="w-full py-4 bg-gray-50 text-gray-600 rounded-2xl font-bold hover:bg-gray-100 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ─────────────────────────── ProfileInformation ─────────────────────────── */
 const ProfileInformation = () => {
   const dispatch = useDispatch();
@@ -613,6 +744,7 @@ const ProfileInformation = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const currentStudent = useSelector(selectCurrentStudent);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   const masterColleges = useSelector(selectAllColleges) || [];
   const masterDegrees = useSelector(selectAllDegrees) || [];
@@ -645,6 +777,7 @@ const ProfileInformation = () => {
   useEffect(() => {
     loadProfileData();
   }, [dispatch, isAuthenticated, user]);
+
   useEffect(() => {
     if (!isAuthenticated) navigate("/auth");
   }, [isAuthenticated]);
@@ -682,10 +815,9 @@ const ProfileInformation = () => {
     return `20${yearStr.substring(0, 2)}-20${yearStr.substring(2, 4)}`;
   };
 
-  // Convert "2023-2027" → "2327" for storage
   const parseBatchYear = (displayStr) => {
     const match = displayStr.match(/20(\d{2})-20(\d{2})/);
-    if (match) return `${match[1]}${match[2]}`; // "2327"
+    if (match) return `${match[1]}${match[2]}`;
     return displayStr;
   };
 
@@ -708,7 +840,7 @@ const ProfileInformation = () => {
       const result = await dispatch(
         updateStudentProfile(formDataPayload),
       ).unwrap();
-      console.log("Update result:", result); // 👈 check what comes back
+      console.log("Update result:", result);
       toast.success("Profile Updated Successfully!");
       setIsEditing(false);
       setProfilePicFile(null);
@@ -725,6 +857,12 @@ const ProfileInformation = () => {
       {/* Hero */}
       <section className="bg-[#1A3C20] pt-40 pb-32">
         <div className="max-w-6xl mx-auto px-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-[#FFFBEB]/80 hover:text-white transition-colors mb-6"
+          >
+            <ArrowLeft size={20} /> Back
+          </button>
           <h1 className="text-5xl font-extrabold text-[#FFFBEB]">
             Your Profile
           </h1>
@@ -832,7 +970,6 @@ const ProfileInformation = () => {
               placeholder="your@email.com"
             />
 
-            {/* College */}
             <SearchableDropdown
               label="College"
               icon={<Building2 size={16} />}
@@ -851,7 +988,6 @@ const ProfileInformation = () => {
               }
             />
 
-            {/* Degree */}
             <SearchableDropdown
               label="Degree"
               icon={<GraduationCap size={16} />}
@@ -870,7 +1006,6 @@ const ProfileInformation = () => {
               }
             />
 
-            {/* Roll No + Year — same row */}
             <div className="grid grid-cols-2 gap-4">
               <InfoField
                 label="Roll Number"
@@ -883,16 +1018,15 @@ const ProfileInformation = () => {
               <InfoField
                 label="Batch Year"
                 icon={<Calendar size={16} />}
-                value={formatBatchYear(formData.Year)} // display: "2023-2027"
+                value={formatBatchYear(formData.Year)}
                 isEditing={isEditing}
                 onChange={(v) =>
                   setFormData((p) => ({ ...p, Year: parseBatchYear(v) }))
-                } // store: "2327"
+                }
                 placeholder="e.g. 2023-2027"
               />
             </div>
 
-            {/* Hobbies */}
             <HobbiesField
               masterHobbies={masterHobbies}
               selectedIds={formData.Hobbies}
@@ -902,7 +1036,7 @@ const ProfileInformation = () => {
                   const isSelected = prev.Hobbies.includes(id);
                   if (!isSelected && prev.Hobbies.length >= 7) {
                     toast.error("You can select at most 7 hobbies");
-                    return prev; // don't update state
+                    return prev;
                   }
                   return {
                     ...prev,
@@ -916,21 +1050,45 @@ const ProfileInformation = () => {
             />
 
             {!isEditing && (
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="flex items-center gap-2 text-red-400 hover:text-red-600 font-bold text-sm transition-colors mt-2"
-              >
-                <Trash2 size={16} /> Delete My Account
-              </button>
+              <div className="flex items-center gap-6 mt-2">
+                <button
+                  onClick={() => setShowChangePassword(true)}
+                  className="flex items-center gap-2 text-[#1A3C20] hover:text-[#2d6b38] font-bold text-sm transition-colors"
+                >
+                  <KeyRound size={16} /> Change Password
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="flex items-center gap-2 text-red-400 hover:text-red-600 font-bold text-sm transition-colors"
+                >
+                  <Trash2 size={16} /> Delete My Account
+                </button>
+              </div>
+            )}
+
+            {showChangePassword && (
+              <ChangePasswordModal
+                onClose={() => setShowChangePassword(false)}
+                studentId={currentStudent.S_ID}
+              />
             )}
 
             {showDeleteConfirm && (
               <ConfirmationBox
                 type="Account"
                 onClose={() => setShowDeleteConfirm(false)}
-                onConfirm={() => {
-                  dispatch(deleteStudentAccount(currentStudent.S_ID));
+                onConfirm={async () => {
                   setShowDeleteConfirm(false);
+                  const result = await dispatch(
+                    deleteStudentAccount(currentStudent.S_ID),
+                  );
+                  if (deleteStudentAccount.fulfilled.match(result)) {
+                    toast.success("Account deleted successfully!");
+                    dispatch(logout());
+                    navigate("/");
+                  } else {
+                    toast.error("Failed to delete account. Please try again.");
+                  }
                 }}
               />
             )}

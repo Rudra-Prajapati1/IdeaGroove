@@ -132,7 +132,7 @@ const authSlice = createSlice({
       state.otpVerified = false;
       state.resetLinkSent = false;
       localStorage.removeItem("user");
-      toast.success("Logged out successfully");
+      // toast.success("Logged out successfully");
     },
     expireSession: (state) => {
       state.user = null;

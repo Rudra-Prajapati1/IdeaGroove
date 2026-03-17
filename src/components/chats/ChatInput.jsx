@@ -1,6 +1,7 @@
 import { Send, Paperclip, X, FileText } from "lucide-react";
 import React, { useState, useRef } from "react";
 import api from "../../api/axios";
+import toast from "react-hot-toast";
 
 const ChatInput = ({
   activeRoom = null,
@@ -58,6 +59,13 @@ const ChatInput = ({
     const isPdf = file.type === "application/pdf";
     const isImage = file.type.startsWith("image/");
     if (!isPdf && !isImage) return;
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+  if (file.size > maxSize) {
+    toast.error("File size exceeds 5MB. Please choose a smaller file.");
+    e.target.value = "";
+    return;
+  }
 
     setUploading(true);
     try {

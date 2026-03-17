@@ -42,6 +42,21 @@ const ChatList = ({
     return result;
   }, [rooms, filter, search, currentUserId]);
 
+  const emptyTitle =
+    filter === "groups"
+      ? "No Groups Found"
+      : filter === "individuals"
+        ? "No Individuals Found"
+        : "No Chats Found";
+
+  const emptyDescription = search.trim()
+    ? filter === "all"
+      ? "No chats match your search."
+      : `Search is showing results only from ${filter}.`
+    : filter === "all"
+      ? "Try adjusting your search or filters"
+      : `You are currently viewing only ${filter}.`;
+
   const getRoomDisplayName = (room) => {
     if (room.Room_Type === "group") return room.Room_Name || "Group";
     const other = room.Members?.find(
@@ -112,9 +127,9 @@ const ChatList = ({
       {(roomsStatus === "idle" || roomsStatus === "succeeded") &&
         filteredRooms.length === 0 && (
           <div className="my-20 flex flex-col items-center gap-3 text-primary">
-            <p className="text-xl font-semibold font-poppins">No Chats Found</p>
+            <p className="text-xl font-semibold font-poppins">{emptyTitle}</p>
             <p className="text-md opacity-70 font-inter">
-              Try adjusting your search or filters
+              {emptyDescription}
             </p>
           </div>
         )}

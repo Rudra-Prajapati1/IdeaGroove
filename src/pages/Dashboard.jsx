@@ -10,6 +10,7 @@ import { fetchUserQuestions } from "../redux/slice/qnaSlice";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
+import api from "../api/axios";
 
 const USER_ACTIVITY_LIMIT = 1000;
 
@@ -60,9 +61,7 @@ const Dashboard = () => {
       const fetchOtherProfile = async () => {
         setLoading(true);
         try {
-          const res = await axios.get(
-            `http://localhost:8080/api/students/profile/${id}`,
-          );
+          const res = await api.get(`/students/profile/${id}`);
           setDisplayUser(res.data);
         } catch (err) {
           toast.error("User profile not found.");

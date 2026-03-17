@@ -6,9 +6,11 @@ import {
   ArrowLeft,
   Calendar,
   GraduationCap,
+  Heart,
   Mail,
   MessageCircle,
   School,
+  Sparkles,
 } from "lucide-react";
 
 const HeroSection = ({ user, isPublic = false }) => {
@@ -24,30 +26,31 @@ const HeroSection = ({ user, isPublic = false }) => {
       return;
     }
     try {
-      await api.post("/chats/create-room", {
+      const res = await api.post("/chats/create-room", {
         receiver_id: user?.S_ID || user?.id,
         room_type: "direct",
       });
-      navigate("/chats");
+      const roomId = res.data?.roomId;
+      navigate("/chats", {
+        state: roomId ? { roomId } : null,
+      });
     } catch (err) {
       console.error("DM error:", err);
       navigate("/chats");
     }
   };
 
+  console.log("Hobbies:", user?.Hobbies);
+
   return (
     <section className="relative bg-linear-to-br from-[#1B431C] via-[#235324] to-[#153416] min-h-[500px] flex flex-col justify-center overflow-hidden">
       <div className="absolute top-8 left-8 z-50">
         <button
-          onClick={() => navigate(-1)} // Takes user to the previous page
-          className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md border border-white/10 transition-all active:scale-95 group shadow-lg"
-        >
-          <ArrowLeft
-            size={20}
-            className="group-hover:-translate-x-1 transition-transform"
-          />
-          <span className="text-sm font-medium">Back</span>
-        </button>
+  onClick={() => navigate(-1)}
+  className="flex items-center gap-2 text-[#FFFBEB]/80 hover:text-white transition-colors"
+>
+  <ArrowLeft size={20} /> Back
+</button>
       </div>
       {/* Decorative Background Circles */}
       <div className="absolute top-[-10%] left-[-5%] w-96 h-96 bg-white/5 rounded-full blur-3xl" />
@@ -69,31 +72,48 @@ const HeroSection = ({ user, isPublic = false }) => {
 
           {/* Conditional Rendering based on isPublic */}
           {isPublic ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 animate-in fade-in slide-in-from-left-4 duration-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 animate-in fade-in slide-in-from-left-4 duration-700">
               <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
                 <Mail className="text-green-400 w-5 h-5" />
-                <span className="text-sm lg:text-base opacity-90">
+                <span className="text-sm lg:text-lg opacity-90">
                   {user?.Email || "abc@gmail.com"}
                 </span>
               </div>
               <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
                 <School className="text-green-400 w-5 h-5" />
-                <span className="text-sm lg:text-base opacity-90">
+                <span className="text-sm lg:text-lg opacity-90">
                   {user?.College || "St. Xavier's College, Ahmedabad"}
                 </span>
               </div>
               <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
                 <GraduationCap className="text-green-400 w-5 h-5" />
-                <span className="text-sm lg:text-base opacity-90">
+                <span className="text-sm lg:text-lg opacity-90">
                   {user?.Degree || "BCA"}
                 </span>
               </div>
               <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
-                <Calendar className="text-green-400 w-5 h-5" />
-                <span className="text-sm lg:text-base opacity-90">
-                  Batch of 2026
-                </span>
-              </div>
+  <Calendar className="text-green-400 w-5 h-5" />
+  <span className="text-base lg:text-lg opacity-90">
+    Batch of 2026
+  </span>
+</div>
+
+{/* Hobbies - full width */}
+{user?.Hobbies?.length > 0 && (
+  <div className="sm:col-span-1 flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
+    <Sparkles className="text-green-400 w-5 h-5 mt-0.5 shrink-0" />
+    <div className="flex flex-wrap gap-2">
+      {user.Hobbies.map((hobby, i) => (
+        <span
+          key={i}
+          className="px-3 py-1 bg-white/10 text-green-200 text-xs font-semibold rounded-full border border-white/10"
+        >
+          {typeof hobby === "string" ? hobby : hobby.Hobby_Name}
+        </span>
+      ))}
+    </div>
+  </div>
+)}
               {isPublic &&
                 String(user?.S_ID || user?.id) !== String(currentUser?.id) && (
                   <button

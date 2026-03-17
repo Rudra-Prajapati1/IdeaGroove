@@ -32,11 +32,11 @@ const ViewMembers = ({
         {/* Modal Header: Image + Basic Info */}
         <div className="bg-white p-8 text-[#0D2E0E] relative">
           <div className="flex items-center gap-5">
-            <img
+            {/* <img
               src={group_temp_image}
               alt={group.Room_Name}
               className="w-20 h-20 rounded-2xl object-cover border-2 border-white/20 shadow-xl"
-            />
+            /> */}
             <div>
               <h2 className="text-2xl font-bold font-poppins">
                 {group.Room_Name}
@@ -160,7 +160,9 @@ const ViewMembers = ({
           {!isOwner &&
             (isMember ? (
               <button
-                onClick={() => navigate("/chats")}
+                onClick={() =>
+                  navigate("/chats", { state: { roomId: group.Room_ID } })
+                }
                 className="flex-2 bg-primary text-white py-3 px-6 rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 hover:bg-[#153416] transition-all active:scale-95 flex items-center gap-2"
               >
                 Go to Chat <MessageCircle className="w-4 h-4" />

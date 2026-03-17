@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
-import { UserPlus } from "lucide-react";
+import { ArrowLeft, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   fetchStudents,
@@ -9,6 +9,7 @@ import {
   selectStudentsStatus,
   selectStudentsPagination,
 } from "../redux/slice/studentsSlice";
+import PaginationControls from "./common/PaginationControls";
 
 const UserProfile = () => {
   const dispatch = useDispatch();
@@ -49,6 +50,7 @@ const UserProfile = () => {
   return (
     <div className="min-h-screen bg-[#FFFBEB] p-8 font-sans">
       <div className="max-w-7xl mx-auto flex justify-between items-end mb-8">
+
         <h1 className="text-2xl font-bold text-slate-800">
           Discover Creative Minds
         </h1>
@@ -100,21 +102,16 @@ const UserProfile = () => {
         ))}
       </div>
 
-      {/* Basic Pagination */}
-      <div className="mt-8 text-center">
-        {Array.from({ length: pagination.totalPages }, (_, i) => (
-          <button
-            key={i}
-            onClick={() => {
-              searchParams.set("page", i + 1);
-              setSearchParams(searchParams);
-            }}
-            className={`px-4 py-2 mx-1 rounded-md ${pagination.page === i + 1 ? "bg-[#1A3C20] text-white" : "bg-white hover:bg-slate-100"} border border-slate-200 transition-colors`}
-          >
-            {i + 1}
-          </button>
-        ))}
-      </div>
+      <PaginationControls
+        currentPage={pagination.page}
+        totalPages={pagination.totalPages}
+        className="mt-8"
+        onPageChange={(page) => {
+          const nextParams = new URLSearchParams(searchParams);
+          nextParams.set("page", String(page));
+          setSearchParams(nextParams);
+        }}
+      />
     </div>
   );
 };
