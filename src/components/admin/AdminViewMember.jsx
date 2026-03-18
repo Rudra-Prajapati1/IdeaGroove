@@ -3,15 +3,18 @@ import group_temp_image from "/images/group_temp_image.jpg";
 import { Info, Search, Users } from "lucide-react";
 
 const AdminViewMembers = ({ group, setIsModalOpen }) => {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
   const [searchTerm, setSearchTerm] = useState("");
   const [members, setMembers] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
     const fetchViewMembers = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const reponse = await fetch(
-          `http://localhost:8080/api/groups/viewMembers/${group.id}`,
+          `${baseUrl}/groups/viewMembers/${group.id ?? group.Room_ID}`,
         );
 
         if (!reponse.ok) {
@@ -19,7 +22,7 @@ const AdminViewMembers = ({ group, setIsModalOpen }) => {
         }
 
         const data = await reponse.json();
-        setMembers(data.membersDetails);
+        setMembers(Array.isArray(data.membersDetails) ? data.membersDetails : []);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -27,11 +30,13 @@ const AdminViewMembers = ({ group, setIsModalOpen }) => {
       }
     };
     fetchViewMembers();
-  }, []);
+  }, [baseUrl, group.Room_ID, group.id]);
 
   // Filter members based on search
   const filteredMembers = members.filter((m) =>
-    m.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    String(m.name || m.Name || "")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -102,47 +107,70 @@ const AdminViewMembers = ({ group, setIsModalOpen }) => {
             </div>
 
             {/* Member List */}
-            <div className="space-y-4">
-              {filteredMembers.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-2xl transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border border-gray-100 shadow-sm">
-                      {member.Profile_Pic ? (
-                        <img src={member.Profile_Pic} alt={member.name} />
-                      ) : (
-                        <div
-                          className={`rounded-xl flex items-center justify-center font-black text-lg uppercase shrink-0`}
-                        >
-                          {member.Name?.charAt(0)}
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((item) => (
+                  <div
+                    key={item}
+                    className="h-14 rounded-2xl bg-gray-50 animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : error ? (
+              <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                {error}
+              </div>
+            ) : filteredMembers.length === 0 ? (
+              <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-6 text-sm text-gray-400 text-center">
+                No members found.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredMembers.map((member, index) => {
+                  const memberName = member.name || member.Name || "Unknown";
+                  const memberRole = String(member.role || "member");
+                  const isAdmin = memberRole.toLowerCase() === "admin";
+
+                  return (
+                    <div
+                      key={`${memberName}-${index}`}
+                      className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-2xl transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border border-gray-100 shadow-sm">
+                          {member.Profile_Pic ? (
+                            <img src={member.Profile_Pic} alt={memberName} />
+                          ) : (
+                            <div className="rounded-xl flex h-full w-full items-center justify-center font-black text-lg uppercase shrink-0 text-gray-600">
+                              {memberName.charAt(0)}
+                            </div>
+                          )}
                         </div>
+                        <div>
+                          <p className="font-bold text-gray-900 text-sm">
+                            {memberName}
+                          </p>
+                          <p
+                            className={`text-[10px] font-black tracking-tighter ${isAdmin ? "text-green-600" : "text-gray-400"}`}
+                          >
+                            {memberRole}
+                          </p>
+                        </div>
+                      </div>
+                      {isAdmin ? (
+                        <span className="text-[10px] text-[#1A3C20] font-medium uppercase tracking-widest px-3">
+                          Admin
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-gray-300 font-medium uppercase tracking-widest px-3">
+                          Member
+                        </span>
                       )}
                     </div>
-                    <div>
-                      <p className="font-bold text-gray-900 text-sm">
-                        {member.name}
-                      </p>
-                      <p
-                        className={`text-[10px] font-black tracking-tighter ${member.isAdmin ? "text-green-600" : "text-gray-400"}`}
-                      >
-                        {member.role}
-                      </p>
-                    </div>
-                  </div>
-                  {member.isAdmin ? (
-                    <span className="text-[10px] text-[#1A3C20] font-medium uppercase tracking-widest px-3">
-                      Admin
-                    </span>
-                  ) : (
-                    <span className="text-[10px] text-gray-300 font-medium uppercase tracking-widest px-3">
-                      Member
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 

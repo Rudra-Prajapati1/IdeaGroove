@@ -23,6 +23,8 @@ import {
   Heart,
   Tag,
   Filter,
+  Search,
+  Plus,
 } from "lucide-react";
 
 // FILTER KEY RULES — must match backend controller exactly:
@@ -113,10 +115,14 @@ const SECTIONS = [
       { key: "Created_On", label: "Created On", default: true },
       { key: "student_name", label: "Created By", default: true },
       { key: "member_count", label: "Members", default: true },
+      { key: "member_names", label: "Member Names", default: true },
       { key: "hobby_name", label: "Hobby", default: true },
       { key: "Is_Active", label: "Status", default: true },
     ],
-    filters: [{ key: "hobby", label: "Hobby", source: "hobbyApi" }],
+    filters: [
+      { key: "hobby", label: "Hobby", source: "hobbyApi" },
+      { key: "groups", label: "Groups", source: "rowMulti", rowKey: "Room_Name" },
+    ],
   },
   {
     id: "notes",
@@ -169,6 +175,7 @@ const SECTIONS = [
       { key: "student_name", label: "Asked By", default: true },
       { key: "answer_count", label: "Answers", default: true },
       { key: "top_answer", label: "Top Answer", default: true },
+      { key: "all_answers", label: "All Answers", default: true },
       { key: "Subject_Name", label: "Subject", default: true },
       { key: "Is_Active", label: "Status", default: true },
     ],
@@ -179,6 +186,12 @@ const SECTIONS = [
         label: "Subject",
         source: "degreeApi",
         subjectFilter: true,
+      },
+      {
+        key: "questions",
+        label: "Questions",
+        source: "rowMulti",
+        rowKey: "Question",
       },
     ],
   },
@@ -579,18 +592,18 @@ const ReportSearchableSelect = ({
   const hasValue = value !== null && value !== undefined && value !== "";
 
   return (
-    <div className="flex flex-col gap-0.5 relative" ref={ref}>
-      <span className="text-[8px] font-black uppercase tracking-widest text-gray-400 pl-0.5">
+    <div className="flex flex-col gap-1 relative min-w-[220px]" ref={ref}>
+      <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 pl-0.5">
         {label}
       </span>
       <button
         onClick={() => setOpen((p) => !p)}
-        className={`flex items-center gap-1 text-[11px] font-medium border rounded-lg bg-white hover:border-gray-300 focus:outline-none transition-all cursor-pointer py-1 pr-1.5
+        className={`flex items-center gap-1.5 text-xs font-medium border rounded-xl bg-white hover:border-gray-300 focus:outline-none transition-all cursor-pointer py-2 pr-2
           ${open ? "border-gray-400 ring-1 ring-gray-200" : "border-gray-200"} ${hasValue ? "text-gray-700" : "text-gray-400"}`}
-        style={{ paddingLeft: "8px", minWidth: "110px" }}
+        style={{ paddingLeft: "10px", minWidth: "160px" }}
       >
         {Icon && (
-          <Icon size={11} className="text-gray-400 flex-shrink-0 mr-1" />
+          <Icon size={12} className="text-gray-400 flex-shrink-0 mr-1" />
         )}
         <span className="flex-1 text-left truncate">
           {hasValue ? String(value) : `All ${label}`}
@@ -601,31 +614,37 @@ const ReportSearchableSelect = ({
               e.stopPropagation();
               onChange(null);
             }}
-            className="w-3.5 h-3.5 rounded-full bg-gray-200 hover:bg-red-100 hover:text-red-500 text-gray-500 flex items-center justify-center text-[10px] flex-shrink-0 transition-colors"
+            className="w-4 h-4 rounded-full bg-gray-200 hover:bg-red-100 hover:text-red-500 text-gray-500 flex items-center justify-center text-[10px] flex-shrink-0 transition-colors"
           >
             x
           </span>
         )}
         <ChevronDown
-          size={10}
+          size={12}
           className={`text-gray-400 flex-shrink-0 ml-1 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-48 overflow-hidden">
-          <div className="p-1.5 border-b border-gray-100">
-            <input
-              autoFocus
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={`Search ${label}...`}
-              className="w-full text-[11px] border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-300 placeholder-gray-300"
-            />
+        <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-72 overflow-hidden">
+          <div className="p-2 border-b border-gray-100">
+            <div className="relative">
+              <Search
+                size={12}
+                className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                autoFocus
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={`Search ${label}...`}
+                className="w-full text-xs border border-gray-200 rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:ring-1 focus:ring-gray-300 placeholder-gray-300"
+              />
+            </div>
           </div>
-          <div className="max-h-44 overflow-y-auto py-0.5">
+          <div className="max-h-48 overflow-y-auto py-1">
             {filtered.length === 0 ? (
-              <p className="px-3 py-2 text-[10px] text-gray-400 text-center">
+              <p className="px-3 py-3 text-[11px] text-gray-400 text-center">
                 No results
               </p>
             ) : (
@@ -639,10 +658,10 @@ const ReportSearchableSelect = ({
                       setOpen(false);
                       setSearch("");
                     }}
-                    className={`w-full flex items-center gap-2 px-2.5 py-1.5 text-[11px] text-left transition-colors hover:bg-gray-50 ${isActive ? "font-semibold text-gray-800" : "text-gray-600"}`}
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left transition-colors hover:bg-gray-50 ${isActive ? "font-semibold text-gray-800" : "text-gray-600"}`}
                   >
                     <span
-                      className="w-3.5 h-3.5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all"
+                      className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all"
                       style={
                         isActive
                           ? { backgroundColor: color, borderColor: color }
@@ -666,6 +685,162 @@ const ReportSearchableSelect = ({
 };
 
 // ─── Filter Controls ──────────────────────────────────────────────────────
+const ReportSearchInput = ({
+  label,
+  icon: Icon,
+  value,
+  onChange,
+  placeholder,
+}) => (
+  <div className="flex flex-col gap-0.5">
+    <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 pl-0.5">
+      {label}
+    </span>
+    <div className="relative flex items-center">
+      {Icon && (
+        <Icon
+          size={11}
+          className="absolute left-2 text-gray-400 pointer-events-none"
+        />
+      )}
+      <input
+        type="text"
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value || null)}
+        placeholder={placeholder || `Search ${label}...`}
+        className="w-full text-xs font-medium border border-gray-200 rounded-lg bg-white text-gray-600 hover:border-gray-300 focus:outline-none focus:ring-1 transition-all py-2 pr-3"
+        style={{ paddingLeft: Icon ? "24px" : "8px", minWidth: "180px" }}
+      />
+    </div>
+  </div>
+);
+
+const ReportMultiSelect = ({
+  label,
+  icon: Icon,
+  options,
+  value,
+  onChange,
+  color,
+}) => {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef(null);
+  const selectedValues = Array.isArray(value) ? value : [];
+
+  useEffect(() => {
+    const h = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+        setSearch("");
+      }
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  const filtered = options.filter(
+    (option) =>
+      String(option).toLowerCase().includes(search.toLowerCase()) &&
+      !selectedValues.includes(String(option)),
+  );
+
+  const addValue = (nextValue) => {
+    onChange([...selectedValues, String(nextValue)]);
+    setSearch("");
+  };
+
+  const removeValue = (target) => {
+    const next = selectedValues.filter((item) => item !== target);
+    onChange(next.length ? next : null);
+  };
+
+  return (
+    <div className="flex min-w-[260px] flex-1 flex-col gap-1 relative sm:max-w-[340px]" ref={ref}>
+      <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 pl-0.5">
+        {label}
+      </span>
+      <button
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex items-center gap-1.5 text-xs font-medium border rounded-lg bg-white hover:border-gray-300 focus:outline-none transition-all cursor-pointer py-2 pr-2"
+        style={{ paddingLeft: "8px" }}
+      >
+        {Icon && <Icon size={11} className="text-gray-400 flex-shrink-0 mr-1" />}
+        <span className="flex-1 text-left truncate text-gray-600">
+          {selectedValues.length > 0
+            ? `${selectedValues.length} selected`
+            : `Add ${label}`}
+        </span>
+        <ChevronDown
+          size={10}
+          className={`text-gray-400 flex-shrink-0 ml-1 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {selectedValues.length > 0 && (
+        <div className="max-h-24 overflow-y-auto rounded-xl border border-gray-100 bg-slate-50 p-2">
+          <div className="flex flex-wrap gap-1.5">
+          {selectedValues.map((item) => (
+            <span
+              key={item}
+              className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold text-white"
+              style={{ backgroundColor: color }}
+            >
+              {item}
+              <button
+                onClick={() => removeValue(item)}
+                className="text-white/80 hover:text-white"
+              >
+                x
+              </button>
+            </span>
+          ))}
+          </div>
+        </div>
+      )}
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-72 overflow-hidden">
+          <div className="p-2 border-b border-gray-100">
+            <div className="relative">
+              <Search
+                size={12}
+                className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                autoFocus
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={`Search ${label}...`}
+                className="w-full text-xs border border-gray-200 rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:ring-1 focus:ring-gray-300 placeholder-gray-300"
+              />
+            </div>
+          </div>
+          <div className="max-h-48 overflow-y-auto py-1">
+            {filtered.length === 0 ? (
+              <p className="px-3 py-3 text-[11px] text-gray-400 text-center">
+                No results
+              </p>
+            ) : (
+              filtered.map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => addValue(opt)}
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-left transition-colors hover:bg-gray-50 text-gray-600"
+                >
+                  <span className="truncate">{String(opt)}</span>
+                  <Plus size={13} style={{ color }} />
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const FILTER_ICONS = {
   event_status: Tag,
   degree: GraduationCap,
@@ -673,6 +848,10 @@ const FILTER_ICONS = {
   hobby: Heart,
   type: Filter,
   college: GraduationCap,
+  members: Users,
+  groups: Users,
+  questions: MessageSquare,
+  searchText: Search,
 };
 
 const FilterControls = ({
@@ -682,6 +861,7 @@ const FilterControls = ({
   sectionRows,
   degreeSubjectMap,
   hobbyOptions,
+  rowFilterOptions,
 }) => {
   if (!section.filters?.length) return null;
   const cur = filters[section.id] || {};
@@ -689,6 +869,18 @@ const FilterControls = ({
   const getOptions = (f) => {
     if (f.source === "hardcoded") return f.options ?? [];
     if (f.source === "hobbyApi") return hobbyOptions;
+    if (f.source === "rowMulti") {
+      const cached = rowFilterOptions?.[section.id]?.[f.key];
+      if (Array.isArray(cached) && cached.length > 0) return cached;
+      const col = f.rowKey ?? f.key;
+      return [
+        ...new Set(
+          sectionRows.map((r) => r[col]).filter((v) => v != null && v !== ""),
+        ),
+      ]
+        .sort()
+        .map(String);
+    }
     if (f.source === "fromRows") {
       const col = f.rowKey ?? f.key;
       return [
@@ -725,9 +917,9 @@ const FilterControls = ({
 
   return (
     <div className="flex flex-wrap items-end gap-2.5 px-4 pb-2.5 pt-2 border-b border-gray-50">
-      <div className="flex items-center gap-1 self-center">
-        <Filter size={9} className="text-gray-400" />
-        <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">
+      <div className="flex items-center gap-1.5 self-center">
+        <Filter size={11} className="text-gray-400" />
+        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
           Filters
         </span>
       </div>
@@ -735,14 +927,15 @@ const FilterControls = ({
         const Icon = FILTER_ICONS[f.key] ?? Filter;
         const val = cur[f.key] ?? null;
         const opts = getOptions(f);
-        if (f.source === "hardcoded") {
+        if (f.source === "rowMulti") {
           return (
-            <ReportSimpleSelect
+            <ReportMultiSelect
               key={f.key}
               label={f.label}
               icon={Icon}
               options={opts}
               value={val}
+              color={section.color}
               onChange={(v) => update(f.key, v)}
             />
           );
@@ -783,6 +976,7 @@ const AdminReportBuilder = () => {
   const [generating, setGenerating] = useState(false);
   const [degreeSubjectMap, setDegreeSubjectMap] = useState({});
   const [hobbyOptions, setHobbyOptions] = useState([]);
+  const [rowFilterOptions, setRowFilterOptions] = useState({});
 
   // ── One-time lookup fetches ────────────────────────────────────────────
   useEffect(() => {
@@ -812,6 +1006,7 @@ const AdminReportBuilder = () => {
         );
       })
       .catch(() => {});
+
   }, [baseUrl]);
 
   // ── Fetch a single section ────────────────────────────────────────────
@@ -838,6 +1033,28 @@ const AdminReportBuilder = () => {
           throw new Error(`HTTP ${res.status}`);
         }
         const json = await res.json();
+        setRowFilterOptions((prev) => {
+          const next = { ...(prev[section.id] || {}) };
+          (section.filters || []).forEach((filterConfig) => {
+            if (filterConfig.source !== "rowMulti") return;
+            const rowKey = filterConfig.rowKey ?? filterConfig.key;
+            const options = [
+              ...new Set(
+                (json.rows || [])
+                  .map((row) => row[rowKey])
+                  .filter((value) => value != null && value !== ""),
+              ),
+            ]
+              .sort()
+              .map(String);
+            if (options.length > 0) {
+              next[filterConfig.key] = [
+                ...new Set([...(next[filterConfig.key] || []), ...options]),
+              ];
+            }
+          });
+          return { ...prev, [section.id]: next };
+        });
         console.log(
           `[ReportBuilder] ${section.id} OK — keys: ${Object.keys(json).join(", ")} — rows: ${json.rows?.length ?? "?"}`,
         );
@@ -1075,12 +1292,13 @@ const AdminReportBuilder = () => {
         doc.addImage(canvas.toDataURL("image/png"), "PNG", x, y, w, h);
       };
 
-      const drawDataTable = (rows, cols, startY) => {
+      const drawDataTable = (section, rows, cols, startY) => {
         if (!rows?.length || !cols.length) return startY + 4;
         const mL = 10,
           tW = pw - 20,
           rH = 8,
-          cW = tW / cols.length;
+          cW = tW / cols.length,
+          lineHeight = 3.6;
 
         const drawTH = (yp) => {
           doc.setFillColor(27, 67, 28);
@@ -1102,20 +1320,45 @@ const AdminReportBuilder = () => {
 
         let y = drawTH(startY);
         rows.forEach((row, i) => {
-          if (y > ph - 18) {
+          const cellLines = cols.map((col) => {
+            const raw = row[col.key];
+            const shouldWrap =
+              ["groups", "qna"].includes(section.id) &&
+              ["Room_Name", "member_names", "Question", "top_answer", "all_answers"].includes(
+                col.key,
+              );
+            const baseValue =
+              raw == null
+                ? "-"
+                : shouldWrap
+                  ? String(raw)
+                  : formatCell(col.key, raw);
+
+            if (shouldWrap) {
+              return doc.splitTextToSize(baseValue, cW - 4);
+            }
+
+            const mc = Math.floor(cW / 1.9);
+            return [baseValue.length > mc ? `${baseValue.slice(0, mc - 1)}...` : baseValue];
+          });
+
+          const rowHeight = Math.max(
+            rH,
+            Math.max(...cellLines.map((lines) => lines.length), 1) * lineHeight + 3,
+          );
+
+          if (y + rowHeight > ph - 18) {
             doc.addPage();
             y = 15;
             y = drawTH(y);
           }
           if (i % 2 === 0) {
             doc.setFillColor(248, 252, 248);
-            doc.rect(mL, y, tW, rH, "F");
+            doc.rect(mL, y, tW, rowHeight, "F");
           }
           cols.forEach((col, j) => {
             const raw = row[col.key];
-            const cv = raw == null ? "-" : formatCell(col.key, raw);
-            const mc = Math.floor(cW / 1.9);
-            const dp = cv.length > mc ? cv.slice(0, mc - 1) + "..." : cv;
+            const lines = cellLines[j];
             doc.setFontSize(7);
             doc.setFont("helvetica", "normal");
             if (col.key === "Is_Active" || col.key === "is_Active") {
@@ -1135,12 +1378,81 @@ const AdminReportBuilder = () => {
             } else {
               doc.setTextColor(50, 50, 50);
             }
-            doc.text(dp, mL + j * cW + 2, y + 5.5);
+            doc.text(lines, mL + j * cW + 2, y + 4.5);
           });
           doc.setDrawColor(220, 230, 220);
           doc.setLineWidth(0.1);
-          doc.line(mL, y + rH, mL + tW, y + rH);
-          y += rH;
+          doc.line(mL, y + rowHeight, mL + tW, y + rowHeight);
+          y += rowHeight;
+
+          const extensionItems =
+            section.id === "groups"
+              ? String(row.member_names || "")
+                  .split(",")
+                  .map((item) => item.trim())
+                  .filter(Boolean)
+              : section.id === "qna"
+                ? String(row.all_answers || "")
+                    .split("|")
+                    .map((item) => item.trim())
+                    .filter(Boolean)
+                : [];
+
+          if (
+            ["groups", "qna"].includes(section.id) &&
+            extensionItems.length > 0
+          ) {
+            const detailLineSets = extensionItems.map((item) =>
+              doc.splitTextToSize(item, tW - 16),
+            );
+            const extensionHeight =
+              8 +
+              detailLineSets.reduce(
+                (sum, lines) => sum + lines.length * 4.2 + 1.8,
+                0,
+              );
+            if (y + extensionHeight > ph - 18) {
+              doc.addPage();
+              y = 15;
+              y = drawTH(y);
+            }
+
+            doc.setFillColor(245, 247, 250);
+            doc.rect(mL, y, tW, extensionHeight, "F");
+            doc.setFillColor(...section.rgb);
+            doc.rect(mL, y, tW, 6, "F");
+            doc.setFontSize(6.5);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(255, 255, 255);
+            doc.text(
+              section.id === "groups"
+                ? `${row.Room_Name || "Group"} Member Details`
+                : "Answer Details",
+              mL + 2,
+              y + 4,
+            );
+
+            let detailY = y + 10;
+            detailLineSets.forEach((itemLines, itemIndex) => {
+              const itemHeight = itemLines.length * 4.2 + 1.5;
+              if (itemIndex % 2 === 0) {
+                doc.setFillColor(255, 255, 255);
+                doc.rect(mL + 2, detailY - 3.6, tW - 4, itemHeight, "F");
+              }
+              doc.setFont("helvetica", "bold");
+              doc.setTextColor(...section.rgb);
+              doc.text(`${itemIndex + 1}.`, mL + 4, detailY);
+              doc.setFont("helvetica", "normal");
+              doc.setTextColor(75, 85, 99);
+              doc.text(itemLines, mL + 11, detailY);
+              detailY += itemHeight;
+            });
+
+            doc.setDrawColor(220, 230, 220);
+            doc.setLineWidth(0.1);
+            doc.line(mL, y + extensionHeight, mL + tW, y + extensionHeight);
+            y += extensionHeight;
+          }
         });
         return y + 6;
       };
@@ -1240,7 +1552,7 @@ const AdminReportBuilder = () => {
             y,
           );
           y += 5;
-          y = drawDataTable(rows, activeCols, y);
+          y = drawDataTable(section, rows, activeCols, y);
         } catch (e) {
           console.error(`PDF ${section.id}:`, e);
         }
@@ -1268,27 +1580,27 @@ const AdminReportBuilder = () => {
         <button
           onClick={generatePDF}
           disabled={selectedCount === 0 || generating}
-          className="group flex items-center gap-2 bg-white border border-gray-200 hover:border-green-700 hover:bg-green-800 px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
+          className="group flex items-center justify-center gap-3 bg-white border border-gray-200 hover:border-green-700 hover:bg-green-800 px-6 py-3 rounded-xl text-base font-semibold text-gray-600 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed min-w-[240px]"
         >
           <div className="p-1 rounded-lg bg-green-50 group-hover:bg-white/20 transition-colors">
             {generating ? (
               <Loader2
-                size={13}
+                size={16}
                 className="text-green-700 group-hover:text-white animate-spin"
               />
             ) : (
               <FileBarChart2
-                size={13}
+                size={16}
                 className="text-green-700 group-hover:text-white transition-colors"
               />
             )}
           </div>
           <span>{generating ? "Generating..." : "Generate Report"}</span>
-          <span className="text-[10px] font-bold bg-green-100 group-hover:bg-white/20 text-green-700 group-hover:text-white px-1.5 py-0.5 rounded-md transition-colors">
+          <span className="text-xs font-bold bg-green-100 group-hover:bg-white/20 text-green-700 group-hover:text-white px-2 py-0.5 rounded-md transition-colors">
             PDF
           </span>
           {selectedCount > 0 && !generating && (
-            <span className="text-[10px] font-bold bg-amber-100 group-hover:bg-white/20 text-amber-700 group-hover:text-white px-1.5 py-0.5 rounded-md transition-colors">
+            <span className="text-xs font-bold bg-amber-100 group-hover:bg-white/20 text-amber-700 group-hover:text-white px-2 py-0.5 rounded-md transition-colors">
               {selectedCount} section{selectedCount > 1 ? "s" : ""}
             </span>
           )}
@@ -1322,10 +1634,10 @@ const AdminReportBuilder = () => {
           return (
             <div
               key={section.id}
-              className={`rounded-2xl border-2 transition-all duration-300 overflow-hidden bg-white
+              className={`rounded-[28px] border-2 transition-all duration-300 overflow-hidden bg-white
                 ${isOn ? `${section.border} shadow-lg` : "border-gray-100 shadow-sm hover:border-gray-200 hover:shadow-md"}`}
             >
-              <div className={`bg-gradient-to-r ${section.bg} p-4`}>
+              <div className={`bg-gradient-to-r ${section.bg} px-5 py-4`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div
@@ -1339,7 +1651,7 @@ const AdminReportBuilder = () => {
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-black text-gray-800 text-sm tracking-tight">
+                        <h3 className="font-black text-gray-800 text-lg tracking-tight">
                           {section.label}
                         </h3>
                         <span
@@ -1348,12 +1660,12 @@ const AdminReportBuilder = () => {
                           {section.tag}
                         </span>
                         {isOn && (
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-white/70 text-gray-500 border border-gray-200">
-                            {colCount}/{section.columns.length} cols
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-white/70 text-gray-500 border border-gray-200">
+                          {colCount}/{section.columns.length} cols
+                        </span>
+                      )}
+                    </div>
+                      <p className="text-sm text-gray-500 mt-0.5 leading-snug">
                         {section.desc}
                       </p>
                     </div>
@@ -1371,9 +1683,9 @@ const AdminReportBuilder = () => {
               </div>
 
               {!isOn && (
-                <div className="px-4 py-3 flex items-center gap-2 text-gray-300 border-t border-gray-50">
-                  <EyeOff size={13} />
-                  <span className="text-xs">
+                  <div className="px-4 py-3 flex items-center gap-2 text-gray-300 border-t border-gray-50">
+                    <EyeOff size={13} />
+                  <span className="text-sm">
                     Toggle to preview live data and include in PDF
                   </span>
                 </div>
@@ -1388,19 +1700,20 @@ const AdminReportBuilder = () => {
                     sectionRows={rows}
                     degreeSubjectMap={degreeSubjectMap}
                     hobbyOptions={hobbyOptions}
+                    rowFilterOptions={rowFilterOptions}
                   />
 
-                  <div className="px-4 pt-3 pb-3">
+                  <div className="px-5 pt-4 pb-3">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1.5">
                         <Columns size={11} className="text-gray-400" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        <span className="text-[11px] font-black uppercase tracking-widest text-gray-400">
                           PDF Columns
                         </span>
                       </div>
                       <button
                         onClick={() => toggleAllCols(section.id, section)}
-                        className="text-[9px] font-bold text-gray-400 hover:text-gray-600 transition-colors"
+                        className="text-[11px] font-bold text-gray-400 hover:text-gray-600 transition-colors"
                       >
                         {section.columns.every(
                           (c) => colState[section.id][c.key],
@@ -1423,9 +1736,9 @@ const AdminReportBuilder = () => {
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-between px-4 py-2 bg-gray-50/50">
+                    <div className="flex items-center justify-between px-5 py-3 bg-gray-50/60">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        <span className="text-[11px] font-black uppercase tracking-widest text-gray-400">
                           Live Preview
                         </span>
                         {isLoad && (

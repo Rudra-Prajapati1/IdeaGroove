@@ -1,11 +1,18 @@
 import React, { useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { X, Send, Ban, CheckCircle, AlertCircle } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
 import AdminEventsGrid from "../../components/admin/AdminEventsGrid";
 import EmailConfirmationModal from "../../components/admin/EmailConfirmationModal";
 import { useEffect } from "react";
+import {
+  fetchAdminEvents,
+  moderateAdminEvent,
+  selectAdminEvents,
+  selectAdminEventsActionStatus,
+  selectAdminEventsStats,
+} from "../../redux/adminSlice/adminEventsSlice";
 
 // const initialEvents = [
 //   {
@@ -65,7 +72,10 @@ import { useEffect } from "react";
 // ];
 
 const AdminEvents = () => {
-  const [events, setEvents] = useState([]);
+  const dispatch = useDispatch();
+  const events = useSelector(selectAdminEvents);
+  const eventsStats = useSelector(selectAdminEventsStats);
+  const actionStatus = useSelector(selectAdminEventsActionStatus);
   const [searchTerm, setSearchTerm] = useState("");
 
   // --- MODAL STATE ---
@@ -73,77 +83,11 @@ const AdminEvents = () => {
   const [selectedAction, setSelectedAction] = useState(null);
   const [targetId, setTargetId] = useState(null);
   const [reason, setReason] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
   const [eventFilter, setEventFilter] = useState("all");
 
-  const [eventsStats, setEventsStats] = useState([
-    {
-      title: "Total Events",
-      value: 0,
-      infoText: "All events in system",
-      color: "green",
-      type: "total",
-    },
-    {
-      title: "Active Events",
-      value: 0,
-      infoText: "Currently ongoing/upcoming",
-      color: "yellow",
-      type: "pending",
-    },
-    {
-      title: "Blocked Events",
-      value: 0,
-      infoText: "Blocked/Removed events",
-      color: "red",
-      type: "blocked",
-    },
-  ]);
-
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const response = await fetch(`http://localhost:8080/api/events`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch events");
-        }
-        const data = await response.json();
-
-        const formattedEvents = data.data.map((ev) => ({
-          id: ev.E_ID,
-          Description: ev.Description,
-          Event_Date: ev.Event_Date,
-          Organizer_ID: ev.Organizer_ID,
-          Organizer_Name: ev.Organizer_Name,
-          Added_On: ev.Added_On,
-          Poster_File: ev.Poster_File,
-          status: ev.Is_Active,
-        }));
-
-        setEventsStats([
-          { ...eventsStats[0], value: data.total || formattedEvents.length },
-          {
-            ...eventsStats[1],
-            value: formattedEvents.filter((ev) => ev.status === "active")
-              .length,
-          },
-          {
-            ...eventsStats[2],
-            value: formattedEvents.filter((ev) => ev.status === "blocked")
-              .length,
-          },
-        ]);
-        setEvents(formattedEvents);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
-  }, []);
+    dispatch(fetchAdminEvents());
+  }, [dispatch]);
 
   const filterOptions = ["Upcoming", "Past"];
 
@@ -160,84 +104,40 @@ const AdminEvents = () => {
 
   const handleActionSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/admin/toggle-block`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "event", // Backend expects type
-            id: targetId,
-            reason: reason,
-          }),
-        },
-      );
+      await dispatch(
+        moderateAdminEvent({
+          action: selectedAction,
+          id: targetId,
+          reason,
+        }),
+      ).unwrap();
 
-      const data = await res.json();
-
-      if (data.status) {
-        // Update local state
-        setEvents((prev) =>
-          prev.map((ev) =>
-            ev.id === targetId
-              ? {
-                  ...ev,
-                  status: selectedAction === "block" ? "blocked" : "active",
-                }
-              : ev,
-          ),
-        );
-
-        // Update stats directly without refetching
-        setEventsStats((prevStats) => {
-          const newStats = [...prevStats];
-          newStats[1].value = events.filter((ev) =>
-            ev.id === targetId
-              ? selectedAction !== "block"
-              : ev.status === "active",
-          ).length;
-          newStats[2].value = events.filter((ev) =>
-            ev.id === targetId
-              ? selectedAction === "block"
-              : ev.status === "blocked",
-          ).length;
-          return newStats;
-        });
-
-        toast.success(`Event ${selectedAction}ed successfully! Email sent.`);
-        setModalOpen(false);
-        setReason("");
-      } else {
-        toast.error(data.message || "Action failed");
-      }
+      toast.success(`Event ${selectedAction}ed successfully! Email sent.`);
+      setModalOpen(false);
+      setReason("");
     } catch (err) {
-      console.error("Moderation error:", err);
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
+      toast.error(err || "Something went wrong. Please try again.");
     }
   };
 
   const filteredEvents = useMemo(() => {
     const search = searchTerm.trim().toLowerCase();
+    const today = new Date().toISOString().split("T")[0];
 
     return events.filter((event) => {
       const matchesSearch =
         !search ||
-        event.Description.toLowerCase().includes(search) ||
-        event.Organizer_Name.toLowerCase().includes(search);
+        event.Description?.toLowerCase().includes(search) ||
+        event.Organizer_Name?.toLowerCase().includes(search);
 
       let matchesFilter = true;
 
-      if (eventFilter === "Active") {
-        matchesFilter =
-          event.Event_Date >= new Date().toISOString().split("T")[0];
+      if (eventFilter === "Upcoming") {
+        matchesFilter = event.Event_Date >= today;
       } else if (eventFilter === "Past") {
-        matchesFilter =
-          event.Event_Date < new Date().toISOString().split("T")[0];
+        matchesFilter = event.Event_Date < today;
       }
 
       return matchesSearch && matchesFilter;
@@ -271,7 +171,7 @@ const AdminEvents = () => {
         targetType="Event"
         reason={reason}
         setReason={setReason}
-        loading={loading}
+        loading={actionStatus === "loading"}
       />
     </section>
   );

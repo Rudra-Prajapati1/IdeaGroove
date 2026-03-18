@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import {
   Users,
@@ -13,22 +13,34 @@ import {
   ChevronRight,
   Eye,
   Circle,
-  Download,
   Filter,
+  CalendarCheck2,
+  MessageSquareText,
+  NotepadText,
+  ShieldAlert,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import StudentProfile from "../../components/admin/StudentProfile";
 import ActivityFilterPanel from "../../components/admin/ActivityFilterPanel";
 import ReportGeneration from "../../components/admin/ReportGeneration";
+import {
+  fetchAdminOverview,
+  selectAdminDashboardCategories,
+  selectAdminDashboardStatsData,
+  selectAdminRecentActivities,
+  selectAdminTopContributors,
+} from "../../redux/adminSlice/adminOverviewSlice";
 
 const AdminDash = () => {
-  const [statsData, setStatsData] = useState({});
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const statsData = useSelector(selectAdminDashboardStatsData);
+  const contributorData = useSelector(selectAdminTopContributors);
+  const recentActivities = useSelector(selectAdminRecentActivities);
+  const categories = useSelector(selectAdminDashboardCategories);
+  const totalUploads = categories.reduce((sum, category) => sum + category.count, 0);
+
   const [tooltip, setTooltip] = useState(null);
-  const [contributorData, setContributorData] = useState([]);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
-  const [recentActivities, setRecentActivities] = useState([]);
 
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState({
@@ -38,7 +50,8 @@ const AdminDash = () => {
     dateFrom: "",
     dateTo: "",
   });
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [selectedActivityStudentId, setSelectedActivityStudentId] =
+    useState(null);
   const [appliedFilters, setAppliedFilters] = useState(filters);
 
   const ACTIVITIES_PER_PAGE = 10;
@@ -48,6 +61,10 @@ const AdminDash = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [recentActivities]);
+
+  useEffect(() => {
+    dispatch(fetchAdminOverview());
+  }, [dispatch]);
 
   const filteredActivities = recentActivities.filter((row) => {
     const { types, statuses, studentName, dateFrom, dateTo } = appliedFilters;
@@ -86,159 +103,44 @@ const AdminDash = () => {
     currentPage * ACTIVITIES_PER_PAGE,
   );
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/admin/dashboard-stats`,
-        );
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch stats");
-        }
-
-        const data = await res.json();
-        console.log(data);
-        setStatsData(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
-
-  useEffect(() => {
-    const fetchContributor = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/admin/top-contributor`,
-        );
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch contributor");
-        }
-
-        const data = await res.json();
-        setContributorData(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchContributor();
-  }, []);
-
-  useEffect(() => {
-    const fetchRecentActivity = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/admin/recent-activity`,
-        );
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch recent activity.");
-        }
-        const data = await res.json();
-        setRecentActivities(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRecentActivity();
-  }, []);
-
   const stats = [
     {
-      label: "Total Users",
+      label: "Total Students",
       value: statsData?.totalUsers || 0,
       color: "emerald",
       icon: Users,
-      desc: "Active scholars",
     },
     {
       label: "Total Notes",
       value: statsData?.totalNotes || 0,
       color: "rose",
       icon: Notebook,
-      desc: "Notes Uploaded",
     },
     {
       label: "Total Questions",
       value: statsData?.totalQuestions || 0,
       color: "blue",
       icon: FileText,
-      desc: "Community queries",
     },
     {
       label: "Active Groups",
       value: statsData?.activeGroups || 0,
       color: "purple",
       icon: UsersRound,
-      desc: "Study circles",
     },
     {
       label: "Upcoming Events",
       value: statsData?.upcomingEvents || 0,
       color: "amber",
       icon: Calendar,
-      desc: "Next 7 days",
     },
     {
       label: "Complaints",
       value: statsData?.complaints || 0,
       color: "orange",
       icon: AlertTriangle,
-      desc: "Unresolved issues",
     },
   ];
-
-  const totalUploads =
-    (statsData?.totalNotes || 0) +
-    (statsData?.totalQuestions || 0) +
-    (statsData?.upcomingEvents || 0) +
-    (statsData?.activeGroups || 0);
-
-  const categories = [
-    {
-      name: "Notes",
-      count: statsData?.totalNotes || 0,
-    },
-    {
-      name: "Questions",
-      count: statsData?.totalQuestions || 0,
-    },
-    {
-      name: "Events",
-      count: statsData?.upcomingEvents || 0,
-    },
-    {
-      name: "Groups",
-      count: statsData?.activeGroups || 0,
-    },
-  ].map((item) => ({
-    ...item,
-    percentage:
-      totalUploads > 0 ? Math.round((item.count / totalUploads) * 100) : 0,
-    color:
-      item.name === "Notes"
-        ? "bg-rose-600"
-        : item.name === "Questions"
-          ? "bg-[#25eb63]"
-          : item.name === "Events"
-            ? "bg-amber-500"
-            : "bg-purple-600",
-  }));
 
   const getTheme = (color) => {
     const themes = {
@@ -299,6 +201,23 @@ const AdminDash = () => {
     }
   };
 
+  const getActivityIcon = (type) => {
+    switch (type?.toUpperCase()) {
+      case "EVENT":
+        return CalendarCheck2;
+      case "QUESTION":
+        return MessageSquareText;
+      case "NOTE":
+        return NotepadText;
+      case "GROUP":
+        return UsersRound;
+      case "COMPLAINT":
+        return ShieldAlert;
+      default:
+        return Activity;
+    }
+  };
+
   return (
     <section className="flex flex-col gap-6 relative min-h-screen">
       <div className="flex justify-between items-center">
@@ -337,9 +256,6 @@ const AdminDash = () => {
                   <h2 className="text-3xl font-black text-slate-800 tracking-tight">
                     {card.value}
                   </h2>
-                  <p className="text-[11px] text-slate-400 mt-2 font-medium italic">
-                    {card.desc}
-                  </p>
                 </div>
               </div>
               <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-50">
@@ -503,27 +419,26 @@ const AdminDash = () => {
                     {student.grand_total}
                   </div>
                 </div>
-
-                {selectedStudentId && (
-                  <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-                    onClick={(e) =>
-                      e.target === e.currentTarget && setSelectedStudentId(null)
-                    }
-                  >
-                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden">
-                      <StudentProfile
-                        id={selectedStudentId}
-                        onClose={() => setSelectedStudentId(null)}
-                      />
-                    </div>
-                  </div>
-                )}
               </div>
             ))}
           </div>
         </div>
       </div>
+      {selectedStudentId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={(e) =>
+            e.target === e.currentTarget && setSelectedStudentId(null)
+          }
+        >
+          <div className="relative bg-[#f8faf8] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden">
+            <StudentProfile
+              id={selectedStudentId}
+              onClose={() => setSelectedStudentId(null)}
+            />
+          </div>
+        </div>
+      )}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-6 border-b bg-primary border-gray-50 flex justify-between items-center">
           <div className="flex items-center gap-2 text-white">
@@ -599,7 +514,15 @@ const AdminDash = () => {
                   </td>
 
                   <td className="px-6 py-4 text-gray-500 font-medium">
-                    {row.title_or_action}
+                    <div className="flex items-center gap-2">
+                      {(() => {
+                        const ActivityIcon = getActivityIcon(row.activity_type);
+                        return (
+                          <ActivityIcon size={16} className="text-gray-400" />
+                        );
+                      })()}
+                      <span>{row.title_or_action}</span>
+                    </div>
                   </td>
 
                   <td className="px-6 py-4">
@@ -630,32 +553,33 @@ const AdminDash = () => {
                   <td className="px-6 py-4 text-center">
                     <button
                       className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
-                      onClick={() => setIsProfileOpen(true)}
+                      onClick={() =>
+                        setSelectedActivityStudentId(row.student_id)
+                      }
                     >
                       <Eye size={18} />
                     </button>
                   </td>
-                  {/* Profile Modal */}
-                  {isProfileOpen && (
-                    <div
-                      className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm p-4"
-                      onClick={(e) =>
-                        e.target === e.currentTarget && setIsProfileOpen(false)
-                      }
-                    >
-                      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
-                        <StudentProfile
-                          id={row.student_id}
-                          onClose={() => setIsProfileOpen(false)}
-                        />
-                      </div>
-                    </div>
-                  )}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        {selectedActivityStudentId && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm p-4"
+            onClick={(e) =>
+              e.target === e.currentTarget && setSelectedActivityStudentId(null)
+            }
+          >
+            <div className="relative bg-[#f8faf8] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <StudentProfile
+                id={selectedActivityStudentId}
+                onClose={() => setSelectedActivityStudentId(null)}
+              />
+            </div>
+          </div>
+        )}
         {paginatedActivities.length > 0 && (
           <div className="p-4 flex justify-between items-center border-t border-gray-100 bg-gray-50/30">
             <span className="text-[11px] text-gray-400 font-bold uppercase tracking-tight">

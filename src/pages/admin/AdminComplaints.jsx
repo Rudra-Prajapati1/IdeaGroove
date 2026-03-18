@@ -5,63 +5,32 @@ import AdminComplaintsGrid from "../../components/admin/AdminComplaintsGrid";
 import toast from "react-hot-toast";
 import ComplaintEmail from "../../components/admin/ComplaintEmail";
 import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchAdminComplaints,
+  selectAdminComplaints,
+  selectAdminComplaintsActionStatus,
+  selectAdminComplaintsStats,
+  updateAdminComplaintStatus,
+} from "../../redux/adminSlice/adminComplaintsSlice";
 
 const AdminComplaints = () => {
-  const [complaints, setComplaints] = useState([]);
+  const dispatch = useDispatch();
+  const complaints = useSelector(selectAdminComplaints);
+  const complaintsStats = useSelector(selectAdminComplaintsStats);
+  const actionStatus = useSelector(selectAdminComplaintsActionStatus);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [complaintsStats, setComplaintsStats] = useState([
-    { title: "Total Complaints", value: "0", color: "green", type: "total" },
-    { title: "Resolved", value: "0", color: "yellow", type: "pending" },
-    { title: "Pending", value: "0", color: "red", type: "blocked" },
-  ]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [newStatus, setNewStatus] = useState("");
   const [reason, setReason] = useState("");
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchComplaints = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/complaints`,
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        const complaintsArray = Array.isArray(data)
-          ? data
-          : data.complaints || data.data || [];
-        setComplaintsStats([
-          { ...complaintsStats[0], value: complaintsArray.length },
-          {
-            ...complaintsStats[1],
-            value: complaintsArray.filter((c) => c.Status === "Resolved")
-              .length,
-          },
-          {
-            ...complaintsStats[2],
-            value: complaintsArray.filter(
-              (c) => c.Status === "Pending" || c.Status === "In-Progress",
-            ).length,
-          },
-        ]);
-        setComplaints(complaintsArray);
-      } catch (err) {
-        console.error("Not able to fetch complaints: ", err);
-      }
-    };
-    fetchComplaints();
-  }, []);
-
-  console.log(complaints);
+    dispatch(fetchAdminComplaints());
+  }, [dispatch]);
 
   const handleStatusRequest = (complaint) => {
     setSelectedComplaint(complaint);
@@ -72,70 +41,25 @@ const AdminComplaints = () => {
 
   const handleStatusUpdate = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
     try {
-      // 1. Update status in DB
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/complaints/update-status`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id: selectedComplaint.Complaint_ID,
-            status: newStatus,
-            reason: reason,
-          }),
-        },
-      );
+      await dispatch(
+        updateAdminComplaintStatus({
+          id: selectedComplaint.Complaint_ID,
+          status: newStatus,
+          reason,
+        }),
+      ).unwrap();
 
-      const data = await res.json();
-
-      if (data.message) {
         // 2. Update local state
-        setComplaints((prev) =>
-          prev.map((c) =>
-            c.Complaint_ID === selectedComplaint.Complaint_ID
-              ? { ...c, Status: newStatus }
-              : c,
-          ),
-        );
 
-        // 3. Update stats
-        setComplaintsStats((prevStats) => {
-          const updatedList = complaints.map((c) =>
-            c.Complaint_ID === selectedComplaint.Complaint_ID
-              ? { ...c, Status: newStatus }
-              : c,
-          );
-          return [
-            { ...prevStats[0] },
-            {
-              ...prevStats[1],
-              value: updatedList.filter((c) => c.Status === "Resolved").length,
-            },
-            {
-              ...prevStats[2],
-              value: updatedList.filter(
-                (c) => c.Status === "Pending" || c.Status === "In-Progress",
-              ).length,
-            },
-          ];
-        });
 
         toast.success(
           `Complaint marked as ${newStatus} — email sent to student!`,
         );
         setModalOpen(false);
         setReason("");
-      } else {
-        toast.error("Failed to update status");
-      }
     } catch (err) {
-      console.error("Status update error:", err);
-      toast.error("Something went wrong");
-    } finally {
-      setLoading(false);
+      toast.error(err || "Something went wrong");
     }
   };
 
@@ -169,7 +93,7 @@ const AdminComplaints = () => {
         onSubmit={handleStatusUpdate}
         actionType="update"
         targetType="Complaint Status"
-        loading={loading}
+        loading={actionStatus === "loading"}
       >
         <select
           className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl outline-none text-sm font-bold focus:border-[#1B431C]/30"

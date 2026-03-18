@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ClipboardList,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  MessageCircle,
   ExternalLink,
 } from "lucide-react";
 import StudentProfile from "./StudentProfile";
@@ -17,7 +17,8 @@ const AdminComplaintsGrid = ({
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedId, setExpandedId] = useState(null);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [selectedProfileStudentId, setSelectedProfileStudentId] =
+    useState(null);
   const itemsPerPage = 8;
 
   const filteredComplaints = useMemo(() => {
@@ -28,8 +29,7 @@ const AdminComplaintsGrid = ({
         (item.Student_Name?.toLowerCase() ?? "").includes(s) ||
         (item.Complaint_Text?.toLowerCase() ?? "").includes(s);
 
-      const matchesType =
-        filterType === "all" || item.complaintType === filterType;
+      const matchesType = filterType === "all" || item.Type === filterType;
       const matchesStatus =
         filterStatus === "all" || item.Status === filterStatus;
 
@@ -53,6 +53,23 @@ const AdminComplaintsGrid = ({
         return "bg-emerald-50 text-emerald-600 border-emerald-100";
       default:
         return "bg-gray-50 text-gray-600";
+    }
+  };
+
+  const getTypeStyle = (type) => {
+    switch (type?.toUpperCase()) {
+      case "NOTES":
+      case "NOTE":
+        return "bg-rose-100 text-rose-600 border-rose-200";
+      case "QNA":
+        return "bg-emerald-100 text-emerald-800 border-emerald-200";
+      case "USER":
+        return "bg-blue-100 text-blue-600 border-blue-200";
+      case "GROUPS":
+      case "GROUP":
+        return "bg-purple-100 text-purple-600 border-purple-200";
+      default:
+        return "bg-red-100 text-red-600 border-red-200";
     }
   };
 
@@ -98,7 +115,6 @@ const AdminComplaintsGrid = ({
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-gray-100 text-[10px] uppercase font-black tracking-widest text-gray-400">
-              <th className="px-8 py-5">Complaint ID</th>
               <th className="px-8 py-5">Student Name</th>
               <th className="px-8 py-5">Type</th>
               <th className="px-8 py-5">Date Filed</th>
@@ -110,27 +126,13 @@ const AdminComplaintsGrid = ({
             {currentData.map((item) => (
               <React.Fragment key={item.Complaint_ID}>
                 <tr
-                  onClick={() =>
-                    setExpandedId(
-                      expandedId === item.Complaint_ID
-                        ? null
-                        : item.Complaint_ID,
-                    )
-                  }
-                  className={`hover:bg-gray-50/50 transition-all group cursor-pointer ${
+                  className={`hover:bg-gray-50/50 transition-all group ${
                     expandedId === item.Complaint_ID ? "bg-gray-50/80" : ""
                   }`}
                 >
-                  <td className="px-8 py-5 text-sm font-bold text-[#1B431C] flex items-center gap-2">
-                    #CMP-{item.Complaint_ID}
-                    <MessageCircle
-                      size={14}
-                      className="text-gray-300 group-hover:text-[#1B431C]"
-                    />
-                  </td>
                   <td className="px-8 py-5 text-sm font-medium text-gray-700">
                     <button
-                      onClick={() => setIsProfileOpen(true)}
+                      onClick={() => setSelectedProfileStudentId(item.Student_ID)}
                       title="View student profile"
                       className="group/author flex items-center gap-1.5 text-[11px] text-gray-400 hover:text-[#1B431C] transition-colors"
                     >
@@ -144,7 +146,9 @@ const AdminComplaintsGrid = ({
                   </td>
                   {/* TYPE COLUMN */}
                   <td className="px-8 py-5 text-sm">
-                    <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-[11px] font-bold uppercase">
+                    <span
+                      className={`px-2 py-1 rounded text-[11px] font-bold uppercase border ${getTypeStyle(item.Type)}`}
+                    >
                       {item.Type}
                     </span>
                   </td>
@@ -163,22 +167,44 @@ const AdminComplaintsGrid = ({
                     </span>
                   </td>
                   <td className="px-8 py-5 text-right">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onStatusRequest(item);
-                      }}
-                      className="p-2 bg-gray-50 rounded-lg text-gray-400 hover:text-[#1B431C] hover:bg-emerald-50 transition-all"
-                    >
-                      <ClipboardList size={18} />
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => onStatusRequest(item)}
+                        title={
+                          item.Status === "Pending"
+                            ? "Review complaint status"
+                            : "Update complaint status"
+                        }
+                        className="inline-flex items-center justify-center h-9 w-9 rounded-xl bg-[#1B431C] text-white hover:bg-[#153416] transition-colors"
+                      >
+                        <ClipboardList size={16} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedId(
+                            expandedId === item.Complaint_ID
+                              ? null
+                              : item.Complaint_ID,
+                          );
+                        }}
+                        className="p-2 bg-gray-50 rounded-lg text-gray-400 hover:text-[#1B431C] hover:bg-emerald-50 transition-all"
+                      >
+                        <ChevronDown
+                          size={18}
+                          className={`transition-transform duration-200 ${
+                            expandedId === item.Complaint_ID ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+                    </div>
                   </td>
                 </tr>
 
                 {expandedId === item.Complaint_ID && (
                   <tr className="bg-gray-50/50 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <td colSpan="6" className="px-8 py-4">
-                      <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                    <td colSpan="5" className="px-8 py-4">
+                      <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4">
                         <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
                           Detailed Issue
                         </h4>
@@ -190,27 +216,26 @@ const AdminComplaintsGrid = ({
                   </tr>
                 )}
 
-                {/* Profile Modal */}
-                {isProfileOpen && (
-                  <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm p-4"
-                    onClick={(e) =>
-                      e.target === e.currentTarget && setIsProfileOpen(false)
-                    }
-                  >
-                    <div className="relative bg-white rounded-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
-                      <StudentProfile
-                        id={item.Student_ID}
-                        onClose={() => setIsProfileOpen(false)}
-                      />
-                    </div>
-                  </div>
-                )}
               </React.Fragment>
             ))}
           </tbody>
         </table>
       </div>
+      {selectedProfileStudentId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm p-4"
+          onClick={(e) =>
+            e.target === e.currentTarget && setSelectedProfileStudentId(null)
+          }
+        >
+          <div className="relative bg-[#f8faf8] rounded-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <StudentProfile
+              id={selectedProfileStudentId}
+              onClose={() => setSelectedProfileStudentId(null)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Pagination Footer */}
       {currentData.length > 0 && (

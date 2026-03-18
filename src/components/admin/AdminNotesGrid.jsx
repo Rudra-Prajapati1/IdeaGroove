@@ -18,11 +18,15 @@ const AdminNotesGrid = ({
       const searchStr = searchTerm.toLowerCase();
 
       const title = note.title?.toLowerCase() ?? "";
+      const file = note.file?.toLowerCase() ?? "";
+      const noteFile = note.noteFile?.toLowerCase() ?? "";
       const description = note.description?.toLowerCase() ?? "";
       const uploadedBy = note.uploadedBy?.toLowerCase() ?? "";
 
       const matchesSearch =
         title.includes(searchStr) ||
+        file.includes(searchStr) ||
+        noteFile.includes(searchStr) ||
         description.includes(searchStr) ||
         uploadedBy.includes(searchStr);
 
