@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import {
   Users,
@@ -19,19 +19,28 @@ import {
   NotepadText,
   ShieldAlert,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import StudentProfile from "../../components/admin/StudentProfile";
 import ActivityFilterPanel from "../../components/admin/ActivityFilterPanel";
 import ReportGeneration from "../../components/admin/ReportGeneration";
+import {
+  fetchAdminOverview,
+  selectAdminDashboardCategories,
+  selectAdminDashboardStatsData,
+  selectAdminRecentActivities,
+  selectAdminTopContributors,
+} from "../../redux/adminSlice/adminOverviewSlice";
 
 const AdminDash = () => {
-  const [statsData, setStatsData] = useState({});
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const statsData = useSelector(selectAdminDashboardStatsData);
+  const contributorData = useSelector(selectAdminTopContributors);
+  const recentActivities = useSelector(selectAdminRecentActivities);
+  const categories = useSelector(selectAdminDashboardCategories);
+  const totalUploads = categories.reduce((sum, category) => sum + category.count, 0);
+
   const [tooltip, setTooltip] = useState(null);
-  const [contributorData, setContributorData] = useState([]);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
-  const [recentActivities, setRecentActivities] = useState([]);
 
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState({
@@ -52,6 +61,10 @@ const AdminDash = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [recentActivities]);
+
+  useEffect(() => {
+    dispatch(fetchAdminOverview());
+  }, [dispatch]);
 
   const filteredActivities = recentActivities.filter((row) => {
     const { types, statuses, studentName, dateFrom, dateTo } = appliedFilters;
@@ -89,78 +102,6 @@ const AdminDash = () => {
     (currentPage - 1) * ACTIVITIES_PER_PAGE,
     currentPage * ACTIVITIES_PER_PAGE,
   );
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/admin/dashboard-stats`,
-        );
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch stats");
-        }
-
-        const data = await res.json();
-        console.log(data);
-        setStatsData(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
-
-  useEffect(() => {
-    const fetchContributor = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/admin/top-contributor`,
-        );
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch contributor");
-        }
-
-        const data = await res.json();
-        setContributorData(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchContributor();
-  }, []);
-
-  useEffect(() => {
-    const fetchRecentActivity = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/admin/recent-activity`,
-        );
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch recent activity.");
-        }
-        const data = await res.json();
-        setRecentActivities(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRecentActivity();
-  }, []);
 
   const stats = [
     {
@@ -200,43 +141,6 @@ const AdminDash = () => {
       icon: AlertTriangle,
     },
   ];
-
-  const totalUploads =
-    (statsData?.totalNotes || 0) +
-    (statsData?.totalQuestions || 0) +
-    (statsData?.upcomingEvents || 0) +
-    (statsData?.activeGroups || 0);
-
-  const categories = [
-    {
-      name: "Notes",
-      count: statsData?.totalNotes || 0,
-    },
-    {
-      name: "Questions",
-      count: statsData?.totalQuestions || 0,
-    },
-    {
-      name: "Events",
-      count: statsData?.upcomingEvents || 0,
-    },
-    {
-      name: "Groups",
-      count: statsData?.activeGroups || 0,
-    },
-  ].map((item) => ({
-    ...item,
-    percentage:
-      totalUploads > 0 ? Math.round((item.count / totalUploads) * 100) : 0,
-    color:
-      item.name === "Notes"
-        ? "bg-rose-600"
-        : item.name === "Questions"
-          ? "bg-[#25eb63]"
-          : item.name === "Events"
-            ? "bg-amber-500"
-            : "bg-purple-600",
-  }));
 
   const getTheme = (color) => {
     const themes = {
@@ -583,7 +487,10 @@ const AdminDash = () => {
 
             <tbody className="text-sm divide-y divide-gray-50">
               {paginatedActivities.map((row, i) => (
-                <tr key={i} className="hover:bg-gray-50/50 transition-colors group">
+                <tr
+                  key={i}
+                  className="hover:bg-gray-50/50 transition-colors group"
+                >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       {row?.profile_pic ? (
@@ -610,7 +517,9 @@ const AdminDash = () => {
                     <div className="flex items-center gap-2">
                       {(() => {
                         const ActivityIcon = getActivityIcon(row.activity_type);
-                        return <ActivityIcon size={16} className="text-gray-400" />;
+                        return (
+                          <ActivityIcon size={16} className="text-gray-400" />
+                        );
                       })()}
                       <span>{row.title_or_action}</span>
                     </div>
@@ -644,7 +553,9 @@ const AdminDash = () => {
                   <td className="px-6 py-4 text-center">
                     <button
                       className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
-                      onClick={() => setSelectedActivityStudentId(row.student_id)}
+                      onClick={() =>
+                        setSelectedActivityStudentId(row.student_id)
+                      }
                     >
                       <Eye size={18} />
                     </button>

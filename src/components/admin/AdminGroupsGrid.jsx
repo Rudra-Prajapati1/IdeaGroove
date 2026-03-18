@@ -79,7 +79,8 @@ const AdminGroupsGrid = ({ groups, searchTerm, filterHobby, onModerate }) => {
       const matchesSearch =
         (group.Name?.toLowerCase() ?? "").includes(searchStr) ||
         (group.Creator_Name?.toLowerCase() ?? "").includes(searchStr) ||
-        (group.Room_Type?.toLowerCase() ?? "").includes(searchStr);
+        (group.Based_On?.toLowerCase() ?? "").includes(searchStr) ||
+        (group.Description?.toLowerCase() ?? "").includes(searchStr);
 
       const matchesCategory =
         filterHobby === "all" || group.Based_On === filterHobby;

@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  ClipboardList,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   ExternalLink,
-  RefreshCw,
 } from "lucide-react";
 import StudentProfile from "./StudentProfile";
 
@@ -29,8 +29,7 @@ const AdminComplaintsGrid = ({
         (item.Student_Name?.toLowerCase() ?? "").includes(s) ||
         (item.Complaint_Text?.toLowerCase() ?? "").includes(s);
 
-      const matchesType =
-        filterType === "all" || item.complaintType === filterType;
+      const matchesType = filterType === "all" || item.Type === filterType;
       const matchesStatus =
         filterStatus === "all" || item.Status === filterStatus;
 
@@ -171,12 +170,14 @@ const AdminComplaintsGrid = ({
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => onStatusRequest(item)}
-                        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-bold bg-[#1B431C] text-white hover:bg-[#153416] transition-colors"
+                        title={
+                          item.Status === "Pending"
+                            ? "Review complaint status"
+                            : "Update complaint status"
+                        }
+                        className="inline-flex items-center justify-center h-9 w-9 rounded-xl bg-[#1B431C] text-white hover:bg-[#153416] transition-colors"
                       >
-                        <RefreshCw size={13} />
-                        <span>
-                          {item.Status === "Pending" ? "Review Status" : "Update Status"}
-                        </span>
+                        <ClipboardList size={16} />
                       </button>
                       <button
                         onClick={(e) => {

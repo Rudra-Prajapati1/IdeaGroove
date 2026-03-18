@@ -592,18 +592,18 @@ const ReportSearchableSelect = ({
   const hasValue = value !== null && value !== undefined && value !== "";
 
   return (
-    <div className="flex flex-col gap-0.5 relative" ref={ref}>
-      <span className="text-[8px] font-black uppercase tracking-widest text-gray-400 pl-0.5">
+    <div className="flex flex-col gap-1 relative min-w-[220px]" ref={ref}>
+      <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 pl-0.5">
         {label}
       </span>
       <button
         onClick={() => setOpen((p) => !p)}
-        className={`flex items-center gap-1 text-[11px] font-medium border rounded-lg bg-white hover:border-gray-300 focus:outline-none transition-all cursor-pointer py-1 pr-1.5
+        className={`flex items-center gap-1.5 text-xs font-medium border rounded-xl bg-white hover:border-gray-300 focus:outline-none transition-all cursor-pointer py-2 pr-2
           ${open ? "border-gray-400 ring-1 ring-gray-200" : "border-gray-200"} ${hasValue ? "text-gray-700" : "text-gray-400"}`}
-        style={{ paddingLeft: "8px", minWidth: "110px" }}
+        style={{ paddingLeft: "10px", minWidth: "160px" }}
       >
         {Icon && (
-          <Icon size={11} className="text-gray-400 flex-shrink-0 mr-1" />
+          <Icon size={12} className="text-gray-400 flex-shrink-0 mr-1" />
         )}
         <span className="flex-1 text-left truncate">
           {hasValue ? String(value) : `All ${label}`}
@@ -614,31 +614,37 @@ const ReportSearchableSelect = ({
               e.stopPropagation();
               onChange(null);
             }}
-            className="w-3.5 h-3.5 rounded-full bg-gray-200 hover:bg-red-100 hover:text-red-500 text-gray-500 flex items-center justify-center text-[10px] flex-shrink-0 transition-colors"
+            className="w-4 h-4 rounded-full bg-gray-200 hover:bg-red-100 hover:text-red-500 text-gray-500 flex items-center justify-center text-[10px] flex-shrink-0 transition-colors"
           >
             x
           </span>
         )}
         <ChevronDown
-          size={10}
+          size={12}
           className={`text-gray-400 flex-shrink-0 ml-1 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-48 overflow-hidden">
-          <div className="p-1.5 border-b border-gray-100">
-            <input
-              autoFocus
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={`Search ${label}...`}
-              className="w-full text-[11px] border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-300 placeholder-gray-300"
-            />
+        <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-72 overflow-hidden">
+          <div className="p-2 border-b border-gray-100">
+            <div className="relative">
+              <Search
+                size={12}
+                className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                autoFocus
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={`Search ${label}...`}
+                className="w-full text-xs border border-gray-200 rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:ring-1 focus:ring-gray-300 placeholder-gray-300"
+              />
+            </div>
           </div>
-          <div className="max-h-44 overflow-y-auto py-0.5">
+          <div className="max-h-48 overflow-y-auto py-1">
             {filtered.length === 0 ? (
-              <p className="px-3 py-2 text-[10px] text-gray-400 text-center">
+              <p className="px-3 py-3 text-[11px] text-gray-400 text-center">
                 No results
               </p>
             ) : (
@@ -652,10 +658,10 @@ const ReportSearchableSelect = ({
                       setOpen(false);
                       setSearch("");
                     }}
-                    className={`w-full flex items-center gap-2 px-2.5 py-1.5 text-[11px] text-left transition-colors hover:bg-gray-50 ${isActive ? "font-semibold text-gray-800" : "text-gray-600"}`}
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left transition-colors hover:bg-gray-50 ${isActive ? "font-semibold text-gray-800" : "text-gray-600"}`}
                   >
                     <span
-                      className="w-3.5 h-3.5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all"
+                      className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all"
                       style={
                         isActive
                           ? { backgroundColor: color, borderColor: color }
@@ -750,7 +756,7 @@ const ReportMultiSelect = ({
   };
 
   return (
-    <div className="flex flex-col gap-1 relative min-w-[260px]" ref={ref}>
+    <div className="flex min-w-[260px] flex-1 flex-col gap-1 relative sm:max-w-[340px]" ref={ref}>
       <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 pl-0.5">
         {label}
       </span>
@@ -772,7 +778,8 @@ const ReportMultiSelect = ({
       </button>
 
       {selectedValues.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 pt-1">
+        <div className="max-h-24 overflow-y-auto rounded-xl border border-gray-100 bg-slate-50 p-2">
+          <div className="flex flex-wrap gap-1.5">
           {selectedValues.map((item) => (
             <span
               key={item}
@@ -788,6 +795,7 @@ const ReportMultiSelect = ({
               </button>
             </span>
           ))}
+          </div>
         </div>
       )}
 
@@ -919,17 +927,6 @@ const FilterControls = ({
         const Icon = FILTER_ICONS[f.key] ?? Filter;
         const val = cur[f.key] ?? null;
         const opts = getOptions(f);
-        if (f.source === "searchText") {
-          return (
-            <ReportSearchInput
-              key={f.key}
-              label={f.label}
-              icon={Icon}
-              value={val}
-              onChange={(v) => update(f.key, v)}
-            />
-          );
-        }
         if (f.source === "rowMulti") {
           return (
             <ReportMultiSelect
@@ -939,18 +936,6 @@ const FilterControls = ({
               options={opts}
               value={val}
               color={section.color}
-              onChange={(v) => update(f.key, v)}
-            />
-          );
-        }
-        if (f.source === "hardcoded") {
-          return (
-            <ReportSimpleSelect
-              key={f.key}
-              label={f.label}
-              icon={Icon}
-              options={opts}
-              value={val}
               onChange={(v) => update(f.key, v)}
             />
           );
@@ -1307,12 +1292,13 @@ const AdminReportBuilder = () => {
         doc.addImage(canvas.toDataURL("image/png"), "PNG", x, y, w, h);
       };
 
-      const drawDataTable = (rows, cols, startY) => {
+      const drawDataTable = (section, rows, cols, startY) => {
         if (!rows?.length || !cols.length) return startY + 4;
         const mL = 10,
           tW = pw - 20,
           rH = 8,
-          cW = tW / cols.length;
+          cW = tW / cols.length,
+          lineHeight = 3.6;
 
         const drawTH = (yp) => {
           doc.setFillColor(27, 67, 28);
@@ -1334,20 +1320,45 @@ const AdminReportBuilder = () => {
 
         let y = drawTH(startY);
         rows.forEach((row, i) => {
-          if (y > ph - 18) {
+          const cellLines = cols.map((col) => {
+            const raw = row[col.key];
+            const shouldWrap =
+              ["groups", "qna"].includes(section.id) &&
+              ["Room_Name", "member_names", "Question", "top_answer", "all_answers"].includes(
+                col.key,
+              );
+            const baseValue =
+              raw == null
+                ? "-"
+                : shouldWrap
+                  ? String(raw)
+                  : formatCell(col.key, raw);
+
+            if (shouldWrap) {
+              return doc.splitTextToSize(baseValue, cW - 4);
+            }
+
+            const mc = Math.floor(cW / 1.9);
+            return [baseValue.length > mc ? `${baseValue.slice(0, mc - 1)}...` : baseValue];
+          });
+
+          const rowHeight = Math.max(
+            rH,
+            Math.max(...cellLines.map((lines) => lines.length), 1) * lineHeight + 3,
+          );
+
+          if (y + rowHeight > ph - 18) {
             doc.addPage();
             y = 15;
             y = drawTH(y);
           }
           if (i % 2 === 0) {
             doc.setFillColor(248, 252, 248);
-            doc.rect(mL, y, tW, rH, "F");
+            doc.rect(mL, y, tW, rowHeight, "F");
           }
           cols.forEach((col, j) => {
             const raw = row[col.key];
-            const cv = raw == null ? "-" : formatCell(col.key, raw);
-            const mc = Math.floor(cW / 1.9);
-            const dp = cv.length > mc ? cv.slice(0, mc - 1) + "..." : cv;
+            const lines = cellLines[j];
             doc.setFontSize(7);
             doc.setFont("helvetica", "normal");
             if (col.key === "Is_Active" || col.key === "is_Active") {
@@ -1367,123 +1378,83 @@ const AdminReportBuilder = () => {
             } else {
               doc.setTextColor(50, 50, 50);
             }
-            doc.text(dp, mL + j * cW + 2, y + 5.5);
+            doc.text(lines, mL + j * cW + 2, y + 4.5);
           });
           doc.setDrawColor(220, 230, 220);
           doc.setLineWidth(0.1);
-          doc.line(mL, y + rH, mL + tW, y + rH);
-          y += rH;
-        });
-        return y + 6;
-      };
+          doc.line(mL, y + rowHeight, mL + tW, y + rowHeight);
+          y += rowHeight;
 
-      const ensurePageSpace = (requiredHeight, currentY, label) => {
-        if (currentY + requiredHeight <= ph - 18) return currentY;
-        doc.addPage();
-        drawPageHeader(label);
-        return 47;
-      };
+          const extensionItems =
+            section.id === "groups"
+              ? String(row.member_names || "")
+                  .split(",")
+                  .map((item) => item.trim())
+                  .filter(Boolean)
+              : section.id === "qna"
+                ? String(row.all_answers || "")
+                    .split("|")
+                    .map((item) => item.trim())
+                    .filter(Boolean)
+                : [];
 
-      const drawDetailSubtables = (section, rows, startY) => {
-        if (!rows?.length || !["groups", "qna"].includes(section.id)) {
-          return startY;
-        }
-
-        const detailRows = rows
-          .map((row) => {
-            if (section.id === "groups") {
-              const members = String(row.member_names || "")
-                .split(",")
-                .map((item) => item.trim())
-                .filter(Boolean);
-              return members.length
-                ? {
-                    title: row.Room_Name || "Group",
-                    subtitle: `${members.length} member${members.length === 1 ? "" : "s"}`,
-                    items: members,
-                    headerColor: [67, 56, 202],
-                    heading: "Member Details",
-                  }
-                : null;
+          if (
+            ["groups", "qna"].includes(section.id) &&
+            extensionItems.length > 0
+          ) {
+            const detailLineSets = extensionItems.map((item) =>
+              doc.splitTextToSize(item, tW - 16),
+            );
+            const extensionHeight =
+              8 +
+              detailLineSets.reduce(
+                (sum, lines) => sum + lines.length * 4.2 + 1.8,
+                0,
+              );
+            if (y + extensionHeight > ph - 18) {
+              doc.addPage();
+              y = 15;
+              y = drawTH(y);
             }
 
-            const answers = String(row.all_answers || "")
-              .split("|")
-              .map((item) => item.trim())
-              .filter(Boolean);
-            return answers.length
-              ? {
-                  title: row.Question || "Question",
-                  subtitle: `${answers.length} answer${answers.length === 1 ? "" : "s"}`,
-                  items: answers,
-                  headerColor: [6, 95, 70],
-                  heading: "Question & Answer Details",
-                }
-              : null;
-          })
-          .filter(Boolean);
-
-        if (!detailRows.length) return startY;
-
-        let y = ensurePageSpace(16, startY, section.label);
-        doc.setFontSize(8);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(...section.rgb);
-        doc.text(
-          section.id === "groups" ? "Member Details" : "Question & Answer Details",
-          10,
-          y,
-        );
-        y += 5;
-
-        detailRows.forEach((detail, index) => {
-          const rowHeight = Math.max(detail.items.length, 1) * 6;
-          const blockHeight = 14 + 7 + rowHeight;
-          y = ensurePageSpace(blockHeight + 4, y, section.label);
-
-          doc.setFillColor(...detail.headerColor);
-          doc.roundedRect(10, y, pw - 20, blockHeight, 2, 2, "F");
-          doc.setFontSize(7.5);
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(255, 255, 255);
-          doc.text(detail.title, 13, y + 5);
-          doc.setFontSize(6.5);
-          doc.setFont("helvetica", "normal");
-          doc.text(detail.subtitle, pw - 13, y + 5, { align: "right" });
-
-          doc.setFillColor(255, 255, 255);
-          doc.roundedRect(12, y + 7, pw - 24, blockHeight - 9, 1.5, 1.5, "F");
-          doc.setFillColor(239, 242, 247);
-          doc.rect(12, y + 7, pw - 24, 6, "F");
-          doc.setFontSize(6.5);
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(55, 65, 81);
-          doc.text("#", 15, y + 11);
-          doc.text(section.id === "groups" ? "Member Name" : "Answer", 22, y + 11);
-
-          let innerY = y + 17;
-          detail.items.forEach((item, itemIndex) => {
-            if (itemIndex % 2 === 0) {
-              doc.setFillColor(249, 250, 251);
-              doc.rect(12, innerY - 4, pw - 24, 6, "F");
-            }
+            doc.setFillColor(245, 247, 250);
+            doc.rect(mL, y, tW, extensionHeight, "F");
+            doc.setFillColor(...section.rgb);
+            doc.rect(mL, y, tW, 6, "F");
             doc.setFontSize(6.5);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(75, 85, 99);
-            doc.text(String(itemIndex + 1), 15, innerY);
-            const truncated =
-              item.length > 95 ? `${item.slice(0, 94)}...` : item;
-            doc.text(truncated, 22, innerY);
-            innerY += 6;
-          });
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(255, 255, 255);
+            doc.text(
+              section.id === "groups"
+                ? `${row.Room_Name || "Group"} Member Details`
+                : "Answer Details",
+              mL + 2,
+              y + 4,
+            );
 
-          y += blockHeight + 4;
-          if (index < detailRows.length - 1) {
-            y = ensurePageSpace(12, y, section.label);
+            let detailY = y + 10;
+            detailLineSets.forEach((itemLines, itemIndex) => {
+              const itemHeight = itemLines.length * 4.2 + 1.5;
+              if (itemIndex % 2 === 0) {
+                doc.setFillColor(255, 255, 255);
+                doc.rect(mL + 2, detailY - 3.6, tW - 4, itemHeight, "F");
+              }
+              doc.setFont("helvetica", "bold");
+              doc.setTextColor(...section.rgb);
+              doc.text(`${itemIndex + 1}.`, mL + 4, detailY);
+              doc.setFont("helvetica", "normal");
+              doc.setTextColor(75, 85, 99);
+              doc.text(itemLines, mL + 11, detailY);
+              detailY += itemHeight;
+            });
+
+            doc.setDrawColor(220, 230, 220);
+            doc.setLineWidth(0.1);
+            doc.line(mL, y + extensionHeight, mL + tW, y + extensionHeight);
+            y += extensionHeight;
           }
         });
-
-        return y + 2;
+        return y + 6;
       };
 
       for (const section of SECTIONS) {
@@ -1581,8 +1552,7 @@ const AdminReportBuilder = () => {
             y,
           );
           y += 5;
-          y = drawDataTable(rows, activeCols, y);
-          y = drawDetailSubtables(section, rows, y);
+          y = drawDataTable(section, rows, activeCols, y);
         } catch (e) {
           console.error(`PDF ${section.id}:`, e);
         }
@@ -1664,10 +1634,10 @@ const AdminReportBuilder = () => {
           return (
             <div
               key={section.id}
-              className={`rounded-2xl border-2 transition-all duration-300 overflow-hidden bg-white
+              className={`rounded-[28px] border-2 transition-all duration-300 overflow-hidden bg-white
                 ${isOn ? `${section.border} shadow-lg` : "border-gray-100 shadow-sm hover:border-gray-200 hover:shadow-md"}`}
             >
-              <div className={`bg-gradient-to-r ${section.bg} p-4`}>
+              <div className={`bg-gradient-to-r ${section.bg} px-5 py-4`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div
@@ -1733,7 +1703,7 @@ const AdminReportBuilder = () => {
                     rowFilterOptions={rowFilterOptions}
                   />
 
-                  <div className="px-4 pt-3 pb-3">
+                  <div className="px-5 pt-4 pb-3">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1.5">
                         <Columns size={11} className="text-gray-400" />
@@ -1766,7 +1736,7 @@ const AdminReportBuilder = () => {
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-between px-4 py-2 bg-gray-50/50">
+                    <div className="flex items-center justify-between px-5 py-3 bg-gray-50/60">
                       <div className="flex items-center gap-2">
                         <span className="text-[11px] font-black uppercase tracking-widest text-gray-400">
                           Live Preview

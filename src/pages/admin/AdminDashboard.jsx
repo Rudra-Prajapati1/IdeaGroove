@@ -1,142 +1,43 @@
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { X, Send, Ban, CheckCircle, AlertCircle } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
 import DashboardUsers from "../../components/admin/DashboardUsers";
 import EmailConfirmationModal from "../../components/admin/EmailConfirmationModal";
-
-export const dashboardUserStats = [
-  {
-    title: "Total Users",
-    value: 0,
-    infoText: "",
-    color: "green",
-    type: "total",
-  },
-  {
-    title: "Active Users",
-    value: 0,
-    infoText: "",
-    color: "yellow",
-    type: "pending",
-  },
-  {
-    title: "Inactive Users",
-    value: 0,
-    infoText: "",
-    color: "red",
-    type: "blocked",
-  },
-];
+import {
+  fetchAdminDegreeSubjectData,
+  selectAdminDegreeOptions,
+} from "../../redux/adminSlice/adminMetaSlice";
+import {
+  fetchAdminUsers,
+  moderateAdminUser,
+  selectAdminUserStats,
+  selectAdminUserYearOptions,
+  selectAdminUsers,
+  selectAdminUsersActionStatus,
+} from "../../redux/adminSlice/adminUsersSlice";
 
 const AdminDashboard = () => {
-  const [users, setUsers] = useState([]);
+  const dispatch = useDispatch();
+  const users = useSelector(selectAdminUsers);
+  const stats = useSelector(selectAdminUserStats);
+  const degreeOptions = useSelector(selectAdminDegreeOptions);
+  const yearOptions = useSelector(selectAdminUserYearOptions);
+  const actionStatus = useSelector(selectAdminUsersActionStatus);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [degreeFilter, setDegreeFilter] = useState("all");
   const [yearFilter, setYearFilter] = useState("all");
-  const [error, setError] = useState(null);
-  const [stats, setStats] = useState(dashboardUserStats);
-  const [degreeOptions, setDegreeOptions] = useState([]);
-  const [yearOptions, setYearOptions] = useState([]);
-
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAction, setSelectedAction] = useState(null);
   const [targetId, setTargetId] = useState(null);
   const [reason, setReason] = useState("");
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/students/all`,
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch users");
-        }
-
-        const data = await response.json();
-        const activeCount = data.filter((u) => u.is_Active === 1).length;
-        const inactiveCount = data.filter((u) => u.is_Active !== 1).length;
-        const formattedYears = [
-          ...new Set(
-            data.map((d) => {
-              const year = String(d.Year);
-
-              if (year.length === 4) {
-                const start = "20" + year.slice(0, 2);
-                const end = "20" + year.slice(2, 4);
-                return `${start}-${end}`;
-              }
-
-              return year; // fallback if already formatted
-            }),
-          ),
-        ];
-
-        setYearOptions(formattedYears);
-        setStats([
-          {
-            title: "Total Users",
-            value: data.length,
-            infoText: `${degreeOptions.length || new Set(data.map((u) => u.Degree?.Degree_Name || u.Degree_Name).filter(Boolean)).size} degree groups`,
-            color: "green",
-            type: "total",
-          },
-          {
-            title: "Active Users",
-            value: activeCount,
-            infoText: `${data.length ? Math.round((activeCount / data.length) * 100) : 0}% of all users`,
-            color: "yellow",
-            type: "pending",
-          },
-          {
-            title: "Inactive Users",
-            value: inactiveCount,
-            infoText: `${inactiveCount} need review`,
-            color: "red",
-            type: "blocked",
-          },
-        ]);
-
-        setUsers(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-  useEffect(() => {
-    const fetchDegree = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/degreeSubject/allDegreeSubject`,
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch degrees");
-        }
-
-        const data = await response.json();
-        const formattedDegrees = [
-          ...new Set(data.degreeSubject.map((d) => d.degree_name)),
-        ];
-
-        setDegreeOptions(formattedDegrees);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDegree();
-  }, []);
+    dispatch(fetchAdminUsers());
+    dispatch(fetchAdminDegreeSubjectData());
+  }, [dispatch]);
 
   const handleModerateRequest = (type, userId) => {
     setSelectedAction(type);
@@ -149,53 +50,27 @@ const AdminDashboard = () => {
     );
   };
 
-  // REPLACE the fake setTimeout with a real API call:
   const handleActionSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
-      const endpoint =
-        selectedAction === "block" ? "block-student" : "unblock-student";
-
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/admin/${endpoint}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: targetId, reason }),
-        },
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.message || "Action failed");
-        return;
-      }
-
-      // Update local state so UI reflects change immediately
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.S_ID === targetId
-            ? { ...u, is_Active: selectedAction === "block" ? 0 : 1 }
-            : u,
-        ),
-      );
+      await dispatch(
+        moderateAdminUser({
+          action: selectedAction,
+          id: targetId,
+          reason,
+        }),
+      ).unwrap();
 
       toast.success(
         selectedAction === "block"
           ? "Student blocked & email sent!"
           : "Student unblocked & email sent!",
       );
-
       setModalOpen(false);
       setReason("");
     } catch (err) {
-      toast.error("Network error. Please try again.");
-      console.error(err);
-    } finally {
-      setLoading(false);
+      toast.error(err || "Network error. Please try again.");
     }
   };
 
@@ -231,7 +106,7 @@ const AdminDashboard = () => {
         targetType="User"
         reason={reason}
         setReason={setReason}
-        loading={loading}
+        loading={actionStatus === "loading"}
       />
     </section>
   );

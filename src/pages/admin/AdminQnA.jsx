@@ -1,10 +1,22 @@
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { X, AlertCircle } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatsRow from "../../components/admin/StatsRow";
 import AdminQnAGrid from "../../components/admin/AdminQnAGrid";
 import EmailConfirmationModal from "../../components/admin/EmailConfirmationModal";
+import {
+  fetchAdminDegreeSubjectData,
+  selectAdminDegreeOptions,
+  selectAdminDegreeSubjectMap,
+} from "../../redux/adminSlice/adminMetaSlice";
+import {
+  fetchAdminQna,
+  moderateAdminQnaItem,
+  selectAdminQna,
+  selectAdminQnaActionStatus,
+  selectAdminQnaStats,
+} from "../../redux/adminSlice/adminQnaSlice";
 
 // const initialData = [
 //   {
@@ -123,7 +135,13 @@ export const qnaStats = [
 ];
 
 const AdminQnA = () => {
-  const [qnas, setQnas] = useState([]);
+  const dispatch = useDispatch();
+  const qnas = useSelector(selectAdminQna);
+  const qnaStats = useSelector(selectAdminQnaStats);
+  const degreeOptions = useSelector(selectAdminDegreeOptions);
+  const degreeSubjectMap = useSelector(selectAdminDegreeSubjectMap);
+  const actionStatus = useSelector(selectAdminQnaActionStatus);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [degreeFilter, setDegreeFilter] = useState("all");
   const [subjectFilter, setSubjectFilter] = useState("all");
@@ -134,145 +152,12 @@ const AdminQnA = () => {
   const [targetId, setTargetId] = useState(null);
   const [targetAnswerId, setTargetAnswerId] = useState(null); // New state to track if moderating an answer
   const [reason, setReason] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-
-  const [qnaStats, setQnaStats] = useState([
-    {
-      title: "Total Questions",
-      value: 0,
-      infoText: "All questions asked",
-      color: "green",
-      type: "total",
-    },
-    {
-      title: "Active Questions",
-      value: 0,
-      infoText: "Currently Active",
-      color: "yellow",
-      type: "pending",
-    },
-    {
-      title: "InActive Questions",
-      value: 0,
-      infoText: "Blocked & Deleted",
-      color: "red",
-      type: "blocked",
-    },
-  ]);
-
-  const [degreeOptions, setDegreeOptions] = useState([]);
-  const [degreeSubjectMap, setDegreeSubjectMap] = useState({});
   const [subjectOptions, setSubjectOptions] = useState([]);
 
   useEffect(() => {
-    const fetchQnA = async () => {
-      try {
-        const reponse = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/qna/?page=1&limit=1000`,
-        );
-        const data = await reponse.json();
-        console.log(data.QnA);
-        const filteredQnAs = data.QnA.map((qna) => ({
-          id: qna.Q_ID,
-          question: qna.Question,
-          authorName: qna.Question_Author,
-          authorId: qna.Author_Id,
-          addedOn: qna.Added_On,
-          answersCount: qna.Total_Answers,
-          degreeName: qna.Degree_Name,
-          subjectName: qna.Subject_Name,
-          status: qna.Is_Active === 1 ? "active" : "blocked",
-          answers: (qna.Answers || []).map((ans) => ({
-            id: ans.A_ID,
-            text: ans.Answer,
-            author: ans.Answer_Author,
-            time: ans.Answered_On,
-            status: ans.Is_Active === 1 ? "active" : "blocked",
-          })),
-        }));
-
-        const totalQuestions = data.total || filteredQnAs.length;
-        const activeQuestions = filteredQnAs.filter(
-          (q) => q.status === "active",
-        );
-        const blockedQuestions = filteredQnAs.filter(
-          (q) => q.status === "blocked",
-        );
-
-        setQnaStats([
-          {
-            title: "Total Questions",
-            value: totalQuestions,
-            infoText: `${filteredQnAs.reduce((sum, q) => sum + q.answersCount, 0)} total answers`,
-            color: "green",
-            type: "total",
-          },
-          {
-            title: "Active Questions",
-            value: activeQuestions.length,
-            infoText: `${totalQuestions ? Math.round((activeQuestions.length / totalQuestions) * 100) : 0}% visible questions`,
-            color: "yellow",
-            type: "pending",
-          },
-          {
-            title: "InActive Questions",
-            value: blockedQuestions.length,
-            infoText: `${blockedQuestions.length} moderated questions`,
-            color: "red",
-            type: "blocked",
-          },
-        ]);
-        setQnas(filteredQnAs);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchQnA();
-  }, []);
-
-  useEffect(() => {
-    const fetchDegree = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/degreeSubject/allDegreeSubject`,
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch degrees");
-        }
-
-        const data = await response.json();
-
-        const map = {};
-
-        data.degreeSubject.forEach((item) => {
-          const degree = item.degree_name;
-          const subject = item.subject_name;
-
-          if (!map[degree]) {
-            map[degree] = [];
-          }
-
-          map[degree].push(subject);
-        });
-
-        // Remove duplicates
-        Object.keys(map).forEach((degree) => {
-          map[degree] = [...new Set(map[degree])];
-        });
-
-        setDegreeSubjectMap(map);
-        setDegreeOptions(Object.keys(map));
-      } catch (err) {
-        setError(err.message);
-      }
-    };
-
-    fetchDegree();
-  }, []);
+    dispatch(fetchAdminQna());
+    dispatch(fetchAdminDegreeSubjectData());
+  }, [dispatch]);
 
   useEffect(() => {
     if (degreeFilter === "all") {
@@ -315,89 +200,25 @@ const AdminQnA = () => {
 
   const handleActionSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
-      // Determine if we are sending an "answer" or "question" moderation request
-      const endpointType = targetAnswerId ? "answer" : "question";
-      const endpointId = targetAnswerId || targetId;
+      await dispatch(
+        moderateAdminQnaItem({
+          action: selectedAction,
+          targetType: targetAnswerId ? "answer" : "question",
+          id: targetAnswerId || targetId,
+          questionId: targetId,
+          reason,
+        }),
+      ).unwrap();
 
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/admin/toggle-block`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: endpointType,
-            id: endpointId,
-            reason: reason,
-          }),
-        },
+      toast.success(
+        `${targetAnswerId ? "Answer" : "Question"} successfully ${selectedAction}ed! Email sent.`,
       );
-
-      const data = await res.json();
-
-      if (data.status) {
-        // Update local state
-        setQnas((prev) =>
-          prev.map((q) => {
-            if (q.id === targetId) {
-              // Case 1: Moderating a specific answer
-              if (targetAnswerId) {
-                return {
-                  ...q,
-                  answers: q.answers.map((ans) =>
-                    ans.id === targetAnswerId
-                      ? {
-                          ...ans,
-                          status:
-                            selectedAction === "block" ? "blocked" : "active",
-                        }
-                      : ans,
-                  ),
-                };
-              }
-              // Case 2: Moderating the whole question
-              return {
-                ...q,
-                status: selectedAction === "block" ? "blocked" : "active",
-              };
-            }
-            return q;
-          }),
-        );
-
-        // Update stats ONLY if we moderated a question (we don't track answer stats in StatsRow)
-        if (!targetAnswerId) {
-          setQnaStats((prevStats) => {
-            const newStats = [...prevStats];
-            newStats[1].value = qnas.filter((q) =>
-              q.id === targetId
-                ? selectedAction !== "block"
-                : q.status === "active",
-            ).length;
-            newStats[2].value = qnas.filter((q) =>
-              q.id === targetId
-                ? selectedAction === "block"
-                : q.status === "blocked",
-            ).length;
-            return newStats;
-          });
-        }
-
-        toast.success(
-          `${targetAnswerId ? "Answer" : "Question"} successfully ${selectedAction}ed! Email sent.`,
-        );
-        setModalOpen(false);
-        setReason("");
-      } else {
-        toast.error(data.message || "Action failed");
-      }
+      setModalOpen(false);
+      setReason("");
     } catch (err) {
-      console.error("Moderation error:", err);
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
+      toast.error(err || "Something went wrong. Please try again.");
     }
   };
 
@@ -431,7 +252,7 @@ const AdminQnA = () => {
         targetType={targetAnswerId ? "Answer" : "Question"}
         reason={reason}
         setReason={setReason}
-        loading={loading}
+        loading={actionStatus === "loading"}
       />
     </section>
   );
