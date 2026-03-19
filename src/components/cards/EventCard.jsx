@@ -53,8 +53,14 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
 
   const isOwner =
     user &&
-    Number(event.Added_By) ===
-      Number(user.S_ID || user.id || user.Student_ID);
+    Number(event.Added_By) === Number(user.S_ID || user.id || user.Student_ID);
+  const organizerId = event.Organizer_ID || event.Added_By || null;
+  const organizerName =
+    event.Organizer_Username ||
+    event.Organizer_UserName ||
+    event.Organizer_Name ||
+    event.Contact_Person ||
+    "Admin";
 
   useEffect(() => {
     if (!previewOpen) return;
@@ -133,13 +139,13 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
 
   return (
     <>
-      <div className="group bg-white rounded-3xl overflow-hidden flex flex-col w-full max-w-[20rem] mx-auto transition-all duration-300 shadow-md hover:shadow-xl border border-gray-300">
+      <div className="group mx-auto flex w-full max-w-[20rem] flex-col overflow-hidden rounded-3xl border border-gray-300 bg-white shadow-md transition-all duration-300 hover:shadow-xl">
         <div className="relative h-64 w-full overflow-hidden">
           <img
             src={event.Poster_File}
             alt={event.Description}
             onClick={() => setPreviewOpen(true)}
-            className="h-full w-full object-cover cursor-pointer transition-transform duration-300 min-w-100 group-hover:scale-110"
+            className="h-full w-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-110"
           />
 
           <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-xl p-2 min-w-14 flex flex-col items-center shadow-md border border-white/20">
@@ -153,7 +159,11 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
 
           {!isOwner && (
             <ComplaintButton
-              onClick={() => navigate(`/submit-complaint/event/${event.E_ID}/${event.Description}`)}
+              onClick={() =>
+                navigate(
+                  `/submit-complaint/event/${event.E_ID}/${event.Description}`,
+                )
+              }
               className="absolute top-4 right-4"
               element="event"
             />
@@ -185,8 +195,27 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
 
           <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between gap-2">
             <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold shrink-0">
-              {authorLabel ||
-                `By ${event.Organizer_Name || event.Contact_Person || "Admin"}`}
+              {authorLabel ? (
+                authorLabel
+              ) : (
+                <>
+                  By{" "}
+                  {organizerId ? (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/dashboard/${organizerId}`);
+                      }}
+                      className="hover:underline"
+                    >
+                      {organizerName.toUpperCase()}
+                    </button>
+                  ) : (
+                    <span>{organizerName}</span>
+                  )}
+                </>
+              )}
             </p>
 
             <div className="flex items-center gap-1">

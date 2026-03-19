@@ -7,12 +7,12 @@ const Policy = () => {
 
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
-      <section className="relative bg-[#1A3C20] pt-40 pb-50">
+      <section className="relative bg-[#1A3C20] pb-28 pt-32 sm:pb-36 sm:pt-40">
         <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
           <svg
             viewBox="0 0 1440 120"
             preserveAspectRatio="none"
-            className="block w-full h-[100px]"
+            className="block h-[72px] w-full sm:h-[100px]"
           >
             <path
               fill="#FFFBEB"
@@ -23,20 +23,20 @@ const Policy = () => {
       </section>
 
       {/* Kept your exact CSS classes for title and back button */}
-      <div className="max-w-7xl mx-auto -mt-50 relative z-30 px-0.01 flex gap-10">
+      <div className="relative z-30 mx-auto -mt-24 flex max-w-7xl flex-col gap-4 px-4 sm:-mt-32 sm:gap-6">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-[#FFFBEB]/80 hover:text-white mb-6 transition-colors cursor-pointer"
         >
           <ArrowLeft size={20} /> Back
         </button>
-        <h1 className="text-5xl font-extrabold mb-4 text-[#FFFBEB]">
+        <h1 className="mb-4 text-3xl font-extrabold text-[#FFFBEB] sm:text-4xl lg:text-5xl">
           Privacy Policies
         </h1>
       </div>
 
       {/* Main Content Card - Professional Content Edition */}
-      <div className="max-w-4xl mx-auto px-6 relative z-30 mt-10">
+      <div className="relative z-30 mx-auto mt-8 max-w-4xl px-4 sm:mt-10 sm:px-6">
         <div className="bg-white rounded-[2rem] shadow-xl p-8 md:p-12 border border-black/5">
           <div className="space-y-12 text-gray-700 leading-relaxed">
             {/* 1. Information Collection */}

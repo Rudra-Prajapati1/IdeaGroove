@@ -95,7 +95,7 @@ const AdminPageHeader = ({
 
         {/* Degree Dropdown (only if provided) */}
         {degreeOptions?.length > 0 && (
-          <div className="min-w-[160px] max-w-[180px]">
+          <div className="min-w-40 max-w-[180px]">
             <SearchableDropdown
               icon={GraduationCap}
               options={filteredDegreeOptions}
@@ -112,7 +112,7 @@ const AdminPageHeader = ({
 
         {/* Subject Dropdown (only if provided) */}
         {subjectOptions?.length > 0 && (
-          <div className="min-w-[160px] max-w-[200px]">
+          <div className="min-w-40 max-w-[200px]">
             <SimpleDropdown
               icon={BookOpen}
               options={subjectOptions}
@@ -129,7 +129,7 @@ const AdminPageHeader = ({
 
         {/* Hobby Dropdown (only if provided) */}
         {hobbyOptions?.length > 0 && (
-          <div className="min-w-[160px] max-w-[180px]">
+          <div className="min-w-40 max-w-[180px]">
             <SearchableDropdown
               icon={Heart}
               options={hobbyOptions}
@@ -137,6 +137,7 @@ const AdminPageHeader = ({
               placeholder={thirdTitle}
               accent="rose"
               text="All Hobbies"
+              menuClassName="max-h-[min(50vh,28rem)]"
               onChange={(val) => {
                 setSelectedHobby(val);
                 if (onHobbyFilter) onHobbyFilter(val);

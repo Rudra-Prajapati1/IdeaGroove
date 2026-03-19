@@ -106,8 +106,8 @@ const Groups = () => {
         />
       )}
 
-      <div className="mx-auto px-6 relative z-40 mt-35">
-        <div className="max-w-6xl mx-auto px-4 -mt-25 flex justify-between items-center">
+      <div className="relative z-40 mx-auto mt-8 px-4 sm:px-6 md:mt-12">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-0 sm:px-4 lg:flex-row lg:items-center lg:justify-between">
           <Controls
             search={search}
             setSearch={handleSearchChange}
@@ -121,16 +121,18 @@ const Groups = () => {
             }}
           />
 
-          <ActionButton
-            label="Create Group"
-            icon={LucideGroup}
-            disabled={!isAuth}
-            disabledMessage="Please login to create a group"
-            onClick={() => setAddGroup(true)}
-          />
+          <div className="self-start lg:self-auto">
+            <ActionButton
+              label="Create Group"
+              icon={LucideGroup}
+              disabled={!isAuth}
+              disabledMessage="Please login to create a group"
+              onClick={() => setAddGroup(true)}
+            />
+          </div>
         </div>
 
-        <div className="max-w-7xl m-auto mt-12 px-12 py-12 rounded-2xl">
+        <div className="m-auto mt-8 max-w-7xl rounded-2xl px-0 py-6 sm:mt-12 sm:px-4 sm:py-8 lg:px-12 lg:py-12">
           {showFullPageLoader && <Loading text="Loading groups..." />}
 
           {groupsStatus === "failed" && (

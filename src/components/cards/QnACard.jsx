@@ -41,6 +41,13 @@ const QnACard = ({
 
   const currentUserId = currentUserIdProp || user?.id || user?.S_ID;
   const isOwner = Number(post.Author_Id) === Number(currentUserId);
+  const questionAuthorId =
+    post.Author_Id || post.Author_ID || post.AuthorId || null;
+  const questionAuthorName =
+    post.Question_Username ||
+    post.Question_Author_Username ||
+    post.Question_Author ||
+    "Unknown";
 
   useEffect(() => {
     const raw = post?.Answers;
@@ -157,7 +164,7 @@ const QnACard = ({
   };
 
   /* =================== HELPERS =================== */
-  const authorName = post.Question_Author || "Unknown";
+  const authorName = questionAuthorName;
   const authorInitial = authorName.charAt(0);
 
   return (
@@ -195,7 +202,22 @@ const QnACard = ({
                 )}
               </div>
               <span className="text-sm font-semibold text-slate-700">
-                {authorLabel || post.Question_Author}
+                {authorLabel ? (
+                  authorLabel
+                ) : questionAuthorId ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/dashboard/${questionAuthorId}`);
+                    }}
+                    className="hover:underline"
+                  >
+                    {questionAuthorName}
+                  </button>
+                ) : (
+                  questionAuthorName
+                )}
               </span>
               <span className="text-xs text-slate-400">
                 • Asked on {askedDate || "Just now"}
@@ -277,6 +299,13 @@ const QnACard = ({
                   const isAnswerOwner =
                     Number(ans.Answered_By) === Number(currentUserId);
                   const isEditingThis = editingAnswerId === ans.A_ID;
+                  const answerAuthorId =
+                    ans.Answered_By || ans.Answered_By_Id || ans.Answered_By_ID;
+                  const answerAuthorName =
+                    ans.Answer_Username ||
+                    ans.Answer_Author_Username ||
+                    ans.Answer_Author ||
+                    "Unknown";
 
                   return (
                     <div
@@ -285,7 +314,20 @@ const QnACard = ({
                     >
                       <div className="flex justify-between items-start mb-2">
                         <p className="text-xs font-bold text-slate-800">
-                          {ans.Answer_Author}
+                          {answerAuthorId ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/dashboard/${answerAuthorId}`);
+                              }}
+                              className="hover:underline"
+                            >
+                              {answerAuthorName}
+                            </button>
+                          ) : (
+                            answerAuthorName
+                          )}
                           <span className="text-slate-400 font-normal ml-2">
                             {new Date(ans.Answered_On).toLocaleDateString(
                               "en-IN",
@@ -298,33 +340,37 @@ const QnACard = ({
                           </span>
                         </p>
 
-                        <ComplaintButton
-                          onClick={() =>
-                            navigate(
-                              `/submit-complaint/answer/${ans.A_ID}/${ans.Answer}`,
-                            )
-                          }
-                          element="answer"
-                        />
+                        <div className="flex items-center gap-2">
+                          {!isAnswerOwner && (
+                            <ComplaintButton
+                              onClick={() =>
+                                navigate(
+                                  `/submit-complaint/answer/${ans.A_ID}/${ans.Answer}`,
+                                )
+                              }
+                              element="answer"
+                            />
+                          )}
 
-                        {isAnswerOwner && !isEditingThis && (
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => handleStartEditAnswer(ans)}
-                              className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
-                              title="Edit Answer"
-                            >
-                              <Edit2 className="w-3 h-3" />
-                            </button>
-                            <button
-                              onClick={() => setDeletingAnswerId(ans.A_ID)}
-                              className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
-                              title="Delete Answer"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
-                        )}
+                          {isAnswerOwner && !isEditingThis && (
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => handleStartEditAnswer(ans)}
+                                className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
+                                title="Edit Answer"
+                              >
+                                <Edit2 className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={() => setDeletingAnswerId(ans.A_ID)}
+                                className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
+                                title="Delete Answer"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {isEditingThis ? (

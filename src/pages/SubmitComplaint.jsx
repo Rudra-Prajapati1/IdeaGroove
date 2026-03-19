@@ -258,8 +258,8 @@ const SubmitComplaint = () => {
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
       <PageHeader title="Submit Complaint" />
-      <main className="max-w-6xl mx-auto py-12 px-8 grid grid-cols-12 gap-8 relative z-30">
-        <div className="col-span-8 bg-white rounded-2xl p-8 border border-gray-100 shadow-sm space-y-6">
+      <main className="relative z-30 mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-12 lg:gap-8 lg:px-8 lg:py-12">
+        <div className="space-y-6 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-8 lg:col-span-8">
           <h3 className="text-xl font-bold text-gray-800">
             Submit a New Issue
           </h3>
@@ -377,7 +377,7 @@ const SubmitComplaint = () => {
           </button>
         </div>
 
-        <aside className="col-span-4 space-y-6">
+        <aside className="space-y-6 lg:col-span-4">
           <div className="bg-[#f0f9f1] border border-[#c8e6c9] rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="bg-[#4caf50] p-2 rounded-lg text-white">
@@ -416,8 +416,8 @@ const SubmitComplaint = () => {
         </aside>
       </main>
 
-      <section className="max-w-6xl mx-auto px-8 mt-16 pb-20">
-        <h2 className="text-4xl font-black text-[#1A3C20] tracking-tight mb-8">
+      <section className="max-w-6xl mx-auto mt-12 px-4 pb-20 sm:px-6 lg:mt-16 lg:px-8">
+        <h2 className="mb-8 text-3xl font-black tracking-tight text-[#1A3C20] sm:text-4xl">
           Your Reported Issues
         </h2>
         <div className="flex flex-wrap gap-3 mb-8">
@@ -435,8 +435,8 @@ const SubmitComplaint = () => {
           ))}
         </div>
 
-        <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-xl shadow-black/5">
-          <div className="grid grid-cols-14 bg-gray-50/50 border-b border-gray-100 px-8 py-4">
+        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl shadow-black/5">
+          <div className="hidden grid-cols-14 border-b border-gray-100 bg-gray-50/50 px-8 py-4 lg:grid">
             <div className="col-span-2 text-[11px] font-black text-gray-400 uppercase tracking-widest">
               Category
             </div>
@@ -471,17 +471,17 @@ const SubmitComplaint = () => {
                 className={`border-b border-gray-50 last:border-0 transition-all ${isExpanded ? "bg-orange-50/20" : ""}`}
               >
                 <div
-                  className="grid grid-cols-13 px-8 py-6 items-center cursor-pointer hover:bg-gray-50/50"
+                  className="grid cursor-pointer grid-cols-1 gap-4 px-4 py-5 hover:bg-gray-50/50 sm:px-6 lg:grid-cols-13 lg:gap-0 lg:px-8 lg:py-6"
                   onClick={() =>
                     setExpandedId(isExpanded ? null : item.Complaint_ID)
                   }
                 >
-                  <div className="col-span-2">
+                  <div className="lg:col-span-2">
                     <span className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-[10px] font-black uppercase tracking-wider">
                       {typeMapping[item.Type] || item.Type}
                     </span>
                   </div>
-                  <div className="col-span-5">
+                  <div className="lg:col-span-5">
                     <h4 className="text-[15px] font-bold text-gray-800 leading-tight">
                       {item.Type?.toLowerCase() === "other"
                         ? "Complaint for IdeaGroove"
@@ -494,10 +494,10 @@ const SubmitComplaint = () => {
                       </p>
                     )}
                   </div>
-                  <div className="col-span-2 text-center text-sm font-semibold text-gray-600">
+                  <div className="text-sm font-semibold text-gray-600 lg:col-span-2 lg:text-center">
                     {new Date(item.Date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                   </div>
-                  <div className="col-span-1 flex justify-center">
+                  <div className="flex justify-start lg:col-span-1 lg:justify-center">
                     {(() => {
                       const complaintDate = new Date(item.Date);
                       const now = new Date();
@@ -529,14 +529,14 @@ const SubmitComplaint = () => {
                       );
                     })()}
                   </div>
-                  <div className="col-span-2 flex justify-center">
+                  <div className="flex justify-start lg:col-span-2 lg:justify-center">
                     <span
                       className={`min-w-[110px] text-center px-4 py-1.5 rounded-lg text-[10px] font-black uppercase border-2 ${displayStatus === "PENDING" ? "border-blue-200 bg-blue-50 text-blue-700" : displayStatus === "IN PROGRESS" ? "border-orange-200 bg-orange-50 text-orange-700" : "border-green-200 bg-green-50 text-green-700"}`}
                     >
                       {displayStatus}
                     </span>
                   </div>
-                  <div className="col-span-1 flex justify-end">
+                  <div className="flex justify-end lg:col-span-1">
                     {isExpanded ? (
                       <ChevronUp size={20} />
                     ) : (
@@ -545,12 +545,12 @@ const SubmitComplaint = () => {
                   </div>
                 </div>
                 {isExpanded && (
-                  <div className="px-8 pb-8 pt-2 space-y-4 animate-in slide-in-from-top-2 duration-300">
-                    <div className="ml-[16.6%] max-w-2xl bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex gap-4">
+                  <div className="space-y-4 px-4 pb-6 pt-2 animate-in slide-in-from-top-2 duration-300 sm:px-6 lg:px-8 lg:pb-8">
+                    <div className="max-w-2xl rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6 lg:ml-[16.6%] lg:flex lg:gap-4">
                       <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
                         <AlertTriangle size={18} className="text-blue-700" />
                       </div>
-                      <div>
+                      <div className="mt-3 lg:mt-0">
                         <span className="text-[11px] font-black text-blue-800 uppercase tracking-widest mb-1 block">
                           Your Complaint
                         </span>
@@ -559,11 +559,11 @@ const SubmitComplaint = () => {
                         </p>
                       </div>
                     </div>
-                    <div className="ml-[16.6%] max-w-2xl bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex gap-4">
+                    <div className="max-w-2xl rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6 lg:ml-[16.6%] lg:flex lg:gap-4">
                       <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
                         <Info size={18} className="text-green-700" />
                       </div>
-                      <div>
+                      <div className="mt-3 lg:mt-0">
                         <span className="text-[11px] font-black text-green-800 uppercase tracking-widest mb-1 block">
                           Admin Update
                         </span>

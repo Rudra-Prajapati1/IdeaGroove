@@ -13,8 +13,14 @@ import { useDispatch } from "react-redux";
 import { createQuestion, fetchQnA } from "../../redux/slice/qnaSlice";
 import {
   selectAllDegrees,
+  fetchDegreeSubject,
   selectSubjectsByDegree,
 } from "../../redux/slice/degreeSubjectSlice";
+import SearchableDropdown from "../common/SearchableDropdown";
+import {
+  confirmCustomOption,
+  normalizeCustomOptionInput,
+} from "../../utils/customOptionHelpers";
 
 const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
   const dispatch = useDispatch();
@@ -26,6 +32,8 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
     Question: editing?.Question || "",
     Degree_ID: editing?.Degree_ID ? String(editing.Degree_ID) : "",
     Subject_ID: editing?.Subject_ID ? String(editing.Subject_ID) : "",
+    New_Degree_Name: "",
+    New_Subject_Name: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -36,6 +44,16 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
     selectSubjectsByDegree(Number(formData.Degree_ID) || 0),
   );
 
+  const degreeNames = degrees.map((deg) => deg.degree_name);
+  const selectedDegreeName =
+    degrees.find((deg) => String(deg.Degree_ID) === formData.Degree_ID)
+      ?.degree_name || formData.New_Degree_Name || "";
+
+  const subjectNames = subjects.map((sub) => sub.subject_name);
+  const selectedSubjectName =
+    subjects.find((sub) => String(sub.Subject_ID) === formData.Subject_ID)
+      ?.subject_name || formData.New_Subject_Name || "";
+
   // If editing prop changes (e.g. user opens a different question to edit), sync form
   useEffect(() => {
     if (editing) {
@@ -43,6 +61,8 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
         Question: editing.Question || "",
         Degree_ID: editing.Degree_ID ? String(editing.Degree_ID) : "",
         Subject_ID: editing.Subject_ID ? String(editing.Subject_ID) : "",
+        New_Degree_Name: "",
+        New_Subject_Name: "",
       });
     }
   }, [editing]);
@@ -50,16 +70,79 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-    if (name === "Degree_ID") {
-      setFormData((prev) => ({ ...prev, [name]: value, Subject_ID: "" }));
+  const handleDegreeSelect = (value) => {
+    if (value === "all") {
+      setFormData((prev) => ({
+        ...prev,
+        Degree_ID: "",
+        Subject_ID: "",
+        New_Degree_Name: "",
+        New_Subject_Name: "",
+      }));
+      return;
     }
+
+    const matched = degrees.find((deg) => deg.degree_name === value);
+    setFormData((prev) => ({
+      ...prev,
+      Degree_ID: matched ? String(matched.Degree_ID) : "",
+      Subject_ID: "",
+      New_Degree_Name: "",
+      New_Subject_Name: "",
+    }));
+  };
+
+  const handleCustomDegreeSelect = (value) => {
+    const normalizedValue = normalizeCustomOptionInput(value);
+    if (!normalizedValue || !confirmCustomOption("degree", normalizedValue)) {
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      Degree_ID: "",
+      Subject_ID: "",
+      New_Degree_Name: normalizedValue,
+      New_Subject_Name: "",
+    }));
+  };
+
+  const handleSubjectSelect = (value) => {
+    if (value === "all") {
+      setFormData((prev) => ({ ...prev, Subject_ID: "", New_Subject_Name: "" }));
+      return;
+    }
+
+    const matched = subjects.find((sub) => sub.subject_name === value);
+    setFormData((prev) => ({
+      ...prev,
+      Subject_ID: matched ? String(matched.Subject_ID) : "",
+      New_Subject_Name: "",
+    }));
+  };
+
+  const handleCustomSubjectSelect = (value) => {
+    const normalizedValue = normalizeCustomOptionInput(value);
+    if (!normalizedValue || !confirmCustomOption("subject", normalizedValue)) {
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      Subject_ID: "",
+      New_Subject_Name: normalizedValue,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.Question || !formData.Degree_ID || !formData.Subject_ID)
+    const hasDegree = !!(formData.Degree_ID || formData.New_Degree_Name);
+    const hasSubject = !!(formData.Subject_ID || formData.New_Subject_Name);
+
+    if (!formData.Question || !hasDegree || !hasSubject)
       return;
 
     setLoading(true);
@@ -71,17 +154,24 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
           Question: formData.Question,
           Degree_ID: formData.Degree_ID,
           Subject_ID: formData.Subject_ID,
+          New_Degree_Name: formData.New_Degree_Name,
+          New_Subject_Name: formData.New_Subject_Name,
         });
       } else {
         // ✅ CREATE mode — dispatch directly
         const payload = {
           Question: formData.Question,
-          Degree_ID: parseInt(formData.Degree_ID),
-          Subject_ID: parseInt(formData.Subject_ID),
+          Degree_ID: formData.Degree_ID ? parseInt(formData.Degree_ID, 10) : "",
+          Subject_ID: formData.Subject_ID
+            ? parseInt(formData.Subject_ID, 10)
+            : "",
+          New_Degree_Name: formData.New_Degree_Name,
+          New_Subject_Name: formData.New_Subject_Name,
           Added_By: user?.id || user?.S_ID,
         };
 
         await dispatch(createQuestion(payload)).unwrap();
+        await dispatch(fetchDegreeSubject());
 
         if (onSuccess) {
           await onSuccess();
@@ -155,25 +245,18 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
               <label className="block text-sm font-semibold text-slate-700 mb-1">
                 Degree Program <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <select
-                  name="Degree_ID"
-                  value={formData.Degree_ID}
-                  onChange={handleChange}
-                  className={`${inputClass} appearance-none cursor-pointer`}
-                  required
-                >
-                  <option value="">Select Degree</option>
-                  {degrees.map((deg) => (
-                    <option key={deg.Degree_ID} value={deg.Degree_ID}>
-                      {deg.degree_name}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
-                  <GraduationCap className="w-4 h-4" />
-                </div>
-              </div>
+              <SearchableDropdown
+                options={degreeNames}
+                value={selectedDegreeName}
+                onChange={handleDegreeSelect}
+                placeholder="Search degree..."
+                text="All Degrees"
+                icon={GraduationCap}
+                className="w-full"
+                allowCustom
+                customTypeLabel="degree"
+                onCustomSelect={handleCustomDegreeSelect}
+              />
             </div>
 
             {/* Subject Selection */}
@@ -181,31 +264,24 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
               <label className="block text-sm font-semibold text-slate-700 mb-1">
                 Subject Topic <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <select
-                  name="Subject_ID"
-                  value={formData.Subject_ID}
-                  onChange={handleChange}
-                  disabled={!formData.Degree_ID}
-                  className={`${inputClass} appearance-none cursor-pointer disabled:bg-slate-50 disabled:text-slate-400`}
-                  required
-                >
-                  <option value="">
-                    {formData.Degree_ID
-                      ? "Select Subject"
-                      : "Select Degree First"}
-                  </option>
-                  {formData.Degree_ID &&
-                    subjects.map((sub) => (
-                      <option key={sub.Subject_ID} value={sub.Subject_ID}>
-                        {sub.subject_name}
-                      </option>
-                    ))}
-                </select>
-                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
-                  <BookOpen className="w-4 h-4" />
+              {formData.Degree_ID || formData.New_Degree_Name ? (
+                <SearchableDropdown
+                  options={subjectNames}
+                  value={selectedSubjectName}
+                  onChange={handleSubjectSelect}
+                  placeholder="Search subject..."
+                  text="All Subjects"
+                  icon={BookOpen}
+                  className="w-full"
+                  allowCustom
+                  customTypeLabel="subject"
+                  onCustomSelect={handleCustomSubjectSelect}
+                />
+              ) : (
+                <div className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-400 bg-slate-50 cursor-not-allowed">
+                  Select Degree First
                 </div>
-              </div>
+              )}
             </div>
           </form>
         </div>
@@ -225,8 +301,8 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
             disabled={
               loading ||
               !formData.Question ||
-              !formData.Degree_ID ||
-              !formData.Subject_ID
+              !(formData.Degree_ID || formData.New_Degree_Name) ||
+              !(formData.Subject_ID || formData.New_Subject_Name)
             }
             className="flex-1 px-4 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex justify-center items-center gap-2 shadow-lg shadow-green-900/10"
           >

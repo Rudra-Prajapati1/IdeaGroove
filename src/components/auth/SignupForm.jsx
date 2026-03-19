@@ -23,6 +23,11 @@ import SectionWrapper from "./SectionWrapper";
 import Input from "./Input";
 import ProfileUpload from "./ProfileUpload";
 import { MultiSearchableDropdown } from "../common/MultipleSearchComponent";
+import {
+  confirmCustomOption,
+  getCustomOptionLabel,
+  normalizeCustomOptionInput,
+} from "../../utils/customOptionHelpers";
 
 const FloatingError = ({ message, show }) => {
   if (!show || !message) return null;
@@ -50,6 +55,10 @@ const SearchableDropdown = ({
   loading,
   error,
   name,
+  allowCustom = false,
+  customTypeLabel = "option",
+  onCustomSelect,
+  customValue = "",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -77,6 +86,15 @@ const SearchableDropdown = ({
   const selectedItem = options
     ? options.find((opt) => opt[idKey] === value)
     : null;
+  const normalizedSearchTerm = normalizeCustomOptionInput(searchTerm);
+  const showCustomOption =
+    allowCustom &&
+    !!onCustomSelect &&
+    !!normalizedSearchTerm &&
+    !options.some(
+      (opt) =>
+        opt[labelKey]?.toLowerCase() === normalizedSearchTerm.toLowerCase(),
+    );
 
   return (
     <div className="flex flex-col gap-2 w-full relative" ref={dropdownRef}>
@@ -90,8 +108,10 @@ const SearchableDropdown = ({
         onClick={() => setIsOpen(!isOpen)}
         tabIndex={0}
       >
-        <span className={selectedItem ? "text-black" : "text-gray-400"}>
-          {selectedItem ? selectedItem[labelKey] : placeholder}
+        <span
+          className={selectedItem || customValue ? "text-black" : "text-gray-400"}
+        >
+          {selectedItem ? selectedItem[labelKey] : customValue || placeholder}
         </span>
         <ChevronDown className="w-4 h-4 text-gray-500" />
       </div>
@@ -99,7 +119,7 @@ const SearchableDropdown = ({
       <FloatingError message={error} show={!!error} />
 
       {isOpen && (
-        <div className="absolute top-[110%] left-0 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-60 overflow-hidden flex flex-col">
+        <div className="absolute top-full mt-2 left-0 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-[min(60vh,30rem)] overflow-hidden flex flex-col">
           <div className="p-2 border-b border-gray-100 flex items-center gap-2 sticky top-0 bg-white z-10">
             <Search className="w-4 h-4 text-gray-400" />
             <input
@@ -118,23 +138,60 @@ const SearchableDropdown = ({
                 Loading data...
               </div>
             ) : filteredOptions.length > 0 ? (
-              filteredOptions.map((opt) => (
-                <div
-                  key={opt[idKey]}
-                  className="p-3 text-sm hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
-                  onClick={() => {
-                    onChange(opt[idKey]);
-                    setIsOpen(false);
-                    setSearchTerm("");
-                  }}
-                >
-                  {opt[labelKey]}
-                </div>
-              ))
+              <>
+                {filteredOptions.map((opt) => (
+                  <div
+                    key={opt[idKey]}
+                    className="p-3.5 text-sm hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
+                    onClick={() => {
+                      onChange(opt[idKey]);
+                      setIsOpen(false);
+                      setSearchTerm("");
+                    }}
+                  >
+                    {opt[labelKey]}
+                  </div>
+                ))}
+                {showCustomOption && (
+                  <div
+                    className="p-3.5 text-sm hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
+                    onClick={() => {
+                      onCustomSelect(normalizedSearchTerm);
+                      setIsOpen(false);
+                      setSearchTerm("");
+                    }}
+                  >
+                    {getCustomOptionLabel(normalizedSearchTerm)}
+                    <span className="text-gray-400">
+                      {" "}
+                      as new {customTypeLabel}
+                    </span>
+                  </div>
+                )}
+              </>
             ) : (
-              <div className="p-3 text-sm text-gray-400 text-center">
-                No results found
-              </div>
+              <>
+                {showCustomOption ? (
+                  <div
+                    className="p-3.5 text-sm hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
+                    onClick={() => {
+                      onCustomSelect(normalizedSearchTerm);
+                      setIsOpen(false);
+                      setSearchTerm("");
+                    }}
+                  >
+                    {getCustomOptionLabel(normalizedSearchTerm)}
+                    <span className="text-gray-400">
+                      {" "}
+                      as new {customTypeLabel}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-3 text-sm text-gray-400 text-center">
+                    No results found
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -165,7 +222,6 @@ const SignupForm = ({ onLogin }) => {
 
   useEffect(() => {
     if (isAuthenticated && !toastShown.current) {
-      toast.success("Welcome!");
       toastShown.current = true;
       navigate("/dashboard");
     }
@@ -194,8 +250,11 @@ const SignupForm = ({ onLogin }) => {
     Profile_Pic: null,
     College_ID: "",
     Degree_ID: "",
+    New_College_Name: "",
+    New_Degree_Name: "",
     Year: "",
     Hobbies: [],
+    New_Hobbies: [],
   });
 
   const [displayBatch, setDisplayBatch] = useState("");
@@ -295,6 +354,91 @@ const SignupForm = ({ onLogin }) => {
     if (field === "Roll_No") debouncedCheckRollNo(value);
   };
 
+  const clearFieldError = (field) => {
+    if (!errors[field]) return;
+
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const handleExistingCollegeSelect = (value) => {
+    setSignupData((prev) => ({
+      ...prev,
+      College_ID: value,
+      New_College_Name: "",
+    }));
+    clearFieldError("College_ID");
+  };
+
+  const handleCustomCollegeSelect = (value) => {
+    const normalizedValue = normalizeCustomOptionInput(value);
+    if (!normalizedValue || !confirmCustomOption("college", normalizedValue)) {
+      return;
+    }
+
+    setSignupData((prev) => ({
+      ...prev,
+      College_ID: "",
+      New_College_Name: normalizedValue,
+    }));
+    clearFieldError("College_ID");
+  };
+
+  const handleExistingDegreeSelect = (value) => {
+    setSignupData((prev) => ({
+      ...prev,
+      Degree_ID: value,
+      New_Degree_Name: "",
+    }));
+    clearFieldError("Degree_ID");
+  };
+
+  const handleCustomDegreeSelect = (value) => {
+    const normalizedValue = normalizeCustomOptionInput(value);
+    if (!normalizedValue || !confirmCustomOption("degree", normalizedValue)) {
+      return;
+    }
+
+    setSignupData((prev) => ({
+      ...prev,
+      Degree_ID: "",
+      New_Degree_Name: normalizedValue,
+    }));
+    clearFieldError("Degree_ID");
+  };
+
+  const handleCustomHobbySelect = (value) => {
+    const normalizedValue = normalizeCustomOptionInput(value);
+    if (!normalizedValue || !confirmCustomOption("hobby", normalizedValue)) {
+      return;
+    }
+
+    setSignupData((prev) => {
+      if (
+        prev.New_Hobbies.some(
+          (hobby) => hobby.toLowerCase() === normalizedValue.toLowerCase(),
+        )
+      ) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        New_Hobbies: [...prev.New_Hobbies, normalizedValue],
+      };
+    });
+  };
+
+  const handleRemoveCustomHobby = (valueToRemove) => {
+    setSignupData((prev) => ({
+      ...prev,
+      New_Hobbies: prev.New_Hobbies.filter((hobby) => hobby !== valueToRemove),
+    }));
+  };
+
   const validatePersonal = () => {
     const newErrors = {};
 
@@ -345,11 +489,22 @@ const SignupForm = ({ onLogin }) => {
   };
 
   const handleImageChange = (file) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setErrors({ Profile_Pic: "Please upload a valid image" });
+    if (!file) {
+      handleData("Profile_Pic", null);
       return;
     }
+    if (!file.type.startsWith("image/")) {
+      setErrors((prev) => ({
+        ...prev,
+        Profile_Pic: "Please upload a valid image",
+      }));
+      return;
+    }
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.Profile_Pic;
+      return next;
+    });
     handleData("Profile_Pic", file);
   };
 
@@ -394,8 +549,10 @@ const SignupForm = ({ onLogin }) => {
   const handleSendOtp = async () => {
     const newErrors = {};
 
-    if (!signupData.College_ID) newErrors.College_ID = "College required";
-    if (!signupData.Degree_ID) newErrors.Degree_ID = "Degree required";
+    if (!signupData.College_ID && !signupData.New_College_Name)
+      newErrors.College_ID = "College required";
+    if (!signupData.Degree_ID && !signupData.New_Degree_Name)
+      newErrors.Degree_ID = "Degree required";
     if (!signupData.Year) newErrors.Year = "Batch required";
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -442,14 +599,20 @@ const SignupForm = ({ onLogin }) => {
     formData.append("Password", signupData.Password);
     formData.append("College_ID", signupData.College_ID);
     formData.append("Degree_ID", signupData.Degree_ID);
+    formData.append("New_College_Name", signupData.New_College_Name);
+    formData.append("New_Degree_Name", signupData.New_Degree_Name);
     formData.append("Year", signupData.Year);
 
     if (signupData.Profile_Pic) {
-      formData.append("image", signupData.Profile_Pic);
+      formData.append("profile_pic", signupData.Profile_Pic);
     }
 
     if (signupData.Hobbies?.length > 0) {
       formData.append("Hobbies", signupData.Hobbies.join(","));
+    }
+
+    if (signupData.New_Hobbies?.length > 0) {
+      formData.append("New_Hobbies", signupData.New_Hobbies.join(","));
     }
 
     const signupResult = await dispatch(signup(formData));
@@ -503,7 +666,7 @@ const SignupForm = ({ onLogin }) => {
         {step === "personal" && (
           <SectionWrapper title="Personal Details">
             <div>
-              <div className="flex gap-12 items-center">
+              <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center lg:items-start">
                 <div className="flex flex-col gap-6">
                   <div className="relative">
                     <Input
@@ -549,7 +712,7 @@ const SignupForm = ({ onLogin }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <div className="relative">
                   <Input
                     label="Roll No"
@@ -573,10 +736,14 @@ const SignupForm = ({ onLogin }) => {
                     placeholder="Select hobbies..."
                     options={hobbies}
                     selectedValues={signupData.Hobbies}
+                    selectedCustomValues={signupData.New_Hobbies}
                     onChange={(newHobbies) => handleData("Hobbies", newHobbies)}
+                    onCustomSelect={handleCustomHobbySelect}
+                    onRemoveCustom={handleRemoveCustomHobby}
                     idKey="Hobby_ID"
                     labelKey="Hobby_Name"
                     loading={hobbiesStatus === "loading"}
+                    customTypeLabel="hobby"
                     className={errors.Hobbies ? "border-red-500" : ""}
                   />
                   <FloatingError
@@ -586,7 +753,7 @@ const SignupForm = ({ onLogin }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 {[
                   {
                     id: "Password",
@@ -663,11 +830,15 @@ const SignupForm = ({ onLogin }) => {
                 placeholder="Search for your college..."
                 options={resources.colleges}
                 value={signupData.College_ID}
-                onChange={(val) => handleData("College_ID", val)}
+                onChange={handleExistingCollegeSelect}
                 idKey="College_ID"
                 labelKey="College_Name"
                 loading={resourceLoading}
                 error={errors.College_ID}
+                allowCustom
+                customTypeLabel="college"
+                onCustomSelect={handleCustomCollegeSelect}
+                customValue={signupData.New_College_Name}
               />
 
               <SearchableDropdown
@@ -676,11 +847,15 @@ const SignupForm = ({ onLogin }) => {
                 placeholder="Search for your degree..."
                 options={resources.degrees}
                 value={signupData.Degree_ID}
-                onChange={(val) => handleData("Degree_ID", val)}
+                onChange={handleExistingDegreeSelect}
                 idKey="Degree_ID"
                 labelKey="Degree_Name"
                 loading={resourceLoading}
                 error={errors.Degree_ID}
+                allowCustom
+                customTypeLabel="degree"
+                onCustomSelect={handleCustomDegreeSelect}
+                customValue={signupData.New_Degree_Name}
               />
 
               <div className="relative">

@@ -7,6 +7,7 @@ import { selectIsAuthenticated, selectUser } from "../../redux/slice/authSlice";
 import ActionButton from "../common/ActionButton";
 import { useSelector, useDispatch } from "react-redux";
 import {
+  fetchDegreeSubject,
   selectAllDegrees,
   selectAllSubjects,
   selectSubjectsByDegree,
@@ -25,6 +26,7 @@ const DiscussionForum = ({
   onFilterChange = () => {},
   onDegreeChange = () => {},
   onSubjectChange = () => {},
+  onClearFilters = () => {},
   onRefetch = () => {},
   isRefetching = false,
   showAskAction = true,
@@ -87,10 +89,13 @@ const DiscussionForum = ({
           updateQuestion({
             Q_ID: editing.Q_ID,
             Question: data.Question,
-            Degree_ID: parseInt(data.Degree_ID),
-            Subject_ID: parseInt(data.Subject_ID),
+            Degree_ID: data.Degree_ID ? parseInt(data.Degree_ID, 10) : "",
+            Subject_ID: data.Subject_ID ? parseInt(data.Subject_ID, 10) : "",
+            New_Degree_Name: data.New_Degree_Name,
+            New_Subject_Name: data.New_Subject_Name,
           }),
         ).unwrap();
+        await dispatch(fetchDegreeSubject());
 
         onRefetch();
         toast.success("Question updated successfully!");
@@ -165,7 +170,7 @@ const DiscussionForum = ({
               {/* Degree Filter */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                  <GraduationCap className="w-3 h-3" /> Degree
+                  <GraduationCap className="w-3 h-3" /> Select Degree
                 </label>
                 <SearchableDropdown
                   options={degreeNames}
@@ -180,7 +185,7 @@ const DiscussionForum = ({
               {/* Subject Filter */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                  <BookOpen className="w-3 h-3" /> Subject
+                  <BookOpen className="w-3 h-3" /> Select Subject
                 </label>
                 <SearchableDropdown
                   options={subjectNames}
@@ -192,12 +197,12 @@ const DiscussionForum = ({
                 />
               </div>
 
-              {(selectedDegree || selectedSubject) && (
+              {(search ||
+                filter !== "all" ||
+                selectedDegree ||
+                selectedSubject) && (
                 <button
-                  onClick={() => {
-                    onDegreeChange("");
-                    onSubjectChange("");
-                  }}
+                  onClick={onClearFilters}
                   className="text-xs text-red-500 hover:text-red-600 font-medium underline w-full text-center"
                 >
                   Clear Filters
