@@ -23,8 +23,8 @@ const ChatsSidebar = ({
   const [showFilters, setShowFilters] = useState(false);
 
   return (
-    <aside className="w-[25%] min-w-[280px] max-w-[360px] border-5 rounded-l-2xl flex flex-col text-primary relative">
-      <h1 className="font-poppins font-bold text-2xl text-center py-6 border-b-5 bg-primary text-white">
+    <aside className="relative flex w-full min-w-0 flex-col rounded-2xl border-4 text-primary md:max-w-[360px] md:min-w-[280px] md:rounded-r-none md:border-5 md:rounded-l-2xl">
+      <h1 className="bg-primary py-4 text-center font-poppins text-xl font-bold text-white sm:py-6 sm:text-2xl md:border-b-5">
         CHATS
       </h1>
 

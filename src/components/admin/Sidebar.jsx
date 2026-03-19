@@ -47,7 +47,7 @@ const Sidebar = () => {
         <h2 className="text-xl font-poppins font-bold">Admin Panel</h2>
       </div>
 
-      <nav className="flex flex-col mt-6 gap-2 px-3">
+      <nav className="mt-4 flex gap-2 overflow-x-auto px-3 pb-4 md:mt-6 md:flex-col md:overflow-visible">
         {sidebarLinks.map((link) => {
           const Icon = link.icon;
 
@@ -59,7 +59,7 @@ const Sidebar = () => {
               onClick={(e) => handleAction(e, link)} // Added click handler
               className={({ isActive }) =>
                 `
-                group relative flex items-center gap-3 px-4 py-3 rounded-r-xl transition-all duration-300 ${
+                group relative flex min-w-fit items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 md:rounded-r-xl ${
                   isActive && link.title !== "Logout"
                     ? "bg-white/20 text-white shadow-lg"
                     : "text-white/80 hover:bg-white/10 hover:text-white"

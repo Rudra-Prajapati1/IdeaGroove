@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import LoginForm from "../components/auth/LoginForm";
 import SignupForm from "../components/auth/SignupForm";
@@ -18,18 +17,18 @@ const Auth = () => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.4 }}
-            className="min-h-screen flex items-center justify-center"
+            className="min-h-screen flex items-center justify-center px-4 py-24"
           >
-            <div className="bg-white rounded-[40px] h-100 w-180 flex overflow-hidden shadow-lg">
-              <div className="w-[60%] flex items-center px-10">
+            <div className="flex w-full max-w-5xl flex-col overflow-hidden rounded-[32px] bg-white shadow-lg lg:h-[40rem] lg:flex-row lg:rounded-[40px]">
+              <div className="flex w-full items-center px-5 py-8 sm:px-8 lg:w-[60%] lg:px-10">
                 <LoginForm onSignup={() => setMode("signup")} />
               </div>
-              <div className="h-[80%] bg-primary w-1 self-center"></div>
-              <div className="w-1/2 flex justify-center items-center">
+              <div className="mx-6 h-px bg-primary lg:mx-0 lg:h-[80%] lg:w-1 lg:self-center"></div>
+              <div className="flex min-h-[220px] w-full justify-center items-center p-8 lg:w-1/2">
                 <img
                   src="./DarkLogo.png"
                   alt="Logo"
-                  className="h-68 object-contain"
+                  className="h-40 object-contain sm:h-52 lg:h-68"
                 />
               </div>
             </div>
@@ -41,13 +40,13 @@ const Auth = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -80 }}
             transition={{ duration: 0.6, ease: "easeInOut" }}
-            className="min-h-screen flex"
+            className="min-h-screen flex flex-col lg:flex-row"
           >
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="w-[40%] bg-white"
+              className="w-full bg-white lg:w-[40%]"
             >
               <SignupForm onLogin={() => setMode("login")} />
             </motion.div>
@@ -56,7 +55,7 @@ const Auth = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="w-[60%] bg-primary"
+              className="w-full bg-primary lg:w-[60%]"
             >
               <SignupFeatures />
             </motion.div>

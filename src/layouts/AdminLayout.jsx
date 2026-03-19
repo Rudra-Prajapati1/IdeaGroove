@@ -3,12 +3,12 @@ import { Outlet } from "react-router-dom";
 
 const AdminLayout = () => {
   return (
-    <div className="flex h-screen overflow-hidden">
-      <aside className="w-64 bg-primary text-white">
+    <div className="flex min-h-screen flex-col overflow-hidden md:h-screen md:flex-row">
+      <aside className="w-full bg-primary text-white md:w-64 md:shrink-0">
         <Sidebar />
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-6 bg-gray-100">
+      <main className="flex-1 overflow-y-auto bg-gray-100 p-4 sm:p-6">
         <Outlet />
       </main>
     </div>

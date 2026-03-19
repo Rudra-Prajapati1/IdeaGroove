@@ -139,13 +139,13 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
 
   return (
     <>
-      <div className="group bg-white rounded-3xl overflow-hidden flex flex-col w-full max-w-[20rem] mx-auto transition-all duration-300 shadow-md hover:shadow-xl border border-gray-300">
+      <div className="group mx-auto flex w-full max-w-[20rem] flex-col overflow-hidden rounded-3xl border border-gray-300 bg-white shadow-md transition-all duration-300 hover:shadow-xl">
         <div className="relative h-64 w-full overflow-hidden">
           <img
             src={event.Poster_File}
             alt={event.Description}
             onClick={() => setPreviewOpen(true)}
-            className="h-full w-full object-cover cursor-pointer transition-transform duration-300 min-w-100 group-hover:scale-110"
+            className="h-full w-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-110"
           />
 
           <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-xl p-2 min-w-14 flex flex-col items-center shadow-md border border-white/20">

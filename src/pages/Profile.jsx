@@ -855,28 +855,30 @@ const ProfileInformation = () => {
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
       {/* Hero */}
-      <section className="bg-[#1A3C20] pt-40 pb-32">
-        <div className="max-w-6xl mx-auto px-4">
+      <section className="bg-[#1A3C20] pt-32 pb-24 sm:pt-40 sm:pb-32">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-[#FFFBEB]/80 hover:text-white transition-colors mb-6"
           >
             <ArrowLeft size={20} /> Back
           </button>
-          <h1 className="text-5xl font-extrabold text-[#FFFBEB]">
+          <h1 className="text-3xl font-extrabold text-[#FFFBEB] sm:text-4xl lg:text-5xl">
             Your Profile
           </h1>
         </div>
       </section>
 
-      <div className="max-w-5xl mx-auto bg-white rounded-[2.5rem] shadow-2xl -mt-20 px-10 py-12">
+      <div className="max-w-5xl mx-auto -mt-16 rounded-[2rem] bg-white px-4 py-8 shadow-2xl sm:-mt-20 sm:px-6 sm:py-10 lg:px-10 lg:py-12">
         {/* Header */}
-        <div className="flex justify-between items-center mb-10">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 lg:mb-10">
           <div className="flex items-center gap-3 text-[#1A3C20]">
             <User size={22} />
-            <h2 className="text-2xl font-extrabold">Personal Information</h2>
+            <h2 className="text-xl font-extrabold sm:text-2xl">
+              Personal Information
+            </h2>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             {isEditing && (
               <button
                 onClick={() => setIsEditing(false)}
@@ -906,10 +908,10 @@ const ProfileInformation = () => {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-14">
-          <div className="flex flex-col items-center min-w-[200px]">
+        <div className="flex flex-col gap-10 md:flex-row md:gap-14">
+          <div className="flex flex-col items-center md:min-w-[200px]">
             <div className="relative group">
-              <div className="w-44 h-44 rounded-[2rem] overflow-hidden border-4 border-[#e8f5e9] shadow-inner">
+              <div className="h-36 w-36 overflow-hidden rounded-[2rem] border-4 border-[#e8f5e9] shadow-inner sm:h-44 sm:w-44">
                 <img
                   src={
                     profilePicPreview ||
@@ -953,7 +955,7 @@ const ProfileInformation = () => {
               </button>
             )}
 
-            <h3 className="text-2xl font-black text-[#1A3C20] mt-4 capitalize">
+            <h3 className="mt-4 text-center text-2xl font-black capitalize text-[#1A3C20]">
               {formData.Name}
             </h3>
             <p className="text-gray-400 text-sm">@{formData.Username}</p>
@@ -1006,7 +1008,7 @@ const ProfileInformation = () => {
               }
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <InfoField
                 label="Roll Number"
                 icon={<Hash size={16} />}

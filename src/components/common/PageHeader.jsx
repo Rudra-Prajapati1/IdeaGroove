@@ -7,12 +7,12 @@ const PageHeader = ({ title }) => {
   return (
     <>
       {/* Background Section */}
-      <section className="relative bg-[#1A3C20] pt-40 pb-50">
+      <section className="relative bg-[#1A3C20] pb-28 pt-32 sm:pb-36 sm:pt-40">
         <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
           <svg
             viewBox="0 0 1440 120"
             preserveAspectRatio="none"
-            className="block w-full h-[100px]"
+            className="block h-[72px] w-full sm:h-[100px]"
           >
             <path
               fill="#FFFBEB"
@@ -23,15 +23,15 @@ const PageHeader = ({ title }) => {
       </section>
 
       {/* Title Section */}
-      <div className="max-w-7xl mx-auto -mt-50 relative z-30 px-0.01 flex gap-10">
+      <div className="relative z-30 mx-auto -mt-24 flex max-w-7xl flex-col gap-4 px-4 sm:-mt-32 sm:gap-6">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-[#FFFBEB]/80 hover:text-white mb-6 transition-colors"
+          className="flex items-center gap-2 text-[#FFFBEB]/80 hover:text-white transition-colors"
         >
           <ArrowLeft size={20} /> Back
         </button>
 
-        <h1 className="text-5xl font-extrabold mb-4  text-[#FFFBEB]">
+        <h1 className="text-3xl font-extrabold text-[#FFFBEB] sm:text-4xl lg:text-5xl">
           {title}
         </h1>
       </div>
