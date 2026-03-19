@@ -16,9 +16,9 @@ const Controls = ({
   searchPlaceholder = "Search...",
 }) => {
   return (
-    <div className="flex w-full flex-col items-stretch justify-between gap-4 rounded-2xl bg-white p-4 shadow-xl sm:p-6 md:flex-row md:items-center md:gap-6">
+    <div className="bg-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
       {/* Search Bar */}
-      <div className="relative w-full md:w-80 md:max-w-[20rem]">
+      <div className="relative w-full md:w-80">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
         <input
           type="text"
@@ -30,12 +30,12 @@ const Controls = ({
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:justify-end">
+      <div className="flex items-center gap-6">
         <span className="text-[#1A3C20] font-bold">Filters:</span>
         {Object.entries(filterOptions).map(([label, value]) => (
           <label
             key={value}
-            className="flex items-center gap-2 cursor-pointer capitalize text-sm sm:text-base"
+            className="flex items-center gap-2 cursor-pointer capitalize"
           >
             <input
               type="radio"

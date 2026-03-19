@@ -39,11 +39,6 @@ const Chats = () => {
     markSeen,
   } = useChat(studentId);
 
-  // ✅ FIX: Build a selector scoped to the active room only.
-  // Previously selectAllMessages was used here — that includes ALL rooms, so
-  // any incoming message from any room triggered markSeen on the active room,
-  // which also zeroed counts for rooms the user hadn't even looked at yet via
-  // the socket seen event. Now we only watch the active room's messages.
   const activeRoomId = activeRoom?.Room_ID ?? null;
   const activeRoomChatsSelector = React.useMemo(
     () => selectChatsByRoomId(activeRoomId ?? -1),
@@ -51,8 +46,6 @@ const Chats = () => {
   );
   const activeRoomChats = useSelector(activeRoomChatsSelector);
 
-  // ✅ FIX: Only fire markSeen when a new message arrives IN the active room,
-  // not whenever any message arrives in any room.
   const prevLengthRef = useRef(0);
   useEffect(() => {
     if (!activeRoomId) return;
@@ -123,7 +116,7 @@ const Chats = () => {
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins">
       <PageHeader title="Chats" />
-      <section className="mt-8 flex min-h-[calc(100vh-12rem)] flex-col gap-4 px-4 py-6 sm:px-6 md:mt-12 md:h-[calc(100vh-8rem)] md:flex-row md:gap-[0.1rem] md:py-8">
+      <section className="flex gap-[0.1rem] px-6 py-8 mt-30 h-[calc(100vh-8rem)]">
         <ChatsSidebar
           onSelectRoom={handleSelectRoom}
           activeRoom={activeRoom}
@@ -134,7 +127,7 @@ const Chats = () => {
           onlineUsers={onlineUsers}
           currentUserId={studentId}
         />
-        <div className="flex min-h-[60vh] flex-1 flex-col rounded-2xl border-4 border-primary md:rounded-l-none md:rounded-r-2xl md:border-5">
+        <div className="flex flex-col flex-1 border-5 border-primary rounded-r-2xl">
           <ChatHeader
             activeRoom={activeRoom}
             onlineUsers={onlineUsers}

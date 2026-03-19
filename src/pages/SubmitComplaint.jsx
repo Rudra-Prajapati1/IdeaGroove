@@ -258,8 +258,8 @@ const SubmitComplaint = () => {
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
       <PageHeader title="Submit Complaint" />
-      <main className="relative z-30 mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-12 lg:gap-8 lg:px-8 lg:py-12">
-        <div className="space-y-6 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-8 lg:col-span-8">
+      <main className="max-w-6xl mx-auto py-12 px-8 grid grid-cols-12 gap-8 relative z-30">
+        <div className="col-span-8 bg-white rounded-2xl p-8 border border-gray-100 shadow-sm space-y-6">
           <h3 className="text-xl font-bold text-gray-800">
             Submit a New Issue
           </h3>
@@ -377,7 +377,7 @@ const SubmitComplaint = () => {
           </button>
         </div>
 
-        <aside className="space-y-6 lg:col-span-4">
+        <aside className="col-span-4 space-y-6">
           <div className="bg-[#f0f9f1] border border-[#c8e6c9] rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="bg-[#4caf50] p-2 rounded-lg text-white">
@@ -395,7 +395,7 @@ const SubmitComplaint = () => {
                 <li key={i} className="flex items-start gap-3">
                   <CheckCircle2
                     size={18}
-                    className="text-[#4caf50] mt-0.5 flex-shrink-0"
+                    className="text-[#4caf50] mt-0.5 shrink-0"
                   />
                   <p className="text-sm text-gray-600">
                     <span className="font-bold text-[#1A3C20]">{tip.t}:</span>{" "}
@@ -416,8 +416,8 @@ const SubmitComplaint = () => {
         </aside>
       </main>
 
-      <section className="max-w-6xl mx-auto mt-12 px-4 pb-20 sm:px-6 lg:mt-16 lg:px-8">
-        <h2 className="mb-8 text-3xl font-black tracking-tight text-[#1A3C20] sm:text-4xl">
+      <section className="max-w-6xl mx-auto px-8 mt-16 pb-20">
+        <h2 className="text-4xl font-black text-[#1A3C20] tracking-tight mb-8">
           Your Reported Issues
         </h2>
         <div className="flex flex-wrap gap-3 mb-8">
@@ -435,8 +435,8 @@ const SubmitComplaint = () => {
           ))}
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl shadow-black/5">
-          <div className="hidden grid-cols-14 border-b border-gray-100 bg-gray-50/50 px-8 py-4 lg:grid">
+        <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-xl shadow-black/5">
+          <div className="grid grid-cols-14 bg-gray-50/50 border-b border-gray-100 px-8 py-4">
             <div className="col-span-2 text-[11px] font-black text-gray-400 uppercase tracking-widest">
               Category
             </div>
@@ -454,134 +454,148 @@ const SubmitComplaint = () => {
             </div>
             <div className="col-span-1"></div>
           </div>
-           {processedComplaints.length === 0 ? (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <AlertTriangle size={32} className="text-gray-300 mb-3" />
-      <p className="text-gray-400 font-semibold text-sm">No complaints found</p>
-      <p className="text-gray-300 text-xs mt-1">Try selecting a different filter</p>
-    </div>
-  ) : (
-          processedComplaints.map((item) => {
-            const isExpanded = expandedId === item.Complaint_ID;
-            const displayStatus =
-              item.Status?.toUpperCase().replace(/-/g, " ") || "PENDING";
-            return (
-              <div
-                key={item.Complaint_ID}
-                className={`border-b border-gray-50 last:border-0 transition-all ${isExpanded ? "bg-orange-50/20" : ""}`}
-              >
+          {processedComplaints.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <AlertTriangle size={32} className="text-gray-300 mb-3" />
+              <p className="text-gray-400 font-semibold text-sm">
+                No complaints found
+              </p>
+              <p className="text-gray-300 text-xs mt-1">
+                Try selecting a different filter
+              </p>
+            </div>
+          ) : (
+            processedComplaints.map((item) => {
+              const isExpanded = expandedId === item.Complaint_ID;
+              const displayStatus =
+                item.Status?.toUpperCase().replace(/-/g, " ") || "PENDING";
+              return (
                 <div
-                  className="grid cursor-pointer grid-cols-1 gap-4 px-4 py-5 hover:bg-gray-50/50 sm:px-6 lg:grid-cols-13 lg:gap-0 lg:px-8 lg:py-6"
-                  onClick={() =>
-                    setExpandedId(isExpanded ? null : item.Complaint_ID)
-                  }
+                  key={item.Complaint_ID}
+                  className={`border-b border-gray-50 last:border-0 transition-all ${isExpanded ? "bg-orange-50/20" : ""}`}
                 >
-                  <div className="lg:col-span-2">
-                    <span className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-[10px] font-black uppercase tracking-wider">
-                      {typeMapping[item.Type] || item.Type}
-                    </span>
-                  </div>
-                  <div className="lg:col-span-5">
-                    <h4 className="text-[15px] font-bold text-gray-800 leading-tight">
-                      {item.Type?.toLowerCase() === "other"
-                        ? "Complaint for IdeaGroove"
-                        : item.Content_Title || "No Title"}
-                    </h4>
-                    {item.Type?.toLowerCase() !== "other" && (
-                      <p className="text-[11px] text-gray-400 mt-1 uppercase font-bold tracking-widest">
-                        {" "}
-                        • Owner: @{item.Content_Owner_Name}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-sm font-semibold text-gray-600 lg:col-span-2 lg:text-center">
-                    {new Date(item.Date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
-                  </div>
-                  <div className="flex justify-start lg:col-span-1 lg:justify-center">
-                    {(() => {
-                      const complaintDate = new Date(item.Date);
-                      const now = new Date();
-                      const diffInHours =
-                        (now - complaintDate) / (1000 * 60 * 60);
-                      const canDelete = diffInHours <= 24;
+                  <div
+                    className="grid grid-cols-13 px-8 py-6 items-center cursor-pointer hover:bg-gray-50/50"
+                    onClick={() =>
+                      setExpandedId(isExpanded ? null : item.Complaint_ID)
+                    }
+                  >
+                    <div className="col-span-2">
+                      <span className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-[10px] font-black uppercase tracking-wider">
+                        {typeMapping[item.Type] || item.Type}
+                      </span>
+                    </div>
+                    <div className="col-span-5">
+                      <h4 className="text-[15px] font-bold text-gray-800 leading-tight">
+                        {item.Type?.toLowerCase() === "other"
+                          ? "Complaint for IdeaGroove"
+                          : item.Content_Title || "No Title"}
+                      </h4>
+                      {item.Type?.toLowerCase() !== "other" && (
+                        <p className="text-[11px] text-gray-400 mt-1 uppercase font-bold tracking-widest">
+                          {" "}
+                          • Owner: @{item.Content_Owner_Name}
+                        </p>
+                      )}
+                    </div>
+                    <div className="col-span-2 text-center text-sm font-semibold text-gray-600">
+                      {new Date(item.Date).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </div>
+                    <div className="col-span-1 flex justify-center">
+                      {(() => {
+                        const complaintDate = new Date(item.Date);
+                        const now = new Date();
+                        const diffInHours =
+                          (now - complaintDate) / (1000 * 60 * 60);
+                        const canDelete = diffInHours <= 24;
 
-                      return canDelete ? (
-                        <button
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            try {
-                              await dispatch(
-                                deleteComplaintThunk(item.Complaint_ID),
-                              ).unwrap();
-                              toast.success("Complaint deleted");
-                            } catch (err) {
-                              toast.error(err);
-                            }
-                          }}
-                          className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg font-bold hover:opacity-90"
-                        >
-                          Delete
-                        </button>
+                        return canDelete ? (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                await dispatch(
+                                  deleteComplaintThunk(item.Complaint_ID),
+                                ).unwrap();
+                                toast.success("Complaint deleted");
+                              } catch (err) {
+                                toast.error(err);
+                              }
+                            }}
+                            className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg font-bold hover:opacity-90"
+                          >
+                            Delete
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-gray-400 italic">
+                            Deletion is allowed only within 24hrs
+                          </span>
+                        );
+                      })()}
+                    </div>
+                    <div className="col-span-2 flex justify-center">
+                      <span
+                        className={`min-w-[110px] text-center px-4 py-1.5 rounded-lg text-[10px] font-black uppercase border-2 ${displayStatus === "PENDING" ? "border-blue-200 bg-blue-50 text-blue-700" : displayStatus === "IN PROGRESS" ? "border-orange-200 bg-orange-50 text-orange-700" : "border-green-200 bg-green-50 text-green-700"}`}
+                      >
+                        {displayStatus}
+                      </span>
+                    </div>
+                    <div className="col-span-1 flex justify-end">
+                      {isExpanded ? (
+                        <ChevronUp size={20} />
                       ) : (
-                        <span className="text-[10px] text-gray-400 italic">
-                          Deletion is allowed only within 24hrs
-                        </span>
-                      );
-                    })()}
+                        <ChevronDown size={20} />
+                      )}
+                    </div>
                   </div>
-                  <div className="flex justify-start lg:col-span-2 lg:justify-center">
-                    <span
-                      className={`min-w-[110px] text-center px-4 py-1.5 rounded-lg text-[10px] font-black uppercase border-2 ${displayStatus === "PENDING" ? "border-blue-200 bg-blue-50 text-blue-700" : displayStatus === "IN PROGRESS" ? "border-orange-200 bg-orange-50 text-orange-700" : "border-green-200 bg-green-50 text-green-700"}`}
-                    >
-                      {displayStatus}
-                    </span>
-                  </div>
-                  <div className="flex justify-end lg:col-span-1">
-                    {isExpanded ? (
-                      <ChevronUp size={20} />
-                    ) : (
-                      <ChevronDown size={20} />
-                    )}
-                  </div>
+                  {isExpanded && (
+                    <div className="px-8 pb-8 pt-2 space-y-4 animate-in slide-in-from-top-2 duration-300">
+                      <div className="ml-[16.6%] max-w-2xl bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex gap-4">
+                        <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                          <AlertTriangle size={18} className="text-blue-700" />
+                        </div>
+                        <div>
+                          <span className="text-[11px] font-black text-blue-800 uppercase tracking-widest mb-1 block">
+                            Your Complaint
+                          </span>
+                          <p className="text-sm text-gray-600 leading-relaxed italic">
+                            "{item.Complaint_Text}"
+                          </p>
+                        </div>
+                      </div>
+                      <div className="ml-[16.6%] max-w-2xl bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex gap-4">
+                        <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
+                          <Info size={18} className="text-green-700" />
+                        </div>
+                        <div>
+                          <span className="text-[11px] font-black text-green-800 uppercase tracking-widest mb-1 block">
+                            Admin Update
+                          </span>
+                          <p className="text-sm text-gray-700 leading-relaxed">
+                            "
+                            {item.Status?.toUpperCase().replace(/-/g, " ") ===
+                            "RESOLVED"
+                              ? "Your complaint has been reviewed and resolved. Thank you for helping us improve IdeaGroove."
+                              : item.Status?.toUpperCase().replace(
+                                    /-/g,
+                                    " ",
+                                  ) === "IN PROGRESS"
+                                ? "Our team is actively looking into your complaint. We'll update you soon."
+                                : "Thank you for reporting. Your complaint is currently pending review by our admin team."}
+                            "
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                {isExpanded && (
-                  <div className="space-y-4 px-4 pb-6 pt-2 animate-in slide-in-from-top-2 duration-300 sm:px-6 lg:px-8 lg:pb-8">
-                    <div className="max-w-2xl rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6 lg:ml-[16.6%] lg:flex lg:gap-4">
-                      <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-                        <AlertTriangle size={18} className="text-blue-700" />
-                      </div>
-                      <div className="mt-3 lg:mt-0">
-                        <span className="text-[11px] font-black text-blue-800 uppercase tracking-widest mb-1 block">
-                          Your Complaint
-                        </span>
-                        <p className="text-sm text-gray-600 leading-relaxed italic">
-                          "{item.Complaint_Text}"
-                        </p>
-                      </div>
-                    </div>
-                    <div className="max-w-2xl rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6 lg:ml-[16.6%] lg:flex lg:gap-4">
-                      <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
-                        <Info size={18} className="text-green-700" />
-                      </div>
-                      <div className="mt-3 lg:mt-0">
-                        <span className="text-[11px] font-black text-green-800 uppercase tracking-widest mb-1 block">
-                          Admin Update
-                        </span>
-                        <p className="text-sm text-gray-700 leading-relaxed">
-                          "{ item.Status?.toUpperCase().replace(/-/g, " ") === "RESOLVED"
-                            ? "Your complaint has been reviewed and resolved. Thank you for helping us improve IdeaGroove."
-                            : item.Status?.toUpperCase().replace(/-/g, " ") === "IN PROGRESS"
-                            ? "Our team is actively looking into your complaint. We'll update you soon."
-                            : "Thank you for reporting. Your complaint is currently pending review by our admin team."
-                          }"
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          }))}
+              );
+            })
+          )}
         </div>
       </section>
     </div>
