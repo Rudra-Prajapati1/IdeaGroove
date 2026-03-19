@@ -17,7 +17,7 @@ const Sidebar = () => {
         // 1. Call the Backend Logout Route
         // We use await to ensure the server session is cleared first
         await axios.post(
-          "http://localhost:8080/api/admin/logout",
+          `${import.meta.env.VITE_API_BASE_URL}/admin/logout`,
           {},
           { withCredentials: true }, // Required to send the session cookie
         );

@@ -39,7 +39,7 @@ const ResetPassword = () => {
       // 4. API Call
       // Make sure this URL matches your backend route structure (/reset-password/:id/:token)
       const response = await axios.post(
-        `http://localhost:8080/api/auth/resetPassword/${id}/${token}`,
+        `${import.meta.env.VITE_API_BASE_URL}/auth/resetPassword/${id}/${token}`,
         {
           password: passwords.newPassword,
         },
