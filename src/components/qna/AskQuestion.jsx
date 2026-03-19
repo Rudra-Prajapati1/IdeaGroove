@@ -13,9 +13,14 @@ import { useDispatch } from "react-redux";
 import { createQuestion, fetchQnA } from "../../redux/slice/qnaSlice";
 import {
   selectAllDegrees,
+  fetchDegreeSubject,
   selectSubjectsByDegree,
 } from "../../redux/slice/degreeSubjectSlice";
 import SearchableDropdown from "../common/SearchableDropdown";
+import {
+  confirmCustomOption,
+  normalizeCustomOptionInput,
+} from "../../utils/customOptionHelpers";
 
 const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
   const dispatch = useDispatch();
@@ -27,6 +32,8 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
     Question: editing?.Question || "",
     Degree_ID: editing?.Degree_ID ? String(editing.Degree_ID) : "",
     Subject_ID: editing?.Subject_ID ? String(editing.Subject_ID) : "",
+    New_Degree_Name: "",
+    New_Subject_Name: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -40,12 +47,12 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
   const degreeNames = degrees.map((deg) => deg.degree_name);
   const selectedDegreeName =
     degrees.find((deg) => String(deg.Degree_ID) === formData.Degree_ID)
-      ?.degree_name || "";
+      ?.degree_name || formData.New_Degree_Name || "";
 
   const subjectNames = subjects.map((sub) => sub.subject_name);
   const selectedSubjectName =
     subjects.find((sub) => String(sub.Subject_ID) === formData.Subject_ID)
-      ?.subject_name || "";
+      ?.subject_name || formData.New_Subject_Name || "";
 
   // If editing prop changes (e.g. user opens a different question to edit), sync form
   useEffect(() => {
@@ -54,6 +61,8 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
         Question: editing.Question || "",
         Degree_ID: editing.Degree_ID ? String(editing.Degree_ID) : "",
         Subject_ID: editing.Subject_ID ? String(editing.Subject_ID) : "",
+        New_Degree_Name: "",
+        New_Subject_Name: "",
       });
     }
   }, [editing]);
@@ -65,7 +74,13 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
 
   const handleDegreeSelect = (value) => {
     if (value === "all") {
-      setFormData((prev) => ({ ...prev, Degree_ID: "", Subject_ID: "" }));
+      setFormData((prev) => ({
+        ...prev,
+        Degree_ID: "",
+        Subject_ID: "",
+        New_Degree_Name: "",
+        New_Subject_Name: "",
+      }));
       return;
     }
 
@@ -74,12 +89,29 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
       ...prev,
       Degree_ID: matched ? String(matched.Degree_ID) : "",
       Subject_ID: "",
+      New_Degree_Name: "",
+      New_Subject_Name: "",
+    }));
+  };
+
+  const handleCustomDegreeSelect = (value) => {
+    const normalizedValue = normalizeCustomOptionInput(value);
+    if (!normalizedValue || !confirmCustomOption("degree", normalizedValue)) {
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      Degree_ID: "",
+      Subject_ID: "",
+      New_Degree_Name: normalizedValue,
+      New_Subject_Name: "",
     }));
   };
 
   const handleSubjectSelect = (value) => {
     if (value === "all") {
-      setFormData((prev) => ({ ...prev, Subject_ID: "" }));
+      setFormData((prev) => ({ ...prev, Subject_ID: "", New_Subject_Name: "" }));
       return;
     }
 
@@ -87,13 +119,30 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
     setFormData((prev) => ({
       ...prev,
       Subject_ID: matched ? String(matched.Subject_ID) : "",
+      New_Subject_Name: "",
+    }));
+  };
+
+  const handleCustomSubjectSelect = (value) => {
+    const normalizedValue = normalizeCustomOptionInput(value);
+    if (!normalizedValue || !confirmCustomOption("subject", normalizedValue)) {
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      Subject_ID: "",
+      New_Subject_Name: normalizedValue,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.Question || !formData.Degree_ID || !formData.Subject_ID)
+    const hasDegree = !!(formData.Degree_ID || formData.New_Degree_Name);
+    const hasSubject = !!(formData.Subject_ID || formData.New_Subject_Name);
+
+    if (!formData.Question || !hasDegree || !hasSubject)
       return;
 
     setLoading(true);
@@ -105,17 +154,24 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
           Question: formData.Question,
           Degree_ID: formData.Degree_ID,
           Subject_ID: formData.Subject_ID,
+          New_Degree_Name: formData.New_Degree_Name,
+          New_Subject_Name: formData.New_Subject_Name,
         });
       } else {
         // ✅ CREATE mode — dispatch directly
         const payload = {
           Question: formData.Question,
-          Degree_ID: parseInt(formData.Degree_ID),
-          Subject_ID: parseInt(formData.Subject_ID),
+          Degree_ID: formData.Degree_ID ? parseInt(formData.Degree_ID, 10) : "",
+          Subject_ID: formData.Subject_ID
+            ? parseInt(formData.Subject_ID, 10)
+            : "",
+          New_Degree_Name: formData.New_Degree_Name,
+          New_Subject_Name: formData.New_Subject_Name,
           Added_By: user?.id || user?.S_ID,
         };
 
         await dispatch(createQuestion(payload)).unwrap();
+        await dispatch(fetchDegreeSubject());
 
         if (onSuccess) {
           await onSuccess();
@@ -197,6 +253,9 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
                 text="All Degrees"
                 icon={GraduationCap}
                 className="w-full"
+                allowCustom
+                customTypeLabel="degree"
+                onCustomSelect={handleCustomDegreeSelect}
               />
             </div>
 
@@ -205,7 +264,7 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
               <label className="block text-sm font-semibold text-slate-700 mb-1">
                 Subject Topic <span className="text-red-500">*</span>
               </label>
-              {formData.Degree_ID ? (
+              {formData.Degree_ID || formData.New_Degree_Name ? (
                 <SearchableDropdown
                   options={subjectNames}
                   value={selectedSubjectName}
@@ -214,6 +273,9 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
                   text="All Subjects"
                   icon={BookOpen}
                   className="w-full"
+                  allowCustom
+                  customTypeLabel="subject"
+                  onCustomSelect={handleCustomSubjectSelect}
                 />
               ) : (
                 <div className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-400 bg-slate-50 cursor-not-allowed">
@@ -239,8 +301,8 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
             disabled={
               loading ||
               !formData.Question ||
-              !formData.Degree_ID ||
-              !formData.Subject_ID
+              !(formData.Degree_ID || formData.New_Degree_Name) ||
+              !(formData.Subject_ID || formData.New_Subject_Name)
             }
             className="flex-1 px-4 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex justify-center items-center gap-2 shadow-lg shadow-green-900/10"
           >

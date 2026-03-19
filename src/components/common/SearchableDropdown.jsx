@@ -1,4 +1,8 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
+import {
+  getCustomOptionLabel,
+  normalizeCustomOptionInput,
+} from "../../utils/customOptionHelpers";
 
 const SearchableDropdown = ({
   options = [],
@@ -9,6 +13,9 @@ const SearchableDropdown = ({
   icon: Icon,
   className = "",
   menuClassName = "",
+  allowCustom = false,
+  customTypeLabel = "option",
+  onCustomSelect,
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -48,6 +55,20 @@ const SearchableDropdown = ({
     return [text, ...filtered.filter((opt) => opt !== text)];
   }, [enhancedOptions, search, text]);
 
+  const normalizedSearch = useMemo(
+    () => normalizeCustomOptionInput(search),
+    [search],
+  );
+
+  const showCustomOption =
+    allowCustom &&
+    !!onCustomSelect &&
+    !!normalizedSearch &&
+    normalizedSearch.toLowerCase() !== text.toLowerCase() &&
+    !enhancedOptions.some(
+      (option) => option.toLowerCase() === normalizedSearch.toLowerCase(),
+    );
+
   const handleSelect = (option) => {
     if (option === text) {
       onChange("all");
@@ -57,6 +78,13 @@ const SearchableDropdown = ({
       setSearch(option);
     }
 
+    setOpen(false);
+  };
+
+  const handleCustomOption = () => {
+    if (!showCustomOption) return;
+    onCustomSelect(normalizedSearch);
+    setSearch(normalizedSearch);
     setOpen(false);
   };
 
@@ -96,7 +124,7 @@ const SearchableDropdown = ({
         <div
           className={`absolute top-full left-0 z-50 mt-2 w-full bg-white border border-gray-200 rounded-2xl shadow-lg max-h-[min(60vh,30rem)] overflow-y-auto ${menuClassName}`}
         >
-          {filteredOptions.length > 0 ? (
+          {filteredOptions.length > 0 &&
             filteredOptions.map((option, index) => (
               <div
                 key={index}
@@ -105,8 +133,19 @@ const SearchableDropdown = ({
               >
                 {option}
               </div>
-            ))
-          ) : (
+            ))}
+
+          {showCustomOption && (
+            <div
+              onClick={handleCustomOption}
+              className="px-4 py-2.5 text-sm hover:bg-gray-100 cursor-pointer"
+            >
+              {getCustomOptionLabel(normalizedSearch)}
+              <span className="text-gray-400"> as new {customTypeLabel}</span>
+            </div>
+          )}
+
+          {filteredOptions.length === 0 && !showCustomOption && (
             <div className="px-4 py-2.5 text-sm text-gray-400">
               No results found
             </div>

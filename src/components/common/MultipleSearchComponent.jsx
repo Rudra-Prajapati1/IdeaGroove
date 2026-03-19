@@ -1,17 +1,25 @@
 import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import {
+  getCustomOptionLabel,
+  normalizeCustomOptionInput,
+} from "../../utils/customOptionHelpers";
 
 export const MultiSearchableDropdown = ({
   label,
   options,
   selectedValues,
+  selectedCustomValues = [],
   onChange,
   placeholder,
   idKey,
   labelKey,
   loading,
   className = "",
+  onCustomSelect,
+  onRemoveCustom,
+  customTypeLabel = "option",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,15 +50,32 @@ export const MultiSearchableDropdown = ({
           .toLowerCase()
           .includes(searchTerm.toLowerCase());
         const isNotSelected = !selectedValues.includes(opt[idKey]);
-        return matchesSearch && isNotSelected;
+        const isNotCustomSelected = !selectedCustomValues.some(
+          (value) => value.toLowerCase() === opt[labelKey].toLowerCase(),
+        );
+        return matchesSearch && isNotSelected && isNotCustomSelected;
       })
     : [];
   // Define the limit constant
   const MAX_SELECTION = 7;
+  const totalSelected = selectedValues.length + selectedCustomValues.length;
+  const normalizedSearchTerm = normalizeCustomOptionInput(searchTerm);
+  const hasExactExistingMatch = options?.some(
+    (opt) =>
+      opt[labelKey].toLowerCase() === normalizedSearchTerm.toLowerCase(),
+  );
+  const hasExactCustomMatch = selectedCustomValues.some(
+    (value) => value.toLowerCase() === normalizedSearchTerm.toLowerCase(),
+  );
+  const showCustomOption =
+    !!onCustomSelect &&
+    !!normalizedSearchTerm &&
+    !hasExactExistingMatch &&
+    !hasExactCustomMatch;
 
   const handleSelect = (id) => {
     // Check if the limit has already been reached
-    if (selectedValues.length >= MAX_SELECTION) {
+    if (totalSelected >= MAX_SELECTION) {
       toast.error(`You can only select up to ${MAX_SELECTION} hobbies.`);
       return;
     }
@@ -63,6 +88,18 @@ export const MultiSearchableDropdown = ({
     onChange(selectedValues.filter((id) => id !== idToRemove));
   };
 
+  const handleCustomCreate = () => {
+    if (!showCustomOption) return;
+
+    if (totalSelected >= MAX_SELECTION) {
+      toast.error(`You can only select up to ${MAX_SELECTION} hobbies.`);
+      return;
+    }
+
+    onCustomSelect(normalizedSearchTerm);
+    setSearchTerm("");
+  };
+
   return (
     <div
       className={`flex flex-col gap-2 w-full relative ${className}`}
@@ -71,9 +108,9 @@ export const MultiSearchableDropdown = ({
       <div className="flex justify-between items-center w-full">
         <label className="text-md font-semibold text-primary">{label}:</label>
         <span
-          className={`text-[10px] ${selectedValues.length >= 7 ? "text-red-500 font-bold" : "text-gray-400"}`}
+          className={`text-[10px] ${totalSelected >= 7 ? "text-red-500 font-bold" : "text-gray-400"}`}
         >
-          {selectedValues.length} / 7
+          {totalSelected} / 7
         </span>
       </div>
 
@@ -106,22 +143,41 @@ export const MultiSearchableDropdown = ({
             ) : null;
           })}
 
+          {selectedCustomValues.map((value) => (
+            <span
+              key={`custom-${value}`}
+              className="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1"
+            >
+              {value}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemoveCustom?.(value);
+                }}
+                className="hover:text-green-900 bg-green-200 rounded-full p-0.5"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+
           {/* Input field stays at the end of the wrapping flow */}
           <div className="flex-1 min-w-[100px] relative h-8 flex items-center">
-            {selectedValues.length === 0 && !searchTerm && (
+            {totalSelected === 0 && !searchTerm && (
               <span className="text-gray-400 text-sm ml-1 absolute pointer-events-none">
                 {placeholder}
               </span>
             )}
             <input
               className={`outline-none text-sm w-full bg-transparent p-1 ${
-                selectedValues.length >= 7 ? "cursor-not-allowed" : ""
+                totalSelected >= 7 ? "cursor-not-allowed" : ""
               }`}
-              placeholder={selectedValues.length >= 7 ? "Limit reached" : ""}
-              disabled={selectedValues.length >= 7}
+              placeholder={totalSelected >= 7 ? "Limit reached" : ""}
+              disabled={totalSelected >= 7}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onFocus={() => selectedValues.length < 7 && setIsOpen(true)}
+              onFocus={() => totalSelected < 7 && setIsOpen(true)}
             />
           </div>
         </div>
@@ -135,19 +191,48 @@ export const MultiSearchableDropdown = ({
                 Loading...
               </div>
             ) : filteredOptions.length > 0 ? (
-              filteredOptions.map((opt) => (
-                <div
-                  key={opt[idKey]}
-                  className="p-3.5 text-sm hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
-                  onClick={() => handleSelect(opt[idKey])}
-                >
-                  {opt[labelKey]}
-                </div>
-              ))
+              <>
+                {filteredOptions.map((opt) => (
+                  <div
+                    key={opt[idKey]}
+                    className="p-3.5 text-sm hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
+                    onClick={() => handleSelect(opt[idKey])}
+                  >
+                    {opt[labelKey]}
+                  </div>
+                ))}
+                {showCustomOption && (
+                  <div
+                    className="p-3.5 text-sm hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
+                    onClick={handleCustomCreate}
+                  >
+                    {getCustomOptionLabel(normalizedSearchTerm)}
+                    <span className="text-gray-400">
+                      {" "}
+                      as new {customTypeLabel}
+                    </span>
+                  </div>
+                )}
+              </>
             ) : (
-              <div className="p-3 text-sm text-gray-400 text-center">
-                No options
-              </div>
+              <>
+                {showCustomOption ? (
+                  <div
+                    className="p-3.5 text-sm hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
+                    onClick={handleCustomCreate}
+                  >
+                    {getCustomOptionLabel(normalizedSearchTerm)}
+                    <span className="text-gray-400">
+                      {" "}
+                      as new {customTypeLabel}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-3 text-sm text-gray-400 text-center">
+                    No options
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

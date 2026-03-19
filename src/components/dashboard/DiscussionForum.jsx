@@ -7,6 +7,7 @@ import { selectIsAuthenticated, selectUser } from "../../redux/slice/authSlice";
 import ActionButton from "../common/ActionButton";
 import { useSelector, useDispatch } from "react-redux";
 import {
+  fetchDegreeSubject,
   selectAllDegrees,
   selectAllSubjects,
   selectSubjectsByDegree,
@@ -88,10 +89,13 @@ const DiscussionForum = ({
           updateQuestion({
             Q_ID: editing.Q_ID,
             Question: data.Question,
-            Degree_ID: parseInt(data.Degree_ID),
-            Subject_ID: parseInt(data.Subject_ID),
+            Degree_ID: data.Degree_ID ? parseInt(data.Degree_ID, 10) : "",
+            Subject_ID: data.Subject_ID ? parseInt(data.Subject_ID, 10) : "",
+            New_Degree_Name: data.New_Degree_Name,
+            New_Subject_Name: data.New_Subject_Name,
           }),
         ).unwrap();
+        await dispatch(fetchDegreeSubject());
 
         onRefetch();
         toast.success("Question updated successfully!");

@@ -27,7 +27,6 @@ const LoginForm = ({ onSignup }) => {
 
   useEffect(() => {
     if (sessionChecked && isAuthenticated && !toastShown.current) {
-      toast.success("Welcome back!");
       toastShown.current = true;
       navigate("/dashboard");
     }

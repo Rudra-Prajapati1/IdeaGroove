@@ -6,10 +6,15 @@ import { toast } from "react-hot-toast";
 import { GraduationCap, BookOpen } from "lucide-react";
 import {
   selectAllDegrees,
+  fetchDegreeSubject,
   selectSubjectsByDegree,
 } from "../../redux/slice/degreeSubjectSlice";
 import { createNote, updateNote } from "../../redux/slice/notesSlice";
 import SearchableDropdown from "../common/SearchableDropdown";
+import {
+  confirmCustomOption,
+  normalizeCustomOptionInput,
+} from "../../utils/customOptionHelpers";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_PDF_TYPE = "application/pdf";
@@ -22,6 +27,8 @@ const AddNotes = ({ onClose, onSuccess, editing }) => {
   const [formData, setFormData] = useState({
     Degree_ID: "",
     Subject_ID: "",
+    New_Degree_Name: "",
+    New_Subject_Name: "",
     Description: "",
     file: null,
   });
@@ -40,6 +47,8 @@ const AddNotes = ({ onClose, onSuccess, editing }) => {
       setFormData({
         Degree_ID: editing.Degree_ID || "",
         Subject_ID: editing.Subject_ID || "",
+        New_Degree_Name: "",
+        New_Subject_Name: "",
         Description: editing.Description || "",
         file: null,
       });
@@ -51,39 +60,80 @@ const AddNotes = ({ onClose, onSuccess, editing }) => {
 
   const handleDegreeSelect = (value) => {
     if (value === "all") {
-      setFormData((prev) => ({ ...prev, Degree_ID: "", Subject_ID: "" }));
+      setFormData((prev) => ({
+        ...prev,
+        Degree_ID: "",
+        Subject_ID: "",
+        New_Degree_Name: "",
+        New_Subject_Name: "",
+      }));
     } else {
       const matched = degrees.find((d) => d.degree_name === value);
       setFormData((prev) => ({
         ...prev,
         Degree_ID: matched ? String(matched.Degree_ID) : "",
         Subject_ID: "", // reset subject when degree changes
+        New_Degree_Name: "",
+        New_Subject_Name: "",
       }));
     }
   };
 
+  const handleCustomDegreeSelect = (value) => {
+    const normalizedValue = normalizeCustomOptionInput(value);
+    if (!normalizedValue || !confirmCustomOption("degree", normalizedValue)) {
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      Degree_ID: "",
+      Subject_ID: "",
+      New_Degree_Name: normalizedValue,
+      New_Subject_Name: "",
+    }));
+  };
+
   const selectedDegreeName =
     degrees.find((d) => String(d.Degree_ID) === String(formData.Degree_ID))
-      ?.degree_name || "";
+      ?.degree_name ||
+    formData.New_Degree_Name ||
+    "";
 
   // ── Subject dropdown helpers ────────────────
   const subjectNames = subjects.map((s) => s.subject_name);
 
   const handleSubjectSelect = (value) => {
     if (value === "all") {
-      setFormData((prev) => ({ ...prev, Subject_ID: "" }));
+      setFormData((prev) => ({ ...prev, Subject_ID: "", New_Subject_Name: "" }));
     } else {
       const matched = subjects.find((s) => s.subject_name === value);
       setFormData((prev) => ({
         ...prev,
         Subject_ID: matched ? String(matched.Subject_ID) : "",
+        New_Subject_Name: "",
       }));
     }
   };
 
+  const handleCustomSubjectSelect = (value) => {
+    const normalizedValue = normalizeCustomOptionInput(value);
+    if (!normalizedValue || !confirmCustomOption("subject", normalizedValue)) {
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      Subject_ID: "",
+      New_Subject_Name: normalizedValue,
+    }));
+  };
+
   const selectedSubjectName =
     subjects.find((s) => String(s.Subject_ID) === String(formData.Subject_ID))
-      ?.subject_name || "";
+      ?.subject_name ||
+    formData.New_Subject_Name ||
+    "";
 
   // ── Existing handlers (unchanged) ──────────
   const handleChange = (e) => {
@@ -124,8 +174,10 @@ const AddNotes = ({ onClose, onSuccess, editing }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.Degree_ID) return toast.error("Please select a degree");
-    if (!formData.Subject_ID) return toast.error("Please select a subject");
+    if (!formData.Degree_ID && !formData.New_Degree_Name)
+      return toast.error("Please select a degree");
+    if (!formData.Subject_ID && !formData.New_Subject_Name)
+      return toast.error("Please select a subject");
     if (!formData.file && !editing)
       return toast.error("Please upload a PDF file");
 
@@ -135,6 +187,8 @@ const AddNotes = ({ onClose, onSuccess, editing }) => {
     if (formData.file) submissionData.append("Note_File", formData.file);
     submissionData.append("Degree_ID", formData.Degree_ID);
     submissionData.append("Subject_ID", formData.Subject_ID);
+    submissionData.append("New_Degree_Name", formData.New_Degree_Name);
+    submissionData.append("New_Subject_Name", formData.New_Subject_Name);
     submissionData.append("Description", formData.Description.trim() || "");
     submissionData.append("Added_By", user?.S_ID || user?.id);
     if (editing) submissionData.append("N_ID", editing.N_ID);
@@ -142,9 +196,11 @@ const AddNotes = ({ onClose, onSuccess, editing }) => {
     try {
       if (editing) {
         await dispatch(updateNote(submissionData)).unwrap();
+        await dispatch(fetchDegreeSubject());
         toast.success("Notes updated successfully!");
       } else {
         await dispatch(createNote(submissionData)).unwrap();
+        await dispatch(fetchDegreeSubject());
         toast.success("Notes uploaded successfully!");
       }
 
@@ -198,6 +254,9 @@ const AddNotes = ({ onClose, onSuccess, editing }) => {
                 placeholder="Search degree..."
                 text="All Degrees"
                 icon={GraduationCap}
+                allowCustom
+                customTypeLabel="degree"
+                onCustomSelect={handleCustomDegreeSelect}
               />
             </div>
 
@@ -206,7 +265,7 @@ const AddNotes = ({ onClose, onSuccess, editing }) => {
               <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Subject <span className="text-red-500">*</span>
               </label>
-              {formData.Degree_ID ? (
+              {formData.Degree_ID || formData.New_Degree_Name ? (
                 <SearchableDropdown
                   options={subjectNames}
                   value={selectedSubjectName}
@@ -214,6 +273,9 @@ const AddNotes = ({ onClose, onSuccess, editing }) => {
                   placeholder="Search subject..."
                   text="All Subjects"
                   icon={BookOpen}
+                  allowCustom
+                  customTypeLabel="subject"
+                  onCustomSelect={handleCustomSubjectSelect}
                 />
               ) : (
                 <div className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-400 bg-slate-50 cursor-not-allowed">
