@@ -99,7 +99,7 @@ const SearchableDropdown = ({
       <FloatingError message={error} show={!!error} />
 
       {isOpen && (
-        <div className="absolute top-[110%] left-0 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-60 overflow-hidden flex flex-col">
+        <div className="absolute top-full mt-2 left-0 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-[min(60vh,30rem)] overflow-hidden flex flex-col">
           <div className="p-2 border-b border-gray-100 flex items-center gap-2 sticky top-0 bg-white z-10">
             <Search className="w-4 h-4 text-gray-400" />
             <input
@@ -121,7 +121,7 @@ const SearchableDropdown = ({
               filteredOptions.map((opt) => (
                 <div
                   key={opt[idKey]}
-                  className="p-3 text-sm hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
+                  className="p-3.5 text-sm hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
                   onClick={() => {
                     onChange(opt[idKey]);
                     setIsOpen(false);
@@ -345,11 +345,22 @@ const SignupForm = ({ onLogin }) => {
   };
 
   const handleImageChange = (file) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setErrors({ Profile_Pic: "Please upload a valid image" });
+    if (!file) {
+      handleData("Profile_Pic", null);
       return;
     }
+    if (!file.type.startsWith("image/")) {
+      setErrors((prev) => ({
+        ...prev,
+        Profile_Pic: "Please upload a valid image",
+      }));
+      return;
+    }
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.Profile_Pic;
+      return next;
+    });
     handleData("Profile_Pic", file);
   };
 
@@ -445,7 +456,7 @@ const SignupForm = ({ onLogin }) => {
     formData.append("Year", signupData.Year);
 
     if (signupData.Profile_Pic) {
-      formData.append("image", signupData.Profile_Pic);
+      formData.append("profile_pic", signupData.Profile_Pic);
     }
 
     if (signupData.Hobbies?.length > 0) {
@@ -503,7 +514,7 @@ const SignupForm = ({ onLogin }) => {
         {step === "personal" && (
           <SectionWrapper title="Personal Details">
             <div>
-              <div className="flex gap-12 items-center">
+              <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center lg:items-start">
                 <div className="flex flex-col gap-6">
                   <div className="relative">
                     <Input
@@ -549,7 +560,7 @@ const SignupForm = ({ onLogin }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <div className="relative">
                   <Input
                     label="Roll No"
@@ -586,7 +597,7 @@ const SignupForm = ({ onLogin }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 {[
                   {
                     id: "Password",

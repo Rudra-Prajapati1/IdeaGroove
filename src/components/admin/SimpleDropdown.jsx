@@ -23,7 +23,7 @@ const SimpleDropdown = ({
   }, []);
 
   return (
-    <div ref={ref} className="relative min-w-[160px] flex-shrink-0">
+    <div ref={ref} className="relative min-w-40 shrink-0">
       {/* Trigger styled like SearchableDropdown input */}
       <div
         onClick={() => setOpen((prev) => !prev)}

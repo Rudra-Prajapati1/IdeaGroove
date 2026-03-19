@@ -7,6 +7,8 @@ const SearchableDropdown = ({
   placeholder = "Search degree...",
   text = "All Degrees",
   icon: Icon,
+  className = "",
+  menuClassName = "",
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -59,9 +61,11 @@ const SearchableDropdown = ({
   };
 
   return (
-    <div className="relative min-w-[160px] flex-shrink-0" ref={dropdownRef}>
-      {/* Always visible search input */}
-      <div className="relative group flex-1 min-w-[150px] max-w-[220px]">
+    <div
+      className={`relative w-full min-w-0 flex-shrink-0 ${className}`}
+      ref={dropdownRef}
+    >
+      <div className="relative w-full">
         {Icon && (
           <Icon
             size={16}
@@ -82,25 +86,28 @@ const SearchableDropdown = ({
             setSearch(e.target.value);
             setOpen(true);
           }}
-          className="w-full bg-white border border-gray-200 rounded-2xl py-2.5 pl-12 pr-4 text-sm font-medium"
+          className={`w-full bg-white border border-gray-200 rounded-2xl py-2.5 ${
+            Icon ? "pl-12" : "pl-4"
+          } pr-4 text-sm font-medium`}
         />
       </div>
 
-      {/* Results */}
       {open && (
-        <div className="absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-2xl shadow-lg max-h-48 overflow-y-auto">
+        <div
+          className={`absolute top-full left-0 z-50 mt-2 w-full bg-white border border-gray-200 rounded-2xl shadow-lg max-h-[min(60vh,30rem)] overflow-y-auto ${menuClassName}`}
+        >
           {filteredOptions.length > 0 ? (
             filteredOptions.map((option, index) => (
               <div
                 key={index}
                 onClick={() => handleSelect(option)}
-                className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                className="px-4 py-2.5 text-sm hover:bg-gray-100 cursor-pointer"
               >
                 {option}
               </div>
             ))
           ) : (
-            <div className="px-4 py-2 text-sm text-gray-400">
+            <div className="px-4 py-2.5 text-sm text-gray-400">
               No results found
             </div>
           )}

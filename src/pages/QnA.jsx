@@ -59,6 +59,20 @@ const QnA = () => {
     setCurrentPage(1);
   };
 
+  const handleClearAllFilters = () => {
+    updateDebouncedSearch.cancel();
+    setSearch("");
+    setDebouncedSearch("");
+    setFilter("all");
+    setSelectedDegree("");
+    setSelectedSubject("");
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    return () => updateDebouncedSearch.cancel();
+  }, [updateDebouncedSearch]);
+
   useEffect(() => {
     dispatch(
       fetchQnA({
@@ -132,6 +146,7 @@ const QnA = () => {
               onFilterChange={handleFilterChange}
               onDegreeChange={handleDegreeChange}
               onSubjectChange={handleSubjectChange}
+              onClearFilters={handleClearAllFilters}
               isRefetching={isRefetching}
               onRefetch={doRefetch}
             />

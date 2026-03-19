@@ -11,6 +11,7 @@ export const MultiSearchableDropdown = ({
   idKey,
   labelKey,
   loading,
+  className = "",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -63,7 +64,10 @@ export const MultiSearchableDropdown = ({
   };
 
   return (
-    <div className="flex flex-col gap-2 w-full relative" ref={dropdownRef}>
+    <div
+      className={`flex flex-col gap-2 w-full relative ${className}`}
+      ref={dropdownRef}
+    >
       <div className="flex justify-between items-center w-full">
         <label className="text-md font-semibold text-primary">{label}:</label>
         <span
@@ -124,7 +128,7 @@ export const MultiSearchableDropdown = ({
       </div>
 
       {isOpen && (
-        <div className="absolute top-full mt-1 left-0 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-60 overflow-hidden flex flex-col">
+        <div className="absolute top-full mt-2 left-0 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-[min(50vh,28rem)] overflow-hidden flex flex-col">
           <div className="overflow-y-auto flex-1">
             {loading ? (
               <div className="p-3 text-sm text-gray-400 text-center">
@@ -134,7 +138,7 @@ export const MultiSearchableDropdown = ({
               filteredOptions.map((opt) => (
                 <div
                   key={opt[idKey]}
-                  className="p-3 text-sm hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
+                  className="p-3.5 text-sm hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
                   onClick={() => handleSelect(opt[idKey])}
                 >
                   {opt[labelKey]}

@@ -15,6 +15,7 @@ import {
   selectAllDegrees,
   selectSubjectsByDegree,
 } from "../../redux/slice/degreeSubjectSlice";
+import SearchableDropdown from "../common/SearchableDropdown";
 
 const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
   const dispatch = useDispatch();
@@ -36,6 +37,16 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
     selectSubjectsByDegree(Number(formData.Degree_ID) || 0),
   );
 
+  const degreeNames = degrees.map((deg) => deg.degree_name);
+  const selectedDegreeName =
+    degrees.find((deg) => String(deg.Degree_ID) === formData.Degree_ID)
+      ?.degree_name || "";
+
+  const subjectNames = subjects.map((sub) => sub.subject_name);
+  const selectedSubjectName =
+    subjects.find((sub) => String(sub.Subject_ID) === formData.Subject_ID)
+      ?.subject_name || "";
+
   // If editing prop changes (e.g. user opens a different question to edit), sync form
   useEffect(() => {
     if (editing) {
@@ -50,10 +61,33 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-    if (name === "Degree_ID") {
-      setFormData((prev) => ({ ...prev, [name]: value, Subject_ID: "" }));
+  const handleDegreeSelect = (value) => {
+    if (value === "all") {
+      setFormData((prev) => ({ ...prev, Degree_ID: "", Subject_ID: "" }));
+      return;
     }
+
+    const matched = degrees.find((deg) => deg.degree_name === value);
+    setFormData((prev) => ({
+      ...prev,
+      Degree_ID: matched ? String(matched.Degree_ID) : "",
+      Subject_ID: "",
+    }));
+  };
+
+  const handleSubjectSelect = (value) => {
+    if (value === "all") {
+      setFormData((prev) => ({ ...prev, Subject_ID: "" }));
+      return;
+    }
+
+    const matched = subjects.find((sub) => sub.subject_name === value);
+    setFormData((prev) => ({
+      ...prev,
+      Subject_ID: matched ? String(matched.Subject_ID) : "",
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -155,25 +189,15 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
               <label className="block text-sm font-semibold text-slate-700 mb-1">
                 Degree Program <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <select
-                  name="Degree_ID"
-                  value={formData.Degree_ID}
-                  onChange={handleChange}
-                  className={`${inputClass} appearance-none cursor-pointer`}
-                  required
-                >
-                  <option value="">Select Degree</option>
-                  {degrees.map((deg) => (
-                    <option key={deg.Degree_ID} value={deg.Degree_ID}>
-                      {deg.degree_name}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
-                  <GraduationCap className="w-4 h-4" />
-                </div>
-              </div>
+              <SearchableDropdown
+                options={degreeNames}
+                value={selectedDegreeName}
+                onChange={handleDegreeSelect}
+                placeholder="Search degree..."
+                text="All Degrees"
+                icon={GraduationCap}
+                className="w-full"
+              />
             </div>
 
             {/* Subject Selection */}
@@ -181,31 +205,21 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
               <label className="block text-sm font-semibold text-slate-700 mb-1">
                 Subject Topic <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <select
-                  name="Subject_ID"
-                  value={formData.Subject_ID}
-                  onChange={handleChange}
-                  disabled={!formData.Degree_ID}
-                  className={`${inputClass} appearance-none cursor-pointer disabled:bg-slate-50 disabled:text-slate-400`}
-                  required
-                >
-                  <option value="">
-                    {formData.Degree_ID
-                      ? "Select Subject"
-                      : "Select Degree First"}
-                  </option>
-                  {formData.Degree_ID &&
-                    subjects.map((sub) => (
-                      <option key={sub.Subject_ID} value={sub.Subject_ID}>
-                        {sub.subject_name}
-                      </option>
-                    ))}
-                </select>
-                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
-                  <BookOpen className="w-4 h-4" />
+              {formData.Degree_ID ? (
+                <SearchableDropdown
+                  options={subjectNames}
+                  value={selectedSubjectName}
+                  onChange={handleSubjectSelect}
+                  placeholder="Search subject..."
+                  text="All Subjects"
+                  icon={BookOpen}
+                  className="w-full"
+                />
+              ) : (
+                <div className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-400 bg-slate-50 cursor-not-allowed">
+                  Select Degree First
                 </div>
-              </div>
+              )}
             </div>
           </form>
         </div>

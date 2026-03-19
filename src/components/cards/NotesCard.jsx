@@ -26,6 +26,14 @@ const NotesCard = ({
   const [thumbError, setThumbError] = useState(false);
 
   const isOwner = isAuth && Number(note.Author_ID) === Number(currentUserId);
+  const authorName =
+    note.Author_Username || note.Username || note.Author || "Anonymous";
+  const authorId = note.Author_ID || note.AuthorId || note.Author_Id || null;
+  const fileName = note.File_Name
+    ? note.File_Name
+    : note.Note_File
+      ? note.Note_File.split("/").pop()?.split("?")[0]
+      : "";
 
   const formattedDate = note.Added_on
     ? new Date(note.Added_on).toLocaleDateString("en-IN", {
@@ -35,9 +43,6 @@ const NotesCard = ({
       })
     : "Just now";
 
-  // Build Cloudinary PDF first-page thumbnail URL
-  // Cloudinary supports: /image/upload/<transformations>/v.../file.pdf
-  // Adding pg_1,w_400,h_300,c_fill,f_jpg converts page 1 to a JPG thumbnail
   const getPdfThumbnail = (fileUrl) => {
     if (!fileUrl) return null;
 
@@ -48,7 +53,6 @@ const NotesCard = ({
 
   const thumbnailUrl = getPdfThumbnail(note.Note_File);
 
-  /* =================== DELETE =================== */
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
@@ -139,7 +143,11 @@ const NotesCard = ({
           {isAuth && !isOwner && (
             <div className="absolute top-3 left-3 z-10">
               <ComplaintButton
-                onClick={() => navigate(`/submit-complaint/notes/${note.N_ID}/${note.Description}`)}
+                onClick={() =>
+                  navigate(
+                    `/submit-complaint/notes/${note.N_ID}/${note.Description}`,
+                  )
+                }
                 element="notes"
               />
             </div>
@@ -153,16 +161,31 @@ const NotesCard = ({
         </div>
 
         <div className="p-5 flex flex-col flex-1">
-          <h3 className="text-lg font-bold text-slate-800 mb-2 leading-tight">
-            {note.Subject_Name || note.Degree_Name || "Untitled Note"}
+          <h3 className="text-md font-bold text-slate-800 mb-2 leading-tight truncate">
+            {fileName || note.Subject_Name || "Untitled Note"}
           </h3>
 
           <div className="flex flex-wrap gap-y-1 gap-x-4 mb-3 text-xs text-slate-500 border-b border-slate-100 pb-3">
             <div className="flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-slate-400" />
-              <span className="font-medium text-slate-700">
-                {authorLabel || note.Author || "Anonymous"}
-              </span>
+              {authorLabel ? (
+                <span className="font-medium text-slate-700">
+                  {authorLabel}
+                </span>
+              ) : authorId ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/dashboard/${authorId}`);
+                  }}
+                  className="font-medium text-slate-700 hover:underline"
+                >
+                  {authorName}
+                </button>
+              ) : (
+                <span className="font-medium text-slate-700">{authorName}</span>
+              )}
             </div>
             <div className="flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-slate-400" />

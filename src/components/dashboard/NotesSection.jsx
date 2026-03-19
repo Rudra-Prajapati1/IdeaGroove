@@ -43,6 +43,7 @@ const NotesSection = ({
   onFilterChange = () => {},
   onDegreeChange = () => {},
   onSubjectChange = () => {},
+  onClearFilters = () => {},
   isRefetching = false,
   onRefetch = () => {},
   showUploadAction = true,
@@ -181,15 +182,15 @@ const NotesSection = ({
                 />
               </div>
 
-              {(selectedDegree || selectedSubject) && (
+              {(search ||
+                filter !== "all" ||
+                selectedDegree ||
+                selectedSubject) && (
                 <button
-                  onClick={() => {
-                    onDegreeChange("");
-                    onSubjectChange("");
-                  }}
+                  onClick={onClearFilters}
                   className="text-xs text-red-500 hover:text-red-600 font-medium underline w-full text-center"
                 >
-                  Clear Filter
+                  Clear Filters
                 </button>
               )}
             </div>

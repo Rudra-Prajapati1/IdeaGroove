@@ -29,7 +29,7 @@ const ProfileUpload = ({ file, onChange }) => (
       type="file"
       id="profilePic"
       accept="image/*"
-      onChange={onChange}
+      onChange={(e) => onChange?.(e.target.files?.[0] || null)}
       className="hidden"
     />
   </div>

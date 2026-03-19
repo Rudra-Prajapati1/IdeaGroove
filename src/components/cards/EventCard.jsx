@@ -53,8 +53,14 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
 
   const isOwner =
     user &&
-    Number(event.Added_By) ===
-      Number(user.S_ID || user.id || user.Student_ID);
+    Number(event.Added_By) === Number(user.S_ID || user.id || user.Student_ID);
+  const organizerId = event.Organizer_ID || event.Added_By || null;
+  const organizerName =
+    event.Organizer_Username ||
+    event.Organizer_UserName ||
+    event.Organizer_Name ||
+    event.Contact_Person ||
+    "Admin";
 
   useEffect(() => {
     if (!previewOpen) return;
@@ -153,7 +159,11 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
 
           {!isOwner && (
             <ComplaintButton
-              onClick={() => navigate(`/submit-complaint/event/${event.E_ID}/${event.Description}`)}
+              onClick={() =>
+                navigate(
+                  `/submit-complaint/event/${event.E_ID}/${event.Description}`,
+                )
+              }
               className="absolute top-4 right-4"
               element="event"
             />
@@ -185,8 +195,27 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
 
           <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between gap-2">
             <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold shrink-0">
-              {authorLabel ||
-                `By ${event.Organizer_Name || event.Contact_Person || "Admin"}`}
+              {authorLabel ? (
+                authorLabel
+              ) : (
+                <>
+                  By{" "}
+                  {organizerId ? (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/dashboard/${organizerId}`);
+                      }}
+                      className="hover:underline"
+                    >
+                      {organizerName.toUpperCase()}
+                    </button>
+                  ) : (
+                    <span>{organizerName}</span>
+                  )}
+                </>
+              )}
             </p>
 
             <div className="flex items-center gap-1">
