@@ -8,9 +8,9 @@ const UserLayout = () => {
   const hideFooter = location.pathname === "/auth";
 
   return (
-    <main className="min-h-screen flex flex-col">
+    <main>
       <Navbar />
-      <div className="flex-1 min-w-0">
+      <div className="flex-1">
         <Outlet />
       </div>
 

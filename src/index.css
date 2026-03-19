@@ -43,13 +43,6 @@ body {
   background-color: #fffbeb;
 }
 
-html,
-body,
-#root {
-  min-height: 100%;
-  overflow-x: hidden;
-}
-
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;

@@ -69,7 +69,7 @@ const Navbar = () => {
   return (
     <header
       ref={navRef}
-      className="fixed top-3 left-1/2 z-50 w-[calc(100%-1rem)] -translate-x-1/2 sm:top-5 sm:w-[90%] lg:w-[40%]"
+      className="fixed top-5 left-1/2 -translate-x-1/2 w-[80%] lg:w-[40%] z-50"
     >
       <nav
         aria-label="Main Navigation"
@@ -77,7 +77,7 @@ const Navbar = () => {
           scrolled ? "bg-[#256B22] text-secondary" : "bg-secondary"
         } ${
           menuOpen ? "rounded-t-2xl" : "rounded-2xl"
-        } shadow flex justify-between items-center gap-2 px-2 py-1 sm:px-3 transition-all duration-300`}
+        } shadow flex justify-around items-center px-2 py-1 transition-all duration-300`}
       >
         <button
           type="button"
@@ -87,7 +87,7 @@ const Navbar = () => {
             setMenuOpen((prev) => !prev);
             setProfileOpen(false);
           }}
-          className="text-sm lg:text-lg font-poppins font-semibold border px-3 py-2 rounded-lg transition-all duration-200 active:scale-95 hover:shadow-md"
+          className="text-sm lg:text-lg font-poppins font-semibold border p-2 rounded-lg transition-all duration-200 active:scale-95 hover:shadow-md"
         >
           Menu
         </button>
@@ -96,7 +96,7 @@ const Navbar = () => {
           <img
             src={scrolled ? "/Logo.png" : "/DarkLogo.png"}
             alt="IdeaGroove Logo"
-            className={`h-12 w-12 sm:h-14 sm:w-14 lg:h-18 lg:w-18 p-1 border border-secondary rounded-full transition-all duration-500 ${
+            className={`h-12 w-12 lg:h-18 lg:w-18 p-1 border border-secondary rounded-full transition-all duration-500 ${
               scrolled
                 ? "opacity-100 scale-100"
                 : isHome
@@ -119,7 +119,6 @@ const Navbar = () => {
               className="flex items-center gap-2 text-sm lg:text-lg font-poppins font-semibold border px-3 py-2 rounded-lg hover:shadow-md transition-all"
             >
               <span className="hidden sm:inline">Profile</span>
-              <span className="sm:hidden">Me</span>
             </button>
 
             {profileOpen && (
@@ -183,13 +182,13 @@ const Navbar = () => {
             : "max-h-0 scale-y-95 opacity-0"
         } rounded-b-2xl shadow mt-1`}
       >
-        <ul className="flex flex-col items-start justify-evenly py-3 px-4 sm:flex-row sm:items-center sm:px-2 gap-3">
+        <ul className="flex max-md:flex-col items-center justify-evenly py-3 gap-3">
           {filteredNavLinks.map((link) => (
             <li key={link.id}>
               <NavLink
                 to={link.href}
                 onClick={() => setMenuOpen(false)}
-                className="font-poppins text-base sm:text-lg hover:underline"
+                className="font-poppins text-lg hover:underline"
               >
                 {link.title}
               </NavLink>
