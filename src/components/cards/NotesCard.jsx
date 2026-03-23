@@ -177,7 +177,11 @@ const NotesCard = ({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/dashboard/${authorId}`);
+                    navigate(
+                      String(authorId) === String(currentUserId)
+                        ? "/dashboard"
+                        : `/dashboard/${authorId}`,
+                    );
                   }}
                   className="font-medium text-slate-700 hover:underline"
                 >

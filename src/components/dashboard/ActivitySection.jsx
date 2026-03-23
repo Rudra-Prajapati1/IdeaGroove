@@ -191,6 +191,7 @@ const ActivitySection = ({ isPublic, userId }) => {
       const searchValue = notesSearch.toLowerCase();
       const matchesSearch = searchValue
         ? note?.Description?.toLowerCase().includes(searchValue) ||
+          note?.File_Name?.toLowerCase().includes(searchValue) ||
           note?.Subject_Name?.toLowerCase().includes(searchValue) ||
           note?.Degree_Name?.toLowerCase().includes(searchValue) ||
           false
@@ -428,6 +429,12 @@ const ActivitySection = ({ isPublic, userId }) => {
               onFilterChange={setQnaFilter}
               onDegreeChange={setQnaDegree}
               onSubjectChange={setQnaSubject}
+              onClearFilters={() => {
+                setQnaSearch("");
+                setQnaFilter("all");
+                setQnaDegree("");
+                setQnaSubject("");
+              }}
               onRefetch={refetchUserQuestions}
               isRefetching={qnaStatus === "loading"}
               showAskAction={!isPublic}
@@ -460,6 +467,12 @@ const ActivitySection = ({ isPublic, userId }) => {
               onFilterChange={setNotesFilter}
               onDegreeChange={setNotesDegree}
               onSubjectChange={setNotesSubject}
+              onClearFilters={() => {
+                setNotesSearch("");
+                setNotesFilter("all");
+                setNotesDegree("");
+                setNotesSubject("");
+              }}
               isRefetching={notesStatus === "loading"}
               onRefetch={refetchUserNotes}
               showUploadAction={!isPublic}

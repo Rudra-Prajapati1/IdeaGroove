@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
-import { ArrowLeft, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   fetchStudents,
@@ -10,6 +10,7 @@ import {
   selectStudentsPagination,
 } from "../redux/slice/studentsSlice";
 import PaginationControls from "./common/PaginationControls";
+import { selectUser } from "../redux/slice/authSlice";
 
 const UserProfile = () => {
   const dispatch = useDispatch();
@@ -17,6 +18,8 @@ const UserProfile = () => {
   const students = useSelector(selectAllStudents);
   const status = useSelector(selectStudentsStatus);
   const pagination = useSelector(selectStudentsPagination);
+  const currentUser = useSelector(selectUser);
+  const currentUserId = currentUser?.S_ID || currentUser?.id || null;
 
   useEffect(() => {
     const q = searchParams.get("q") || "";
@@ -60,46 +63,50 @@ const UserProfile = () => {
       </div>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {students.map((user) => (
-          <div
-            key={user.S_ID}
-            className="bg-white rounded-4xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center transition-all hover:shadow-md hover:-translate-y-1"
-          >
-            <div className="relative mb-4">
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-slate-100 border-2 border-white shadow-sm flex items-center justify-center">
-                {user.Profile_Pic ? (
-                  <img
-                    src={user.Profile_Pic}
-                    alt={user.Name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-2xl font-bold text-primary capitalize">
-                    {user.Name[0]}
-                  </span>
-                )}
-              </div>
-              <span
-                className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white ${getStatusColor(user.status || "offline")}`}
-              ></span>
-            </div>
+        {students.map((user) => {
+          const isCurrentUser = String(user.S_ID) === String(currentUserId);
 
-            <h2 className="text-lg font-bold text-slate-800 mb-1 capitalize">
-              {user.Name}
-            </h2>
-            <p className="text-xs font-bold text-[#2D4F33] mb-4 uppercase tracking-wide">
-              {user.Degree_Name}
-            </p>
-
-            <Link
-              to={`/dashboard/${user.S_ID}`}
-              className="w-full bg-[#1A3C20] hover:bg-[#2D4F33] text-white py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm font-bold transition-colors shadow-lg"
+          return (
+            <div
+              key={user.S_ID}
+              className="bg-white rounded-4xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center transition-all hover:shadow-md hover:-translate-y-1"
             >
-              <UserPlus size={16} />
-              View Profile
-            </Link>
-          </div>
-        ))}
+              <div className="relative mb-4">
+                <div className="w-20 h-20 rounded-full overflow-hidden bg-slate-100 border-2 border-white shadow-sm flex items-center justify-center">
+                  {user.Profile_Pic ? (
+                    <img
+                      src={user.Profile_Pic}
+                      alt={user.Name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-2xl font-bold text-primary capitalize">
+                      {user.Name[0]}
+                    </span>
+                  )}
+                </div>
+                <span
+                  className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white ${getStatusColor(user.status || "offline")}`}
+                ></span>
+              </div>
+
+              <h2 className="text-lg font-bold text-slate-800 mb-1 capitalize">
+                {user.Name}
+              </h2>
+              <p className="text-xs font-bold text-[#2D4F33] mb-4 uppercase tracking-wide">
+                {user.Degree_Name}
+              </p>
+
+              <Link
+                to={isCurrentUser ? "/dashboard" : `/dashboard/${user.S_ID}`}
+                className="w-full bg-[#1A3C20] hover:bg-[#2D4F33] text-white py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm font-bold transition-colors shadow-lg"
+              >
+                <UserPlus size={16} />
+                View Profile
+              </Link>
+            </div>
+          );
+        })}
       </div>
 
       <PaginationControls

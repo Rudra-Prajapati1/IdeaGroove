@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Search, Clock, X } from "lucide-react";
+import { useSelector } from "react-redux";
 import api from "../../api/axios";
+import { selectUser } from "../../redux/slice/authSlice";
 
 const HISTORY_KEY = "student_search_history";
 const MAX_HISTORY = 5;
@@ -34,6 +36,8 @@ const SearchSection = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const wrapperRef = useRef(null);
+  const currentUser = useSelector(selectUser);
+  const currentUserId = currentUser?.S_ID || currentUser?.id || null;
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
   const [history, setHistory] = useState(getHistory);
@@ -85,7 +89,7 @@ const SearchSection = () => {
         const nextSuggestions = res.data?.data || [];
         setSuggestions(nextSuggestions);
         setShowSuggestions(nextSuggestions.length > 0);
-      } catch (error) {
+      } catch {
         setSuggestions([]);
         setShowSuggestions(false);
       } finally {
@@ -138,6 +142,12 @@ const SearchSection = () => {
     setShowSuggestions(false);
     saveToHistory(selectedTerm);
     setHistory(getHistory());
+
+    if (String(selectedId) === String(currentUserId)) {
+      navigate("/dashboard");
+      return;
+    }
+
     navigate(`/dashboard/${selectedId}`);
   };
 

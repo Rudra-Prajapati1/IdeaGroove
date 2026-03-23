@@ -205,14 +205,18 @@ const QnACard = ({
                 {authorLabel ? (
                   authorLabel
                 ) : questionAuthorId ? (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/dashboard/${questionAuthorId}`);
-                    }}
-                    className="hover:underline"
-                  >
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(
+                          String(questionAuthorId) === String(currentUserId)
+                            ? "/dashboard"
+                            : `/dashboard/${questionAuthorId}`,
+                        );
+                      }}
+                      className="hover:underline"
+                    >
                     {questionAuthorName}
                   </button>
                 ) : (
@@ -319,7 +323,12 @@ const QnACard = ({
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/dashboard/${answerAuthorId}`);
+                                navigate(
+                                  String(answerAuthorId) ===
+                                    String(currentUserId)
+                                    ? "/dashboard"
+                                    : `/dashboard/${answerAuthorId}`,
+                                );
                               }}
                               className="hover:underline"
                             >
