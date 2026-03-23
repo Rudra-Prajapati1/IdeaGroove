@@ -3,6 +3,8 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/axios"; // Use the configured api
 import toast from "react-hot-toast";
 
+const SESSION_RETRY_DELAYS_MS = [0, 1500, 3500];
+
 const getUserFromStorage = () => {
   try {
     const userStr = localStorage.getItem("user");
@@ -17,16 +19,42 @@ const storedUser = getUserFromStorage();
 const isStoredAdmin = storedUser?.role === "admin";
 const hasStoredUserSession = !!storedUser && !isStoredAdmin;
 
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const getRestoreSessionFailure = (err) => {
+  const status = err.response?.status ?? null;
+
+  return {
+    status,
+    message: err.response?.data?.message || "Failed to restore session.",
+    shouldClearAuth: status === 401 || status === 403,
+  };
+};
+
 export const restoreSession = createAsyncThunk(
   "auth/restoreSession",
   async (_, { rejectWithValue }) => {
-    try {
-      const res = await api.get("/auth/session");
-      return res.data.user;
-    } catch (err) {
-      return rejectWithValue(
-        err.response?.data?.message || "Failed to restore session.",
-      );
+    for (let attempt = 0; attempt < SESSION_RETRY_DELAYS_MS.length; attempt++) {
+      try {
+        if (SESSION_RETRY_DELAYS_MS[attempt] > 0) {
+          await wait(SESSION_RETRY_DELAYS_MS[attempt]);
+        }
+
+        const res = await api.get("/auth/session");
+        return res.data.user;
+      } catch (err) {
+        const failure = getRestoreSessionFailure(err);
+        const shouldRetry =
+          !failure.shouldClearAuth &&
+          attempt < SESSION_RETRY_DELAYS_MS.length - 1 &&
+          (!failure.status || failure.status >= 500);
+
+        if (shouldRetry) {
+          continue;
+        }
+
+        return rejectWithValue(failure);
+      }
     }
   },
 );
@@ -171,6 +199,7 @@ const authSlice = createSlice({
     builder
       .addCase(restoreSession.pending, (state) => {
         state.sessionLoading = true;
+        state.error = null;
       })
       .addCase(restoreSession.fulfilled, (state, action) => {
         state.sessionLoading = false;
@@ -181,12 +210,20 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         localStorage.setItem("user", JSON.stringify(state.user));
       })
-      .addCase(restoreSession.rejected, (state) => {
+      .addCase(restoreSession.rejected, (state, action) => {
+        const shouldClearAuth = action.payload?.shouldClearAuth ?? false;
         state.sessionLoading = false;
         state.sessionChecked = true;
-        state.user = null;
-        state.isAuthenticated = false;
-        localStorage.removeItem("user");
+        state.error = shouldClearAuth ? action.payload?.message || null : null;
+
+        if (shouldClearAuth) {
+          state.user = null;
+          state.isAuthenticated = false;
+          localStorage.removeItem("user");
+          return;
+        }
+
+        state.isAuthenticated = !!state.user && state.user.role !== "admin";
       })
       .addCase(login.pending, (state) => {
         state.loading = true;
