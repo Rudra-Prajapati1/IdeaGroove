@@ -18,7 +18,6 @@ import {
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
-import { selectIsAuthenticated } from "../redux/slice/authSlice";
 import {
   fetchUserComplaints,
   createComplaint,
@@ -42,10 +41,14 @@ const SearchableDropdown = ({
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const displayValue = open ? search : value ? value.split("|")[0] : "";
 
   useEffect(() => {
     const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+        setSearch("");
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -82,7 +85,7 @@ const SearchableDropdown = ({
               <Search size={14} className="text-[#4caf50]" />
               <input
                 autoFocus
-                value={search}
+                value={displayValue}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={`Search...`}
                 className="flex-1 text-sm outline-none bg-transparent"
@@ -125,7 +128,6 @@ const SearchableDropdown = ({
 
 const SubmitComplaint = () => {
   const dispatch = useDispatch();
-  const isAuth = useSelector(selectIsAuthenticated);
   const { user } = useSelector((state) => state.auth);
   const { complaints, contentOptions, answersOptions } = useSelector(
     (state) => state.complaints,
@@ -250,6 +252,7 @@ const SubmitComplaint = () => {
       toast.success("Submitted Successfully");
       dispatch(fetchUserComplaints({ userId: user.id }));
       setFormData({ category: "", topic: "", answerId: "", description: "" });
+      setExpandedId(null);
     } catch (err) {
       toast.error(err);
     }

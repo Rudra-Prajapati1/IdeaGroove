@@ -205,7 +205,12 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/dashboard/${organizerId}`);
+                        navigate(
+                          String(organizerId) ===
+                            String(user?.S_ID || user?.id || user?.Student_ID)
+                            ? "/dashboard"
+                            : `/dashboard/${organizerId}`,
+                        );
                       }}
                       className="hover:underline"
                     >
