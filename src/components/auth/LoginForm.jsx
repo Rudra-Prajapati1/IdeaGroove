@@ -3,6 +3,7 @@ import { Eye, EyeClosed, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  forgotPassword as forgotPasswordThunk,
   login,
   selectAuthSessionChecked,
   selectAuthLoading,
@@ -40,11 +41,16 @@ const LoginForm = ({ onSignup }) => {
     dispatch(login(form));
   };
 
-  const handleForgotPassword = (e) => {
+  const handleForgotPassword = async (e) => {
     e.preventDefault();
-    if (!resetEmail) return toast.error("Please enter your email");
-    toast.success("Reset link would be sent (feature coming soon)");
-    setTimeout(() => setIsForgotPassword(false), 1800);
+    if (!resetEmail.trim()) return toast.error("Please enter your email");
+
+    const result = await dispatch(forgotPasswordThunk(resetEmail.trim()));
+
+    if (forgotPasswordThunk.fulfilled.match(result)) {
+      setResetEmail("");
+      setTimeout(() => setIsForgotPassword(false), 1800);
+    }
   };
 
   return (

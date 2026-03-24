@@ -1,6 +1,7 @@
 import {
   createAsyncThunk,
   createEntityAdapter,
+  createSelector,
   createSlice,
 } from "@reduxjs/toolkit";
 import api from "../../api/axios";
@@ -245,11 +246,16 @@ export const selectStudentsStatus = (state) => state.students.status;
 
 export const selectStudentsError = (state) => state.students.error;
 
-export const selectStudentsPagination = (state) => ({
-  page: state.students.page,
-  totalPages: state.students.totalPages,
-  total: state.students.total,
-});
+export const selectStudentsPagination = createSelector(
+  (state) => state.students.page,
+  (state) => state.students.totalPages,
+  (state) => state.students.total,
+  (page, totalPages, total) => ({
+    page,
+    totalPages,
+    total,
+  }),
+);
 
 export const selectCurrentStudent = (state) => state.students.currentStudent;
 

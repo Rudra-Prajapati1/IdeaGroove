@@ -26,7 +26,7 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [showFullTitle, setShowFullTitle] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   const storageKey = `event_reaction_${event.E_ID}_${user?.S_ID || user?.id}`;
 
@@ -74,11 +74,11 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
         year: "numeric",
       })
     : "Recently uploaded";
-  const eventTitle =
+  const eventDescription =
     event.Description === "null"
       ? "Description not available"
       : event.Description || "Description not available";
-  const shouldShowTitleToggle = eventTitle.length > 56;
+  const shouldShowDescriptionToggle = eventDescription.length > 90;
 
   useEffect(() => {
     if (!previewOpen) return;
@@ -161,10 +161,18 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
         <div className="relative h-64 w-full overflow-hidden">
           <img
             src={event.Poster_File}
-            alt={event.Description}
+            alt={eventDescription}
             onClick={() => setPreviewOpen(true)}
             className="h-full w-full object-cover cursor-pointer transition-transform duration-300 min-w-100 group-hover:scale-110"
           />
+
+          <button
+            type="button"
+            onClick={() => setPreviewOpen(true)}
+            className="absolute bottom-4 left-4 rounded-full bg-black/60 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white backdrop-blur-sm transition hover:bg-black/75"
+          >
+            View Full Details
+          </button>
 
           <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-xl p-2 min-w-14 flex flex-col items-center shadow-md border border-white/20">
             <span className="text-[10px] font-bold text-green-600 tracking-wider leading-none">
@@ -178,8 +186,8 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
           {!isOwner && (
             <ComplaintButton
               onClick={() =>
-                navigate(
-                  `/submit-complaint/event/${event.E_ID}/${event.Description}`,
+                    navigate(
+                  `/submit-complaint/event/${event.E_ID}/${eventDescription}`,
                 )
               }
               className="absolute top-4 right-4"
@@ -192,23 +200,32 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
           <div>
             <h2
               className={`text-xl font-bold text-gray-900 mb-2 font-poppins ${
-                showFullTitle ? "" : "line-clamp-2"
+                showFullDescription ? "" : "line-clamp-2"
               }`}
             >
               {event.Description === "null" ? (
-                <span className="text-gray-500 italic">{eventTitle}</span>
+                <span className="text-gray-500 italic">{eventDescription}</span>
               ) : (
-                eventTitle
+                eventDescription
               )}
             </h2>
-            {shouldShowTitleToggle && (
-              <button
-                type="button"
-                onClick={() => setShowFullTitle((prev) => !prev)}
-                className="text-xs font-semibold text-green-700 hover:underline mb-4"
-              >
-                {showFullTitle ? "View Less" : "View More"}
-              </button>
+            {shouldShowDescriptionToggle && (
+              <div className="mb-4 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowFullDescription((prev) => !prev)}
+                  className="text-xs font-semibold text-green-700 hover:underline"
+                >
+                  {showFullDescription ? "View Less" : "View More"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewOpen(true)}
+                  className="text-xs font-semibold text-slate-500 hover:text-slate-700 hover:underline"
+                >
+                  Click image for full details
+                </button>
+              </div>
             )}
 
             <div className="space-y-3">
@@ -334,10 +351,22 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
 
             <img
               src={event.Poster_File}
-              alt={event.Description}
+              alt={eventDescription}
               onClick={(e) => e.stopPropagation()}
-              className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
+              className="max-h-[72vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
             />
+
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="absolute bottom-0 left-0 right-0 mx-auto w-full max-w-4xl bg-linear-to-t from-black/90 via-black/70 to-transparent px-6 py-5 text-white"
+            >
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-green-300 mb-2">
+                Event Details
+              </p>
+              <p className="text-sm sm:text-base leading-relaxed max-w-3xl">
+                {eventDescription}
+              </p>
+            </div>
           </div>,
           document.getElementById("modal-root") || document.body,
         )}

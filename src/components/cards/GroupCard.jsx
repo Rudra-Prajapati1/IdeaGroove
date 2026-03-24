@@ -12,7 +12,7 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { selectUser } from "../../redux/slice/authSlice";
 import { useNavigate } from "react-router-dom";
-import ViewMembers from "@/components/groups/ViewMembers";
+import ViewMembers from "../groups/ViewMembers";
 import ComplaintButton from "../ComplaintButton";
 import toast from "react-hot-toast";
 import {
@@ -148,9 +148,7 @@ const GroupCard = ({
 
           <div className="space-y-2.5 mb-3">
             <div className="flex items-center gap-1.5 text-gray-800 text-sm">
-              <span className="font-medium">
-                {group.Hobby_Name} | 
-              </span>
+              <span className="font-medium">{group.Hobby_Name} |</span>
               <span className="font-medium">
                 {ownerLabel ? (
                   ownerLabel
@@ -193,7 +191,7 @@ const GroupCard = ({
             </div>
           </div>
 
-          <p className="text-gray-500 text-sm leading-relaxed line-clamp-2 min-h-10">
+          <p className="text-gray-500 text-sm leading-relaxed line-clamp-2 min-h-10 break-words [overflow-wrap:anywhere]">
             {group.Description ||
               "Exploring ideas and creative collaborations..."}
           </p>
