@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Ban,
   CheckCircle,
@@ -7,6 +8,7 @@ import {
   ExternalLink,
   ThumbsDown,
   ThumbsUp,
+  X,
 } from "lucide-react";
 import StudentProfile from "../admin/StudentProfile";
 
@@ -14,6 +16,8 @@ const AdminEventCard = ({ event, onModerate }) => {
   const isActive = event.status === 1;
   const isUpcoming = new Date(event.Event_Date) > new Date();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isImageOpen, setIsImageOpen] = useState(false);
+  const posterSrc = event.Poster_File || "/images/events_temp_image.jpg";
 
   return (
     <>
@@ -24,13 +28,14 @@ const AdminEventCard = ({ event, onModerate }) => {
         {/* Poster Image */}
         <div className="relative h-44 w-full overflow-hidden bg-slate-100">
           <img
-            src={event.Poster_File || "/images/events_temp_image.jpg"}
+            src={posterSrc}
             alt={event.Description}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full cursor-zoom-in object-cover transition-transform duration-500 group-hover:scale-105"
+            onClick={() => setIsImageOpen(true)}
           />
 
           {/* Gradient overlay for readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
           {/* Top badges */}
           <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
@@ -145,6 +150,31 @@ const AdminEventCard = ({ event, onModerate }) => {
           </div>
         </div>
       )}
+
+      {isImageOpen &&
+        createPortal(
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-0 z-9999 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            onClick={() => setIsImageOpen(false)}
+          >
+            <button
+              onClick={() => setIsImageOpen(false)}
+              className="absolute top-6 right-6 text-white bg-black/40 hover:bg-black/60 rounded-full p-2 transition"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <img
+              src={posterSrc}
+              alt={event.Description}
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
+            />
+          </div>,
+          document.getElementById("modal-root") || document.body,
+        )}
     </>
   );
 };

@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from "react";
-import group_temp_image from "/images/group_temp_image.jpg";
-import { Info, Search, Users } from "lucide-react";
+import { createPortal } from "react-dom";
+import {
+  ExternalLink,
+  Info,
+  Search,
+  ShieldCheck,
+  Users,
+  X,
+} from "lucide-react";
+import StudentProfile from "./StudentProfile";
 
 const AdminViewMembers = ({ group, setIsModalOpen }) => {
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -8,13 +16,27 @@ const AdminViewMembers = ({ group, setIsModalOpen }) => {
   const [members, setMembers] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
+
+  const roomId = group?.id ?? group?.Room_ID;
+  const groupName = group?.Name ?? group?.Room_Name ?? "Study Group";
+  const groupCategory = group?.Based_On ?? group?.Hobby_Name ?? "General";
   useEffect(() => {
+    if (!roomId) {
+      setMembers([]);
+      setError("Missing group details");
+      return undefined;
+    }
+
+    const controller = new AbortController();
+
     const fetchViewMembers = async () => {
       setLoading(true);
       setError(null);
       try {
         const reponse = await fetch(
-          `${baseUrl}/groups/viewMembers/${group.id ?? group.Room_ID}`,
+          `${baseUrl}/groups/viewMembers/${roomId}`,
+          { signal: controller.signal },
         );
 
         if (!reponse.ok) {
@@ -24,13 +46,17 @@ const AdminViewMembers = ({ group, setIsModalOpen }) => {
         const data = await reponse.json();
         setMembers(Array.isArray(data.membersDetails) ? data.membersDetails : []);
       } catch (err) {
+        if (err.name === "AbortError") return;
         setError(err.message);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
     fetchViewMembers();
-  }, [baseUrl, group.Room_ID, group.id]);
+    return () => controller.abort();
+  }, [baseUrl, roomId]);
 
   // Filter members based on search
   const filteredMembers = members.filter((m) =>
@@ -39,42 +65,55 @@ const AdminViewMembers = ({ group, setIsModalOpen }) => {
       .includes(searchTerm.toLowerCase()),
   );
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 max-h-[80vh] flex flex-col font-inter">
-        {/* Modal Header: Image + Basic Info */}
-        <div className="bg-white p-8 text-[#0D2E0E] relative">
-          {/* <button
+  return createPortal(
+    <div
+      className="fixed inset-0 z-9999 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={(e) => e.target === e.currentTarget && setIsModalOpen(false)}
+    >
+      <div
+        className="bg-white w-full max-w-2xl rounded-[2rem] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 max-h-[84vh] flex flex-col font-inter"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#0f3d1e] via-[#1B431C] to-emerald-700 px-8 py-8 text-white">
+          <button
             onClick={() => setIsModalOpen(false)}
-            className="absolute top-6 right-6 text-white/70 hover:text-white transition-colors"
+            className="absolute right-5 top-5 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/80 backdrop-blur-sm transition-colors hover:bg-white/20 hover:text-white"
           >
-            <X className="w-6 h-6" />
-          </button> */}
+            <X size={18} />
+          </button>
+          <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+          <div className="absolute bottom-0 left-0 h-24 w-40 bg-gradient-to-r from-emerald-300/20 to-transparent blur-2xl" />
 
-          <div className="flex items-center gap-5">
-            <img
-              src={group_temp_image}
-              alt={group.Name}
-              className="w-20 h-20 rounded-2xl object-cover border-2 border-white/20 shadow-xl"
-            />
-            <div>
-              <h2 className="text-2xl font-bold font-poppins">{group.Name}</h2>
-              <div className="flex flex-wrap gap-2 mt-2">
-                <span className="bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                  {group.Based_On}
-                </span>
-                <span className="flex items-center gap-1 text-green-400 text-xs font-bold">
-                  <Users className="w-3 h-3" /> {group.Member_Count || "0"}{" "}
-                  Members
-                </span>
+          <div className="relative flex items-start justify-between gap-5">
+            <div className="flex items-start gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/10 backdrop-blur-sm">
+                <Users className="h-7 w-7" />
+              </div>
+              <div>
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-white/12 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-white/80">
+                    Group Members
+                  </span>
+                  <span className="rounded-full bg-emerald-200/20 px-3 py-1 text-[11px] font-semibold text-emerald-50">
+                    {members.length || group.Member_Count || 0} active members
+                  </span>
+                </div>
+                <h2 className="text-3xl font-black tracking-tight font-poppins">
+                  {groupName}
+                </h2>
+                <p className="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50/85">
+                  Open any member profile directly from here without searching
+                  through the admin cards.
+                </p>
               </div>
             </div>
+            <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-white/85">
+              {groupCategory}
+            </span>
           </div>
         </div>
 
-        {/* Modal Content Area (Scrollable) */}
-        <div className="p-8 overflow-y-auto custom-scrollbar flex-1">
-          {/* Full Description Section */}
+        <div className="p-8 overflow-y-auto custom-scrollbar flex-1 bg-[#f7faf7]">
           <div className="mb-8">
             <div className="flex items-center gap-2 text-gray-900 font-bold mb-3">
               <Info className="w-4 h-4 text-primary" />
@@ -85,7 +124,6 @@ const AdminViewMembers = ({ group, setIsModalOpen }) => {
             </p>
           </div>
 
-          {/* Members Section */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-gray-900 font-bold">Group Members</h4>
@@ -94,7 +132,6 @@ const AdminViewMembers = ({ group, setIsModalOpen }) => {
               </span>
             </div>
 
-            {/* Search Bar */}
             <div className="relative mb-6">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -106,75 +143,93 @@ const AdminViewMembers = ({ group, setIsModalOpen }) => {
               />
             </div>
 
-            {/* Member List */}
-            {loading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((item) => (
+            <div className="space-y-4">
+              {loading ? (
+                [1, 2, 3].map((item) => (
                   <div
                     key={item}
                     className="h-14 rounded-2xl bg-gray-50 animate-pulse"
                   />
-                ))}
-              </div>
-            ) : error ? (
-              <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-                {error}
-              </div>
-            ) : filteredMembers.length === 0 ? (
-              <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-6 text-sm text-gray-400 text-center">
-                No members found.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredMembers.map((member, index) => {
-                  const memberName = member.name || member.Name || "Unknown";
-                  const memberRole = String(member.role || "member");
-                  const isAdmin = memberRole.toLowerCase() === "admin";
+                ))
+              ) : error ? (
+                <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {error}
+                </div>
+              ) : filteredMembers.length === 0 ? (
+                <p className="text-center text-gray-400 text-sm py-4">
+                  No members found.
+                </p>
+              ) : (
+                filteredMembers.map((member, index) => {
+                  const isAdmin = String(member.role || "").toLowerCase() === "admin";
+                  const displayName =
+                    member.name || member.username || member.Name || "Unknown";
+                  const memberId = member.S_ID || member.Student_ID || index;
 
                   return (
                     <div
-                      key={`${memberName}-${index}`}
-                      className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-2xl transition-colors"
+                      key={memberId}
+                      className="flex items-center justify-between gap-4 rounded-3xl border border-gray-100 bg-white px-4 py-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border border-gray-100 shadow-sm">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 shadow-sm overflow-hidden border border-emerald-100">
                           {member.Profile_Pic ? (
-                            <img src={member.Profile_Pic} alt={memberName} />
+                            <img
+                              src={member.Profile_Pic}
+                              alt={displayName}
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
-                            <div className="rounded-xl flex h-full w-full items-center justify-center font-black text-lg uppercase shrink-0 text-gray-600">
-                              {memberName.charAt(0)}
-                            </div>
+                            <img
+                              src={`https://i.pravatar.cc/150?u=${memberId}`}
+                              alt={displayName}
+                            />
                           )}
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900 text-sm">
-                            {memberName}
-                          </p>
-                          <p
-                            className={`text-[10px] font-black tracking-tighter ${isAdmin ? "text-green-600" : "text-gray-400"}`}
-                          >
-                            {memberRole}
+                          <div className="mb-1 flex flex-wrap items-center gap-2">
+                            <p className="font-bold text-gray-900 text-sm">
+                              {displayName}
+                            </p>
+                            <span
+                              className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${
+                                isAdmin
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "bg-slate-100 text-slate-500"
+                              }`}
+                            >
+                              {isAdmin ? "Admin" : "Member"}
+                            </span>
+                          </div>
+                          <p className="text-xs font-medium text-gray-400">
+                            {member.username
+                              ? `@${member.username}`
+                              : "Student profile available"}
                           </p>
                         </div>
                       </div>
-                      {isAdmin ? (
-                        <span className="text-[10px] text-[#1A3C20] font-medium uppercase tracking-widest px-3">
-                          Admin
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-gray-300 font-medium uppercase tracking-widest px-3">
-                          Member
-                        </span>
-                      )}
+                      <div className="flex items-center gap-3">
+                        <div className="hidden md:flex items-center gap-2 text-[11px] font-semibold text-gray-400">
+                          <ShieldCheck size={14} className="text-emerald-500" />
+                          {isAdmin ? "Leads the group" : "Community member"}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedStudentId(memberId)}
+                          className="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold text-[#1B431C] transition-colors hover:bg-[#1B431C] hover:text-white"
+                        >
+                          View Profile
+                          <ExternalLink size={14} />
+                        </button>
+                      </div>
                     </div>
                   );
-                })}
-              </div>
-            )}
+                })
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Modal Footer (Optional Actions) */}
         <div className="p-6 border-t border-gray-100 flex gap-3">
           <button
             onClick={() => setIsModalOpen(false)}
@@ -184,7 +239,23 @@ const AdminViewMembers = ({ group, setIsModalOpen }) => {
           </button>
         </div>
       </div>
-    </div>
+      {selectedStudentId && (
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={(e) =>
+            e.target === e.currentTarget && setSelectedStudentId(null)
+          }
+        >
+          <div className="relative bg-[#f8faf8] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden">
+            <StudentProfile
+              id={selectedStudentId}
+              onClose={() => setSelectedStudentId(null)}
+            />
+          </div>
+        </div>
+      )}
+    </div>,
+    document.body,
   );
 };
 

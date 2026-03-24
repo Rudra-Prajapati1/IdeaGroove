@@ -174,14 +174,11 @@ import {
   Users,
   ExternalLink,
 } from "lucide-react";
-import { selectIsAuthenticated } from "../../redux/slice/authSlice";
-import { useSelector } from "react-redux";
 import AdminViewMembers from "../admin/AdminViewMember";
 import StudentProfile from "../admin/StudentProfile";
 
 const AdminGroupCard = ({ group, onModerate }) => {
   const isActive = group.status === "active";
-  const isAuth = useSelector(selectIsAuthenticated);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -288,11 +285,11 @@ const AdminGroupCard = ({ group, onModerate }) => {
           </div>
 
           <button
-            disabled={!isAuth}
+            disabled={!group?.id}
             onClick={() => setIsModalOpen(true)}
             className={`w-full py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all
               ${
-                isAuth
+                group?.id
                   ? "bg-emerald-50 text-[#1B431C] hover:bg-[#1B431C] hover:text-white"
                   : "bg-gray-100 text-gray-400 cursor-not-allowed"
               }`}

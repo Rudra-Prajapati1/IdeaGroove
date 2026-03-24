@@ -57,19 +57,31 @@ const AdminComplaintsGrid = ({
   };
 
   const getTypeStyle = (type) => {
-    switch (type?.toUpperCase()) {
+    const normalizedType = String(type || "")
+      .trim()
+      .replace(/[^a-z]/gi, "")
+      .toUpperCase();
+
+    switch (normalizedType) {
       case "NOTES":
       case "NOTE":
-        return "bg-rose-100 text-rose-600 border-rose-200";
+        return "bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200";
       case "QNA":
-        return "bg-emerald-100 text-emerald-800 border-emerald-200";
+        return "bg-cyan-100 text-cyan-800 border-cyan-200";
+      case "ANSWER":
+        return "bg-pink-100 text-pink-700 border-pink-200";
+      case "EVENTS":
+      case "EVENT":
+        return "bg-orange-100 text-orange-700 border-orange-200";
       case "USER":
-        return "bg-blue-100 text-blue-600 border-blue-200";
+        return "bg-amber-100 text-amber-800 border-amber-200";
       case "GROUPS":
       case "GROUP":
-        return "bg-purple-100 text-purple-600 border-purple-200";
+        return "bg-violet-100 text-violet-700 border-violet-200";
+      case "OTHER":
+        return "bg-lime-100 text-lime-800 border-lime-200";
       default:
-        return "bg-red-100 text-red-600 border-red-200";
+        return "bg-slate-100 text-slate-700 border-slate-200";
     }
   };
 

@@ -16,7 +16,7 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const isActive = qna.status === "active";
   const answers = qna.answers || [];
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [selectedProfileId, setSelectedProfileId] = useState(null);
   const activeAnswers = answers.filter((ans) => ans.status === "active").length;
   const inactiveAnswers = answers.length - activeAnswers;
 
@@ -50,7 +50,7 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
           <div className="flex items-center gap-4 mt-1">
             <p className="text-xs text-gray-500 font-medium flex items-center gap-1">
               <button
-                onClick={() => setIsProfileOpen(true)}
+                onClick={() => setSelectedProfileId(qna.authorId)}
                 title="View student profile"
                 className="group/author flex items-center gap-1.5 hover:text-[#1B431C] transition-colors"
               >
@@ -136,7 +136,7 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
                       <div className="flex items-center gap-6 mb-1">
                         <p className="text-xs font-bold text-gray-800">
                           <button
-                            onClick={() => setIsProfileOpen(true)}
+                            onClick={() => setSelectedProfileId(qna.authorId)}
                             title="View student profile"
                             className="group/author flex items-center gap-1.5 hover:text-[#1B431C] transition-colors"
                           >
@@ -211,17 +211,17 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
       )}
 
       {/* Profile Modal */}
-      {isProfileOpen && (
+      {selectedProfileId && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
           onClick={(e) =>
-            e.target === e.currentTarget && setIsProfileOpen(false)
+            e.target === e.currentTarget && setSelectedProfileId(null)
           }
         >
           <div className="relative bg-[#f8faf8] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
             <StudentProfile
-              id={qna.authorId} // Assuming Added_By contains the S_ID of the uploader
-              onClose={() => setIsProfileOpen(false)}
+              id={selectedProfileId}
+              onClose={() => setSelectedProfileId(null)}
             />
           </div>
         </div>

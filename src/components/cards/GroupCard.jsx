@@ -44,6 +44,11 @@ const GroupCard = ({
 
   const currentUserId = user?.id || user?.S_ID;
   const isOwner = Number(group.Created_By) === Number(currentUserId);
+  const creatorId = group.Created_By || group.Creator_ID || null;
+  const creatorName =
+    creatorId && Number(creatorId) === Number(currentUserId)
+      ? "You"
+      : group.Creator_Name || "Unknown";
 
   const isMember = Array.isArray(group.Members)
     ? group.Members.some((m) => Number(m.Student_ID) === Number(currentUserId))
@@ -147,7 +152,31 @@ const GroupCard = ({
                 {group.Hobby_Name} | 
               </span>
               <span className="font-medium">
-                {ownerLabel || `Admin : ${group.Creator_Name}`}
+                {ownerLabel ? (
+                  ownerLabel
+                ) : (
+                  <>
+                    Admin :{" "}
+                    {creatorId ? (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(
+                            String(creatorId) === String(currentUserId)
+                              ? "/dashboard"
+                              : `/dashboard/${creatorId}`,
+                          );
+                        }}
+                        className="hover:underline"
+                      >
+                        {creatorName}
+                      </button>
+                    ) : (
+                      creatorName
+                    )}
+                  </>
+                )}
               </span>
             </div>
 

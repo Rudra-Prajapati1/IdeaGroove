@@ -29,6 +29,10 @@ const NotesCard = ({
   const authorName =
     note.Author_Username || note.Username || note.Author || "Anonymous";
   const authorId = note.Author_ID || note.AuthorId || note.Author_Id || null;
+  const displayAuthorName =
+    authorId && String(authorId) === String(currentUserId)
+      ? "You"
+      : authorName;
   const fileName = note.File_Name
     ? note.File_Name
     : note.Note_File
@@ -185,10 +189,12 @@ const NotesCard = ({
                   }}
                   className="font-medium text-slate-700 hover:underline"
                 >
-                  {authorName}
+                  {displayAuthorName}
                 </button>
               ) : (
-                <span className="font-medium text-slate-700">{authorName}</span>
+                <span className="font-medium text-slate-700">
+                  {displayAuthorName}
+                </span>
               )}
             </div>
             <div className="flex items-center gap-1.5">

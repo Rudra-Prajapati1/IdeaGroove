@@ -26,6 +26,7 @@ import {
   deleteComplaintThunk,
 } from "../redux/slice/complaintsSlice.js";
 import PageHeader from "../components/common/PageHeader";
+import { ConfirmationBox } from "../components/common/ConfirmationBox";
 
 /* ================= SEARCHABLE DROPDOWN ================= */
 const SearchableDropdown = ({
@@ -154,6 +155,7 @@ const SubmitComplaint = () => {
 
   const [expandedId, setExpandedId] = useState(null);
   const [filterConfig, setFilterConfig] = useState("ALL");
+  const [complaintToDelete, setComplaintToDelete] = useState(null);
 
   useEffect(() => {
     if (user?.id) dispatch(fetchUserComplaints({ userId: user.id }));
@@ -183,6 +185,18 @@ const SubmitComplaint = () => {
     }
     return result.sort((a, b) => new Date(b.Date) - new Date(a.Date));
   }, [complaints, filterConfig]);
+
+  const handleDeleteComplaint = async () => {
+    if (!complaintToDelete) return;
+    try {
+      await dispatch(deleteComplaintThunk(complaintToDelete)).unwrap();
+      toast.success("Complaint deleted");
+    } catch (err) {
+      toast.error(err);
+    } finally {
+      setComplaintToDelete(null);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -260,6 +274,14 @@ const SubmitComplaint = () => {
 
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins pb-20">
+      {complaintToDelete && (
+        <ConfirmationBox
+          type="Complaint"
+          onClose={() => setComplaintToDelete(null)}
+          onConfirm={handleDeleteComplaint}
+        />
+      )}
+
       <PageHeader title="Submit Complaint" />
       <main className="max-w-6xl mx-auto py-12 px-8 grid grid-cols-12 gap-8 relative z-30">
         <div className="col-span-8 bg-white rounded-2xl p-8 border border-gray-100 shadow-sm space-y-6">
@@ -518,16 +540,9 @@ const SubmitComplaint = () => {
 
                         return canDelete ? (
                           <button
-                            onClick={async (e) => {
+                            onClick={(e) => {
                               e.stopPropagation();
-                              try {
-                                await dispatch(
-                                  deleteComplaintThunk(item.Complaint_ID),
-                                ).unwrap();
-                                toast.success("Complaint deleted");
-                              } catch (err) {
-                                toast.error(err);
-                              }
+                              setComplaintToDelete(item.Complaint_ID);
                             }}
                             className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg font-bold hover:opacity-90"
                           >

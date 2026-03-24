@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
-import group_temp_image from "/images/group_temp_image.jpg";
 import { Info, Search, Users, MessageCircle, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { selectUser } from "../../redux/slice/authSlice";
 
 const ViewMembers = ({
   group,
@@ -14,6 +15,8 @@ const ViewMembers = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const user = useSelector(selectUser);
+  const currentUserId = user?.id || user?.S_ID || user?.Student_ID;
 
   const members = Array.isArray(group.Members) ? group.Members : [];
 
@@ -98,13 +101,24 @@ const ViewMembers = ({
                   const isAdmin = member.role?.toLowerCase() === "admin";
                   const displayName =
                     member.name || member.username || "Unknown";
+                  const username = member.username ? `@${member.username}` : "";
+                  const fallbackInitial = displayName.charAt(0).toUpperCase();
+                  const profileRoute =
+                    String(member.Student_ID) === String(currentUserId)
+                      ? "/dashboard"
+                      : `/dashboard/${member.Student_ID}`;
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={member.Student_ID}
-                      className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-2xl transition-colors"
+                      onClick={() => {
+                        setIsModalOpen(false);
+                        navigate(profileRoute);
+                      }}
+                      className="flex w-full items-center justify-between p-2 hover:bg-gray-50 rounded-2xl transition-colors text-left"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border border-gray-100 shadow-sm">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border border-gray-100 shadow-sm flex items-center justify-center text-sm font-bold text-gray-700">
                           {member.Profile_Pic ? (
                             <img
                               src={member.Profile_Pic}
@@ -112,16 +126,18 @@ const ViewMembers = ({
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <img
-                              src={`https://i.pravatar.cc/150?u=${member.Student_ID}`}
-                              alt={displayName}
-                            />
+                            fallbackInitial
                           )}
                         </div>
                         <div>
                           <p className="font-bold text-gray-900 text-sm">
                             {displayName}
                           </p>
+                          {username && (
+                            <p className="text-[11px] text-gray-500 font-medium">
+                              {username}
+                            </p>
+                          )}
                           <p
                             className={`text-[10px] font-black tracking-tighter ${
                               isAdmin ? "text-green-600" : "text-gray-400"
@@ -140,7 +156,7 @@ const ViewMembers = ({
                           Member
                         </span>
                       )}
-                    </div>
+                    </button>
                   );
                 })
               )}

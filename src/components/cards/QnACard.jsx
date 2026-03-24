@@ -48,6 +48,10 @@ const QnACard = ({
     post.Question_Author_Username ||
     post.Question_Author ||
     "Unknown";
+  const displayQuestionAuthorName =
+    questionAuthorId && String(questionAuthorId) === String(currentUserId)
+      ? "You"
+      : questionAuthorName;
 
   useEffect(() => {
     const raw = post?.Answers;
@@ -164,7 +168,7 @@ const QnACard = ({
   };
 
   /* =================== HELPERS =================== */
-  const authorName = questionAuthorName;
+  const authorName = displayQuestionAuthorName;
   const authorInitial = authorName.charAt(0);
 
   return (
@@ -217,10 +221,10 @@ const QnACard = ({
                       }}
                       className="hover:underline"
                     >
-                    {questionAuthorName}
+                    {displayQuestionAuthorName}
                   </button>
                 ) : (
-                  questionAuthorName
+                  displayQuestionAuthorName
                 )}
               </span>
               <span className="text-xs text-slate-400">
@@ -310,6 +314,11 @@ const QnACard = ({
                     ans.Answer_Author_Username ||
                     ans.Answer_Author ||
                     "Unknown";
+                  const displayAnswerAuthorName =
+                    answerAuthorId &&
+                    String(answerAuthorId) === String(currentUserId)
+                      ? "You"
+                      : answerAuthorName;
 
                   return (
                     <div
@@ -332,10 +341,10 @@ const QnACard = ({
                               }}
                               className="hover:underline"
                             >
-                              {answerAuthorName}
+                              {displayAnswerAuthorName}
                             </button>
                           ) : (
-                            answerAuthorName
+                            displayAnswerAuthorName
                           )}
                           <span className="text-slate-400 font-normal ml-2">
                             {new Date(ans.Answered_On).toLocaleDateString(
