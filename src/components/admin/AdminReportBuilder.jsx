@@ -174,8 +174,6 @@ const SECTIONS = [
       { key: "Added_On", label: "Posted On", default: true },
       { key: "student_name", label: "Asked By", default: true },
       { key: "answer_count", label: "Answers", default: true },
-      { key: "top_answer", label: "Top Answer", default: true },
-      { key: "all_answers", label: "All Answers", default: true },
       { key: "Subject_Name", label: "Subject", default: true },
       { key: "Is_Active", label: "Status", default: true },
     ],
@@ -239,6 +237,19 @@ const STATUS_COLORS = {
   "In-Progress": [59, 130, 246],
 };
 
+const getCompressedCanvasDataUrl = (canvas, quality = 0.72) => {
+  const output = document.createElement("canvas");
+  output.width = canvas.width;
+  output.height = canvas.height;
+  const outputCtx = output.getContext("2d");
+
+  outputCtx.fillStyle = "#ffffff";
+  outputCtx.fillRect(0, 0, output.width, output.height);
+  outputCtx.drawImage(canvas, 0, 0);
+
+  return output.toDataURL("image/jpeg", quality);
+};
+
 const formatCell = (key, val) => {
   if (val === null || val === undefined) return "-";
   if (key === "Is_Active" || key === "is_Active")
@@ -256,6 +267,24 @@ const formatCell = (key, val) => {
   }
   const s = String(val);
   return s.length > 40 ? s.slice(0, 39) + "..." : s;
+};
+
+const formatPdfCell = (key, val) => {
+  if (val === null || val === undefined || val === "") return "-";
+  if (key === "Is_Active" || key === "is_Active")
+    return val === 1 ? "Active" : "Blocked";
+  if (["Event_Date", "Added_On", "Created_On", "Date"].includes(key)) {
+    try {
+      return new Date(val).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return String(val);
+    }
+  }
+  return String(val);
 };
 
 // ─── Mini SVG Donut ───────────────────────────────────────────────────────
@@ -386,8 +415,11 @@ const SectionPreview = ({ section, sData }) => {
           {summary.map((s, i) => (
             <div
               key={i}
-              className="rounded-xl px-3 py-2 text-center"
-              style={{ backgroundColor: section.accent }}
+              className="rounded-2xl border px-3 py-2.5 text-left shadow-sm"
+              style={{
+                background: `linear-gradient(135deg, ${section.accent}, #ffffff)`,
+                borderColor: `${section.color}25`,
+              }}
             >
               <div
                 className="text-base font-black leading-tight"
@@ -395,7 +427,7 @@ const SectionPreview = ({ section, sData }) => {
               >
                 {s.value}
               </div>
-              <div className="text-[9px] font-semibold text-gray-500 leading-tight mt-0.5">
+              <div className="mt-1 text-[9px] font-semibold uppercase tracking-wider text-gray-500 leading-tight">
                 {s.label}
               </div>
             </div>
@@ -420,11 +452,15 @@ const SectionPreview = ({ section, sData }) => {
 
       {/* Charts */}
       {(donut.length > 0 || bars.length > 0) && (
-        <div className="flex items-center gap-4 pt-1">
+        <div className="grid gap-3 pt-1 lg:grid-cols-[minmax(0,240px)_1fr]">
           {donut.length > 0 && (
-            <div className="flex items-center gap-4 flex-shrink-0">
-              <MiniDonut slices={donut} />
-              <div className="space-y-1.5">
+            <div className="rounded-2xl border border-gray-100 bg-gray-50/80 px-3 py-3">
+              <div className="mb-2 text-[9px] font-black uppercase tracking-widest text-gray-400">
+                Snapshot
+              </div>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <MiniDonut slices={donut} />
+                <div className="space-y-1.5">
                 {donut.map((s, i) => (
                   <div key={i} className="flex items-center gap-1.5">
                     <div
@@ -437,11 +473,12 @@ const SectionPreview = ({ section, sData }) => {
                     </span>
                   </div>
                 ))}
+                </div>
               </div>
             </div>
           )}
           {bars.length > 0 && (
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 rounded-2xl border border-gray-100 bg-white px-3 py-3 shadow-sm">
               <div className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">
                 Monthly trend
               </div>
@@ -472,8 +509,8 @@ const SampleTable = ({ section, rows, colState }) => {
   const visibleCols = section.columns.filter((c) => colState[c.key]);
   if (!visibleCols.length || !rows?.length) return null;
   return (
-    <div className="px-4 pb-4 overflow-x-auto">
-      <div className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">
+    <div className="mx-4 mb-4 overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm">
+      <div className="border-b border-gray-100 px-4 py-3 text-[9px] font-black uppercase tracking-widest text-gray-400">
         Sample — first 5 rows
       </div>
       <table className="w-full text-[10px] border-collapse min-w-max">
@@ -482,7 +519,7 @@ const SampleTable = ({ section, rows, colState }) => {
             {visibleCols.map((col) => (
               <th
                 key={col.key}
-                className="text-left py-1.5 px-2 font-black text-[9px] text-gray-400 uppercase border-b border-gray-100 whitespace-nowrap"
+                className="text-left py-2 px-3 font-black text-[9px] text-gray-400 uppercase border-b border-gray-100 whitespace-nowrap bg-gray-50/80"
               >
                 {col.label}
               </th>
@@ -495,7 +532,7 @@ const SampleTable = ({ section, rows, colState }) => {
               {visibleCols.map((col) => (
                 <td
                   key={col.key}
-                  className="py-1.5 px-2 text-gray-600 whitespace-nowrap max-w-[160px] truncate"
+                  className="py-2 px-3 text-gray-600 whitespace-nowrap max-w-[160px] truncate"
                 >
                   {col.key === "Is_Active" || col.key === "is_Active" ? (
                     <span
@@ -756,13 +793,18 @@ const ReportMultiSelect = ({
   };
 
   return (
-    <div className="flex min-w-[260px] flex-1 flex-col gap-1 relative sm:max-w-[340px]" ref={ref}>
+    <div
+      className="relative flex min-w-[260px] flex-1 flex-col gap-1 self-start sm:max-w-[340px]"
+      ref={ref}
+    >
       <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 pl-0.5">
         {label}
       </span>
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-1.5 text-xs font-medium border rounded-lg bg-white hover:border-gray-300 focus:outline-none transition-all cursor-pointer py-2 pr-2"
+        className={`flex min-h-[38px] items-center gap-1.5 rounded-xl border bg-white py-2 pr-2 text-xs font-medium transition-all ${
+          open ? "border-gray-400 ring-1 ring-gray-200" : "border-gray-200"
+        } hover:border-gray-300 focus:outline-none`}
         style={{ paddingLeft: "8px" }}
       >
         {Icon && <Icon size={11} className="text-gray-400 flex-shrink-0 mr-1" />}
@@ -778,15 +820,24 @@ const ReportMultiSelect = ({
       </button>
 
       {selectedValues.length > 0 && (
-        <div className="max-h-24 overflow-y-auto rounded-xl border border-gray-100 bg-slate-50 p-2">
-          <div className="flex flex-wrap gap-1.5">
+        <div className="rounded-xl border border-gray-200 bg-slate-50/90 p-2 shadow-inner">
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+              Selected
+            </span>
+            <span className="text-[10px] font-semibold text-gray-500">
+              {selectedValues.length}
+            </span>
+          </div>
+          <div className="max-h-24 overflow-y-auto pr-1">
+            <div className="flex flex-wrap gap-1.5">
           {selectedValues.map((item) => (
             <span
               key={item}
-              className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold text-white"
+              className="inline-flex max-w-full items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold text-white shadow-sm"
               style={{ backgroundColor: color }}
             >
-              {item}
+              <span className="max-w-[180px] truncate">{item}</span>
               <button
                 onClick={() => removeValue(item)}
                 className="text-white/80 hover:text-white"
@@ -795,6 +846,7 @@ const ReportMultiSelect = ({
               </button>
             </span>
           ))}
+            </div>
           </div>
         </div>
       )}
@@ -1183,29 +1235,29 @@ const AdminReportBuilder = () => {
         summary.slice(0, n).forEach((s, i) => {
           const cx = 10 + i * (cw + 3);
           doc.setFillColor(...bg);
-          doc.roundedRect(cx, y, cw, 20, 2, 2, "F");
+          doc.roundedRect(cx, y, cw, 16, 2, 2, "F");
           doc.setDrawColor(r, g, b);
           doc.setLineWidth(0.25);
-          doc.roundedRect(cx, y, cw, 20, 2, 2, "S");
-          doc.setFontSize(16);
+          doc.roundedRect(cx, y, cw, 16, 2, 2, "S");
+          doc.setFontSize(13);
           doc.setFont("helvetica", "bold");
           doc.setTextColor(r, g, b);
-          doc.text(String(s.value ?? 0), cx + cw / 2, y + 11, {
+          doc.text(String(s.value ?? 0), cx + cw / 2, y + 8.8, {
             align: "center",
           });
-          doc.setFontSize(6);
+          doc.setFontSize(5.3);
           doc.setFont("helvetica", "bold");
           doc.setTextColor(110, 110, 110);
-          doc.text(s.label.toUpperCase(), cx + cw / 2, y + 16.5, {
+          doc.text(s.label.toUpperCase(), cx + cw / 2, y + 13.1, {
             align: "center",
           });
         });
-        return y + 24;
+        return y + 19;
       };
 
       const drawDonutChart = (slices, cx, cy, radius) => {
         const canvas = document.createElement("canvas");
-        const sz = (radius + 20) * 4;
+        const sz = (radius + 20) * 3.5;
         canvas.width = canvas.height = sz;
         const ctx = canvas.getContext("2d"),
           cc = sz / 2;
@@ -1239,8 +1291,8 @@ const AdminReportBuilder = () => {
         ctx.fillText("total", cc, cc + radius * 0.5);
         const mm = (radius + 20) * 2 * 0.265;
         doc.addImage(
-          canvas.toDataURL("image/png"),
-          "PNG",
+          getCompressedCanvasDataUrl(canvas, 0.74),
+          "JPEG",
           cx - mm / 2,
           cy - mm / 2,
           mm,
@@ -1250,116 +1302,105 @@ const AdminReportBuilder = () => {
 
       const drawBarChart = (bars, x, y, w, h, hex) => {
         if (!bars?.length) return;
-        const canvas = document.createElement("canvas");
-        canvas.width = w * 5;
-        canvas.height = h * 5;
-        const ctx = canvas.getContext("2d");
         const max = Math.max(...bars.map((b) => Number(b.value) || 0), 1);
-        const bw = (canvas.width / bars.length) * 0.58;
-        const gap = (canvas.width / bars.length) * 0.42;
-        bars.forEach((b, i) => {
-          const bh = (b.value / max) * canvas.height * 0.72;
-          const bx = i * (bw + gap) + gap * 0.5,
-            by = canvas.height * 0.82 - bh;
-          const grad = ctx.createLinearGradient(bx, by, bx, by + bh);
-          grad.addColorStop(0, hex);
-          grad.addColorStop(1, hex + "55");
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.moveTo(bx + 3, by);
-          ctx.lineTo(bx + bw - 3, by);
-          ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + 3);
-          ctx.lineTo(bx + bw, by + bh);
-          ctx.lineTo(bx, by + bh);
-          ctx.lineTo(bx, by + 3);
-          ctx.quadraticCurveTo(bx, by, bx + 3, by);
-          ctx.closePath();
-          ctx.fill();
-          ctx.fillStyle = "#374151";
-          ctx.font = `bold ${canvas.width * 0.058}px Arial`;
-          ctx.textAlign = "center";
-          ctx.textBaseline = "bottom";
-          ctx.fillText(String(b.value), bx + bw / 2, by - 3);
-          ctx.fillStyle = "#9ca3af";
-          ctx.font = `${canvas.width * 0.048}px Arial`;
-          ctx.textBaseline = "top";
-          ctx.fillText(
-            b.label.length > 5 ? b.label.slice(0, 4) + "." : b.label,
-            bx + bw / 2,
-            canvas.height * 0.84,
-          );
+        const baselineY = y + h - 8;
+        const slotWidth = w / bars.length;
+        const barWidth = Math.max(4.5, slotWidth * 0.54);
+        const [r, g, b] = hex
+          .replace("#", "")
+          .match(/.{1,2}/g)
+          .map((value) => Number.parseInt(value, 16));
+
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.25);
+        doc.line(x, baselineY, x + w, baselineY);
+
+        bars.forEach((bar, index) => {
+          const value = Number(bar.value) || 0;
+          const barHeight = max ? (value / max) * (h - 18) : 0;
+          const barX = x + index * slotWidth + (slotWidth - barWidth) / 2;
+          const barY = baselineY - barHeight;
+          const shortLabel =
+            String(bar.label || "").length > 5
+              ? `${String(bar.label).slice(0, 4)}.`
+              : String(bar.label || "");
+
+          doc.setFillColor(r, g, b);
+          doc.roundedRect(barX, barY, barWidth, barHeight, 1.2, 1.2, "F");
+
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(6.5);
+          doc.setTextColor(55, 65, 81);
+          doc.text(String(value), barX + barWidth / 2, barY - 1.5, {
+            align: "center",
+          });
+
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(5.6);
+          doc.setTextColor(148, 163, 184);
+          doc.text(shortLabel, barX + barWidth / 2, baselineY + 4.5, {
+            align: "center",
+          });
         });
-        doc.addImage(canvas.toDataURL("image/png"), "PNG", x, y, w, h);
+      };
+
+      const fitText = (text, maxWidth, baseSize = 6.8, minSize = 4.2) => {
+        const content = text == null ? "-" : String(text);
+        let fontSize = baseSize;
+        while (fontSize > minSize) {
+          doc.setFontSize(fontSize);
+          if (doc.getTextWidth(content) <= maxWidth) break;
+          fontSize -= 0.2;
+        }
+        return { text: content, fontSize };
       };
 
       const drawDataTable = (section, rows, cols, startY) => {
         if (!rows?.length || !cols.length) return startY + 4;
         const mL = 10,
           tW = pw - 20,
-          rH = 8,
-          cW = tW / cols.length,
-          lineHeight = 3.6;
+          rH = 7,
+          cW = tW / cols.length;
 
         const drawTH = (yp) => {
           doc.setFillColor(27, 67, 28);
           doc.rect(mL, yp, tW, rH, "F");
-          doc.setFontSize(7.5);
           doc.setFont("helvetica", "bold");
           doc.setTextColor(255, 255, 255);
           cols.forEach((col, i) => {
-            const txt = col.label.toUpperCase(),
-              mc = Math.floor(cW / 2.2);
-            doc.text(
-              txt.length > mc ? txt.slice(0, mc - 1) + "..." : txt,
-              mL + i * cW + 2,
-              yp + 5.5,
+            const { text, fontSize } = fitText(
+              col.label.toUpperCase(),
+              cW - 4,
+              6.4,
+              4.4,
             );
+            doc.setFontSize(fontSize);
+            doc.text(text, mL + i * cW + 2, yp + 4.6);
           });
           return yp + rH;
         };
 
         let y = drawTH(startY);
         rows.forEach((row, i) => {
-          const cellLines = cols.map((col) => {
+          const cells = cols.map((col) => {
             const raw = row[col.key];
-            const shouldWrap =
-              ["groups", "qna"].includes(section.id) &&
-              ["Room_Name", "member_names", "Question", "top_answer", "all_answers"].includes(
-                col.key,
-              );
-            const baseValue =
-              raw == null
-                ? "-"
-                : shouldWrap
-                  ? String(raw)
-                  : formatCell(col.key, raw);
-
-            if (shouldWrap) {
-              return doc.splitTextToSize(baseValue, cW - 4);
-            }
-
-            const mc = Math.floor(cW / 1.9);
-            return [baseValue.length > mc ? `${baseValue.slice(0, mc - 1)}...` : baseValue];
+            const value = formatPdfCell(col.key, raw);
+            return fitText(value, cW - 4, 6.1, 4.1);
           });
 
-          const rowHeight = Math.max(
-            rH,
-            Math.max(...cellLines.map((lines) => lines.length), 1) * lineHeight + 3,
-          );
-
-          if (y + rowHeight > ph - 18) {
+          if (y + rH > ph - 18) {
             doc.addPage();
             y = 15;
             y = drawTH(y);
           }
           if (i % 2 === 0) {
             doc.setFillColor(248, 252, 248);
-            doc.rect(mL, y, tW, rowHeight, "F");
+            doc.rect(mL, y, tW, rH, "F");
           }
           cols.forEach((col, j) => {
             const raw = row[col.key];
-            const lines = cellLines[j];
-            doc.setFontSize(7);
+            const { text, fontSize } = cells[j];
+            doc.setFontSize(fontSize);
             doc.setFont("helvetica", "normal");
             if (col.key === "Is_Active" || col.key === "is_Active") {
               doc.setTextColor(...(raw === 1 ? [16, 185, 129] : [239, 68, 68]));
@@ -1369,7 +1410,7 @@ const AdminReportBuilder = () => {
               doc.setFont("helvetica", "bold");
             } else if (col.key === "event_status") {
               doc.setTextColor(
-                ...(cv === "Upcoming" ? [14, 165, 233] : [148, 163, 184]),
+                ...(raw === "Upcoming" ? [14, 165, 233] : [148, 163, 184]),
               );
               doc.setFont("helvetica", "bold");
             } else if (col.key === "Complaint_Type") {
@@ -1378,81 +1419,12 @@ const AdminReportBuilder = () => {
             } else {
               doc.setTextColor(50, 50, 50);
             }
-            doc.text(lines, mL + j * cW + 2, y + 4.5);
+            doc.text(text, mL + j * cW + 2, y + 4.5);
           });
           doc.setDrawColor(220, 230, 220);
           doc.setLineWidth(0.1);
-          doc.line(mL, y + rowHeight, mL + tW, y + rowHeight);
-          y += rowHeight;
-
-          const extensionItems =
-            section.id === "groups"
-              ? String(row.member_names || "")
-                  .split(",")
-                  .map((item) => item.trim())
-                  .filter(Boolean)
-              : section.id === "qna"
-                ? String(row.all_answers || "")
-                    .split("|")
-                    .map((item) => item.trim())
-                    .filter(Boolean)
-                : [];
-
-          if (
-            ["groups", "qna"].includes(section.id) &&
-            extensionItems.length > 0
-          ) {
-            const detailLineSets = extensionItems.map((item) =>
-              doc.splitTextToSize(item, tW - 16),
-            );
-            const extensionHeight =
-              8 +
-              detailLineSets.reduce(
-                (sum, lines) => sum + lines.length * 4.2 + 1.8,
-                0,
-              );
-            if (y + extensionHeight > ph - 18) {
-              doc.addPage();
-              y = 15;
-              y = drawTH(y);
-            }
-
-            doc.setFillColor(245, 247, 250);
-            doc.rect(mL, y, tW, extensionHeight, "F");
-            doc.setFillColor(...section.rgb);
-            doc.rect(mL, y, tW, 6, "F");
-            doc.setFontSize(6.5);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(255, 255, 255);
-            doc.text(
-              section.id === "groups"
-                ? `${row.Room_Name || "Group"} Member Details`
-                : "Answer Details",
-              mL + 2,
-              y + 4,
-            );
-
-            let detailY = y + 10;
-            detailLineSets.forEach((itemLines, itemIndex) => {
-              const itemHeight = itemLines.length * 4.2 + 1.5;
-              if (itemIndex % 2 === 0) {
-                doc.setFillColor(255, 255, 255);
-                doc.rect(mL + 2, detailY - 3.6, tW - 4, itemHeight, "F");
-              }
-              doc.setFont("helvetica", "bold");
-              doc.setTextColor(...section.rgb);
-              doc.text(`${itemIndex + 1}.`, mL + 4, detailY);
-              doc.setFont("helvetica", "normal");
-              doc.setTextColor(75, 85, 99);
-              doc.text(itemLines, mL + 11, detailY);
-              detailY += itemHeight;
-            });
-
-            doc.setDrawColor(220, 230, 220);
-            doc.setLineWidth(0.1);
-            doc.line(mL, y + extensionHeight, mL + tW, y + extensionHeight);
-            y += extensionHeight;
-          }
+          doc.line(mL, y + rH, mL + tW, y + rH);
+          y += rH;
         });
         return y + 6;
       };
@@ -1495,7 +1467,7 @@ const AdminReportBuilder = () => {
 
           if (donut.length || bars.length) {
             doc.setFillColor(249, 252, 249);
-            doc.roundedRect(10, y, pw - 20, 80, 2, 2, "F");
+            doc.roundedRect(10, y, pw - 20, 68, 2, 2, "F");
             const ct = y + 4,
               hw = (pw - 26) / 2;
             doc.setFontSize(7.5);
@@ -1505,24 +1477,24 @@ const AdminReportBuilder = () => {
               align: "center",
             });
             if (donut.length) {
-              drawDonutChart(donut, 12 + hw * 0.38, ct + 40, 45);
+              drawDonutChart(donut, 12 + hw * 0.34, ct + 34, 36);
               const lx = 12 + hw * 0.66;
               donut.forEach((s, i) => {
-                const ly = ct + 22 + i * 12;
+                const ly = ct + 16 + i * 9;
                 doc.setFillColor(s.color);
-                doc.roundedRect(lx, ly, 4, 4, 0.5, 0.5, "F");
-                doc.setFontSize(7.5);
+                doc.roundedRect(lx, ly, 3.5, 3.5, 0.5, 0.5, "F");
+                doc.setFontSize(6.8);
                 doc.setFont("helvetica", "bold");
                 doc.setTextColor(50, 50, 50);
-                doc.text(s.label, lx + 6, ly + 3.2);
-                doc.setFontSize(9);
+                doc.text(s.label, lx + 5, ly + 2.8);
+                doc.setFontSize(8);
                 doc.setTextColor(...section.rgb);
-                doc.text(String(s.value), lx + 6, ly + 9);
+                doc.text(String(s.value), lx + 5, ly + 7.2);
               });
             }
             doc.setDrawColor(220, 235, 220);
             doc.setLineWidth(0.3);
-            doc.line(14 + hw, ct + 2, 14 + hw, ct + 74);
+            doc.line(14 + hw, ct + 2, 14 + hw, ct + 62);
             doc.setFontSize(7.5);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(...section.rgb);
@@ -1530,8 +1502,8 @@ const AdminReportBuilder = () => {
               align: "center",
             });
             if (bars.length)
-              drawBarChart(bars, 16 + hw, ct + 8, hw - 4, 64, section.color);
-            y += 84;
+              drawBarChart(bars, 16 + hw, ct + 8, hw - 4, 52, section.color);
+            y += 72;
             doc.setDrawColor(210, 228, 210);
             doc.setLineWidth(0.4);
             doc.line(10, y, pw - 10, y);
@@ -1580,27 +1552,27 @@ const AdminReportBuilder = () => {
         <button
           onClick={generatePDF}
           disabled={selectedCount === 0 || generating}
-          className="group flex items-center justify-center gap-3 bg-white border border-gray-200 hover:border-green-700 hover:bg-green-800 px-6 py-3 rounded-xl text-base font-semibold text-gray-600 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed min-w-[240px]"
+          className="group flex items-center justify-center gap-2.5 bg-white border border-gray-200 hover:border-green-700 hover:bg-green-800 px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed min-w-[210px]"
         >
           <div className="p-1 rounded-lg bg-green-50 group-hover:bg-white/20 transition-colors">
             {generating ? (
               <Loader2
-                size={16}
+                size={14}
                 className="text-green-700 group-hover:text-white animate-spin"
               />
             ) : (
               <FileBarChart2
-                size={16}
+                size={14}
                 className="text-green-700 group-hover:text-white transition-colors"
               />
             )}
           </div>
           <span>{generating ? "Generating..." : "Generate Report"}</span>
-          <span className="text-xs font-bold bg-green-100 group-hover:bg-white/20 text-green-700 group-hover:text-white px-2 py-0.5 rounded-md transition-colors">
+          <span className="text-[10px] font-bold bg-green-100 group-hover:bg-white/20 text-green-700 group-hover:text-white px-1.5 py-0.5 rounded-md transition-colors">
             PDF
           </span>
           {selectedCount > 0 && !generating && (
-            <span className="text-xs font-bold bg-amber-100 group-hover:bg-white/20 text-amber-700 group-hover:text-white px-2 py-0.5 rounded-md transition-colors">
+            <span className="text-[10px] font-bold bg-amber-100 group-hover:bg-white/20 text-amber-700 group-hover:text-white px-1.5 py-0.5 rounded-md transition-colors">
               {selectedCount} section{selectedCount > 1 ? "s" : ""}
             </span>
           )}

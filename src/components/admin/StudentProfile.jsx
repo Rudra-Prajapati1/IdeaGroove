@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  AlertCircle,
   Calendar,
   FileText,
+  Loader2,
   MessageSquare,
   Users,
   X,
@@ -40,6 +42,8 @@ const StudentProfile = ({ id, onClose }) => {
   const [activities, setActivities] = useState([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [profile, setProfile] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [profileError, setProfileError] = useState("");
   const [selectedGroup, setSelectedGroup] = useState(null);
 
   const [indicatorStyle, setIndicatorStyle] = useState({});
@@ -56,19 +60,39 @@ const StudentProfile = ({ id, onClose }) => {
   useEffect(() => {
     if (!id) return;
 
+    const controller = new AbortController();
+
     const fetchProfile = async () => {
+      setLoadingProfile(true);
+      setProfileError("");
+
       try {
         const res = await fetch(
           `${import.meta.env.VITE_API_BASE_URL}/students/profile/${id}`,
+          { signal: controller.signal },
         );
+
+        if (!res.ok) {
+          throw new Error("Failed to load student profile");
+        }
+
         const data = await res.json();
         setProfile(data);
       } catch (err) {
+        if (err.name === "AbortError") return;
         console.error("Profile refresh error:", err);
+        setProfile(null);
+        setProfileError(err.message || "Failed to load student profile");
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingProfile(false);
+        }
       }
     };
 
     fetchProfile();
+
+    return () => controller.abort();
   }, [id]);
 
   useEffect(() => {
@@ -134,6 +158,66 @@ const StudentProfile = ({ id, onClose }) => {
       </div>
 
       <div className="px-10 py-5 max-w-4xl mx-auto">
+        {loadingProfile ? (
+          <div className="space-y-8 animate-pulse">
+            <div className="flex items-center justify-between gap-4">
+              <div className="space-y-3">
+                <div className="h-10 w-56 rounded-2xl bg-emerald-100/70" />
+                <div className="h-4 w-28 rounded-full bg-gray-200" />
+              </div>
+              <div className="flex items-center gap-2 rounded-full border border-emerald-100 bg-white px-4 py-2 text-sm font-semibold text-[#0f3d1e] shadow-sm">
+                <Loader2 size={16} className="animate-spin" />
+                Opening profile...
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {[...Array(6)].map((_, index) => (
+                <div
+                  key={index}
+                  className="rounded-3xl border border-gray-100 bg-white px-5 py-6 shadow-sm"
+                >
+                  <div className="mb-3 h-3 w-20 rounded-full bg-gray-200" />
+                  <div className="h-5 w-32 rounded-xl bg-emerald-50" />
+                </div>
+              ))}
+            </div>
+
+            <div className="rounded-[28px] border border-gray-100 bg-white p-6 shadow-sm">
+              <div className="mb-5 h-3 w-36 rounded-full bg-gray-200" />
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
+                <div className="h-44 w-44 rounded-full bg-emerald-50" />
+                <div className="grid flex-1 grid-cols-2 gap-4">
+                  {[...Array(5)].map((_, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="h-3 w-20 rounded-full bg-gray-200" />
+                      <div className="h-7 w-28 rounded-xl bg-gray-100" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-dashed border-emerald-200 bg-white/80 px-6 py-12 text-center shadow-sm">
+              <p className="text-sm font-semibold text-gray-500">
+                Loading activity insights and contribution history...
+              </p>
+            </div>
+          </div>
+        ) : profileError ? (
+          <div className="rounded-[28px] border border-red-100 bg-white px-8 py-14 text-center shadow-sm">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-500">
+              <AlertCircle size={24} />
+            </div>
+            <h2 className="text-xl font-black text-gray-800">
+              Unable to open this profile
+            </h2>
+            <p className="mt-2 text-sm font-medium text-gray-500">
+              {profileError}
+            </p>
+          </div>
+        ) : (
+          <>
         {/* Main Header */}
         <div className="flex justify-between items-start mb-10">
           <div>
@@ -557,6 +641,8 @@ const StudentProfile = ({ id, onClose }) => {
               Select a category above to visualize detailed engagement metrics.
             </p>
           </div>
+        )}
+          </>
         )}
       </div>
 

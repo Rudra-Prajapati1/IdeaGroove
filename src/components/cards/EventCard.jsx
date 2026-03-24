@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Clock,
+  Calendar,
   Edit2,
   Loader2,
   Trash2,
@@ -26,6 +26,7 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [showFullTitle, setShowFullTitle] = useState(false);
 
   const storageKey = `event_reaction_${event.E_ID}_${user?.S_ID || user?.id}`;
 
@@ -61,6 +62,23 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
     event.Organizer_Name ||
     event.Contact_Person ||
     "Admin";
+  const displayOrganizerName =
+    organizerId &&
+    String(organizerId) === String(user?.S_ID || user?.id || user?.Student_ID)
+      ? "You"
+      : organizerName;
+  const uploadedDate = event.Added_On
+    ? new Date(event.Added_On).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "Recently uploaded";
+  const eventTitle =
+    event.Description === "null"
+      ? "Description not available"
+      : event.Description || "Description not available";
+  const shouldShowTitleToggle = eventTitle.length > 56;
 
   useEffect(() => {
     if (!previewOpen) return;
@@ -172,22 +190,32 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
 
         <div className="p-5 flex flex-col justify-between grow">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 line-clamp-2 mb-4 font-poppins">
+            <h2
+              className={`text-xl font-bold text-gray-900 mb-2 font-poppins ${
+                showFullTitle ? "" : "line-clamp-2"
+              }`}
+            >
               {event.Description === "null" ? (
-                <span className="text-gray-500 italic">
-                  Description not available
-                </span>
+                <span className="text-gray-500 italic">{eventTitle}</span>
               ) : (
-                event.Description
+                eventTitle
               )}
             </h2>
+            {shouldShowTitleToggle && (
+              <button
+                type="button"
+                onClick={() => setShowFullTitle((prev) => !prev)}
+                className="text-xs font-semibold text-green-700 hover:underline mb-4"
+              >
+                {showFullTitle ? "View Less" : "View More"}
+              </button>
+            )}
 
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-gray-500">
-                <Clock className="w-4 h-4 text-green-600" />
+                <Calendar className="w-4 h-4 text-green-600" />
                 <span className="text-sm font-medium">
-                  {event.Start_Time || "4:00 PM"} -{" "}
-                  {event.End_Time || "10:00 PM"}
+                  Uploaded Date: {uploadedDate}
                 </span>
               </div>
             </div>
@@ -214,10 +242,10 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
                       }}
                       className="hover:underline"
                     >
-                      {organizerName.toUpperCase()}
+                      {displayOrganizerName.toUpperCase()}
                     </button>
                   ) : (
-                    <span>{organizerName}</span>
+                    <span>{displayOrganizerName}</span>
                   )}
                 </>
               )}

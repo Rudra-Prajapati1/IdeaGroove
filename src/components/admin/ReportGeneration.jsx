@@ -1005,13 +1005,13 @@ const ReportGeneration = ({
     <>
       <button
         onClick={() => setModalOpen(true)}
-        className="group flex items-center gap-3 bg-white border border-gray-200 hover:border-green-700 hover:bg-green-800 px-6 py-3 rounded-xl text-base font-semibold text-gray-600 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md min-w-[220px] justify-center"
+        className="group flex items-center justify-center gap-2.5 bg-white border border-gray-200 hover:border-green-700 hover:bg-green-800 px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md min-w-[190px]"
       >
         <div className="p-1 rounded-lg bg-green-50 group-hover:bg-white/20 transition-colors">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
+            width="14"
+            height="14"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -1026,7 +1026,7 @@ const ReportGeneration = ({
           </svg>
         </div>
         <span>Export Report</span>
-        <span className="text-xs font-bold bg-green-100 group-hover:bg-white/20 text-green-700 group-hover:text-white px-2 py-0.5 rounded-md transition-colors">
+        <span className="text-[10px] font-bold bg-green-100 group-hover:bg-white/20 text-green-700 group-hover:text-white px-1.5 py-0.5 rounded-md transition-colors">
           PDF
         </span>
       </button>
