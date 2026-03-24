@@ -41,6 +41,27 @@ import { useNavigate } from "react-router-dom";
 import defaultProfilePic from "/DarkLogo.png";
 import { ConfirmationBox } from "../components/common/ConfirmationBox";
 import api from "../api/axios";
+import { updateUserInAuth } from "../redux/slice/authSlice";
+import {
+  formatAcademicYear,
+  toStoredAcademicYear,
+} from "../utils/academicYear";
+
+const mapStudentProfileToAuthUser = (student) => ({
+  id: student.S_ID,
+  S_ID: student.S_ID,
+  Name: student.Name,
+  Username: student.Username,
+  Email: student.Email,
+  Roll_No: student.Roll_No,
+  Year: student.Year,
+  College: student.College_Name || "",
+  Degree: student.Degree_Name || "",
+  Profile_Pic: student.Profile_Pic,
+  Hobbies: Array.isArray(student.hobbies)
+    ? student.hobbies.map((hobby) => hobby.Hobby_Name)
+    : [],
+});
 
 /* ─────────────────────────── SearchableDropdown ─────────────────────────── */
 const SearchableDropdown = ({
@@ -478,19 +499,6 @@ const ProfileInformation = () => {
       </div>
     );
 
-  const formatBatchYear = (year) => {
-    if (!year) return "N/A";
-    const yearStr = String(year);
-    if (yearStr.length !== 4) return yearStr;
-    return `20${yearStr.substring(0, 2)}-20${yearStr.substring(2, 4)}`;
-  };
-
-  const parseBatchYear = (displayStr) => {
-    const match = displayStr.match(/20(\d{2})-20(\d{2})/);
-    if (match) return `${match[1]}${match[2]}`;
-    return displayStr;
-  };
-
   const handleSave = async () => {
     try {
       const formDataPayload = new FormData();
@@ -507,18 +515,19 @@ const ProfileInformation = () => {
         formDataPayload.append("profile_pic", profilePicFile);
       }
 
-      const result = await dispatch(
-        updateStudentProfile(formDataPayload),
+      await dispatch(updateStudentProfile(formDataPayload)).unwrap();
+      const refreshedStudent = await dispatch(
+        fetchCurrentStudent(currentStudent.S_ID),
       ).unwrap();
-      console.log("Update result:", result);
+
+      dispatch(updateUserInAuth(mapStudentProfileToAuthUser(refreshedStudent)));
       toast.success("Profile Updated Successfully!");
       setIsEditing(false);
       setProfilePicFile(null);
       setProfilePicPreview(null);
-      loadProfileData();
     } catch (err) {
       console.error("Update failed:", err);
-      toast.error("Failed to update profile");
+      toast.error(err || "Failed to update profile");
     }
   };
 
@@ -688,10 +697,10 @@ const ProfileInformation = () => {
               <InfoField
                 label="Batch Year"
                 icon={<Calendar size={16} />}
-                value={formatBatchYear(formData.Year)}
+                value={formatAcademicYear(formData.Year)}
                 isEditing={isEditing}
                 onChange={(v) =>
-                  setFormData((p) => ({ ...p, Year: parseBatchYear(v) }))
+                  setFormData((p) => ({ ...p, Year: toStoredAcademicYear(v) }))
                 }
                 placeholder="e.g. 2023-2027"
               />
