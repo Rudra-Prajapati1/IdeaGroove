@@ -15,7 +15,7 @@ import {
   HelpCircle,
   MessageSquare,
 } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 import {
@@ -129,6 +129,7 @@ const SearchableDropdown = ({
 
 const SubmitComplaint = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const { complaints, contentOptions, answersOptions } = useSelector(
     (state) => state.complaints,
@@ -137,11 +138,14 @@ const SubmitComplaint = () => {
 
   const isLockedComplaint = Boolean(type && id && text);
 
+  const complaintCategories = ["Events", "Notes", "Groups", "QnA", "User", "Other"];
+
   const typeMapping = {
-    events: "Events",
-    note: "Notes",
-    group: "Groups",
-    qna: "QnA",
+    event: "Event",
+    notes: "Notes",
+    groups: "Groups",
+    question: "Question",
+    answer: "Answer",
     user: "User",
     other: "Other",
   };
@@ -267,6 +271,9 @@ const SubmitComplaint = () => {
       dispatch(fetchUserComplaints({ userId: user.id }));
       setFormData({ category: "", topic: "", answerId: "", description: "" });
       setExpandedId(null);
+      if (isLockedComplaint) {
+        navigate("/submit-complaint", { replace: true });
+      }
     } catch (err) {
       toast.error(err);
     }
@@ -295,7 +302,7 @@ const SubmitComplaint = () => {
               <Lock className="text-orange-600 mt-1" size={20} />
               <div>
                 <h3 className="font-bold text-gray-800 text-sm italic tracking-tight">
-                  Reporting {typeMapping[type]} : "{decodeURIComponent(text)}"
+                  Reporting {typeMapping[type] || "Content"} : "{decodeURIComponent(text)}"
                 </h3>
                 <p className="text-xs text-gray-500 mt-1">
                   This content is locked for current complaint.
@@ -309,7 +316,7 @@ const SubmitComplaint = () => {
                 icon={<HelpCircle size={16} />}
                 value={formData.category}
                 placeholder="Select a category"
-                items={Object.values(typeMapping).map((val) => ({
+                items={complaintCategories.map((val) => ({
                   id: val,
                   label: val,
                 }))}

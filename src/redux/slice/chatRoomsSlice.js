@@ -8,7 +8,6 @@ import api from "../../api/axios";
 
 const groupsAdapter = createEntityAdapter({
   selectId: (group) => group.Room_ID,
-  sortComparer: (a, b) => new Date(b.Created_On) - new Date(a.Created_On),
 });
 
 const initialState = groupsAdapter.getInitialState({

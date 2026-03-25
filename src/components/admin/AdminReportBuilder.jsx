@@ -50,6 +50,7 @@ const SECTIONS = [
     endpoint: "users-report",
     columns: [
       { key: "Name", label: "Name", default: true },
+      { key: "Username", label: "Username", default: true },
       { key: "Roll_No", label: "Roll No", default: true },
       { key: "Email", label: "Email", default: true },
       { key: "Degree_Name", label: "Degree", default: true },
@@ -174,6 +175,7 @@ const SECTIONS = [
       { key: "Added_On", label: "Posted On", default: true },
       { key: "student_name", label: "Asked By", default: true },
       { key: "answer_count", label: "Answers", default: true },
+      { key: "all_answers", label: "Answer Text", default: true },
       { key: "Subject_Name", label: "Subject", default: true },
       { key: "Is_Active", label: "Status", default: true },
     ],
@@ -342,22 +344,25 @@ const MiniDonut = ({ slices, size = 110 }) => {
 const MiniBarChart = ({ bars, color }) => {
   const max = Math.max(...bars.map((b) => b.value), 1);
   return (
-    <div className="flex items-end gap-0.5 h-12 w-full">
+    <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(28px,1fr))] items-end gap-1">
       {bars.map((b, i) => (
-        <div
-          key={i}
-          className="flex flex-col items-center gap-0.5 flex-1 min-w-0"
-        >
-          <span className="text-[8px] font-bold text-gray-500">{b.value}</span>
-          <div
-            className="w-full rounded-t-sm"
-            style={{
-              height: `${Math.max((b.value / max) * 32, 2)}px`,
-              backgroundColor: color,
-              opacity: 0.5 + (i / bars.length) * 0.5,
-            }}
-          />
-          <span className="text-[7px] text-gray-400 truncate w-full text-center leading-none">
+        <div key={i} className="min-w-0">
+          <div className="flex h-14 flex-col justify-end gap-1">
+            <span className="text-center text-[8px] font-bold text-gray-500">
+              {b.value}
+            </span>
+            <div className="flex h-9 items-end">
+              <div
+                className="w-full rounded-t-sm"
+                style={{
+                  height: `${Math.max((b.value / max) * 36, 2)}px`,
+                  backgroundColor: color,
+                  opacity: 0.5 + (i / bars.length) * 0.5,
+                }}
+              />
+            </div>
+          </div>
+          <span className="mt-1 block w-full truncate text-center text-[7px] leading-none text-gray-400">
             {b.label}
           </span>
         </div>
@@ -532,7 +537,18 @@ const SampleTable = ({ section, rows, colState }) => {
               {visibleCols.map((col) => (
                 <td
                   key={col.key}
-                  className="py-2 px-3 text-gray-600 whitespace-nowrap max-w-[160px] truncate"
+                  className={`py-2 px-3 text-gray-600 align-top ${
+                    [
+                      "hobby_name",
+                      "member_names",
+                      "all_answers",
+                      "Question",
+                      "Description",
+                      "Complaint_Text",
+                    ].includes(col.key)
+                      ? "max-w-[220px] whitespace-normal break-words"
+                      : "whitespace-nowrap max-w-[160px] truncate"
+                  }`}
                 >
                   {col.key === "Is_Active" || col.key === "is_Active" ? (
                     <span
@@ -1352,7 +1368,21 @@ const AdminReportBuilder = () => {
           if (doc.getTextWidth(content) <= maxWidth) break;
           fontSize -= 0.2;
         }
-        return { text: content, fontSize };
+        doc.setFontSize(fontSize);
+        if (doc.getTextWidth(content) <= maxWidth) {
+          return { text: content, fontSize };
+        }
+
+        let truncated = content;
+        while (truncated.length > 1) {
+          const candidate = `${truncated}...`;
+          if (doc.getTextWidth(candidate) <= maxWidth) {
+            return { text: candidate, fontSize };
+          }
+          truncated = truncated.slice(0, -1);
+        }
+
+        return { text: content.slice(0, 1), fontSize };
       };
 
       const drawDataTable = (section, rows, cols, startY) => {
