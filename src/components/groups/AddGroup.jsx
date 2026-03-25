@@ -9,6 +9,9 @@ import {
   selectHobbiesStatus,
 } from "../../redux/slice/hobbySlice";
 
+const MAX_GROUP_NAME_LENGTH = 150;
+const MAX_GROUP_DESCRIPTION_LENGTH = 255;
+
 const AddGroupOverlay = ({ onClose, initialData, onSuccess }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
@@ -36,8 +39,16 @@ const AddGroupOverlay = ({ onClose, initialData, onSuccess }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === "Room_Name" && value.length > 150) {
+    if (name === "Room_Name" && value.length > MAX_GROUP_NAME_LENGTH) {
       toast.error("Group name cannot exceed 150 characters");
+      return;
+    }
+
+    if (
+      name === "Description" &&
+      value.length > MAX_GROUP_DESCRIPTION_LENGTH
+    ) {
+      toast.error("Description cannot exceed 255 characters");
       return;
     }
 
@@ -128,7 +139,7 @@ const AddGroupOverlay = ({ onClose, initialData, onSuccess }) => {
               <input
                 type="text"
                 name="Room_Name"
-                maxLength={150}
+                maxLength={MAX_GROUP_NAME_LENGTH}
                 required
                 placeholder="e.g., Coding Enthusiasts"
                 value={formData.Room_Name}
@@ -180,11 +191,24 @@ const AddGroupOverlay = ({ onClose, initialData, onSuccess }) => {
               <textarea
                 name="Description"
                 rows="3"
+                maxLength={MAX_GROUP_DESCRIPTION_LENGTH}
                 placeholder="Describe what this group is about..."
                 value={formData.Description}
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all text-sm bg-white resize-none"
               />
+              <div className="mt-1 text-xs text-right">
+                <span
+                  className={
+                    formData.Description.length >=
+                    MAX_GROUP_DESCRIPTION_LENGTH - 10
+                      ? "text-red-500 font-medium"
+                      : "text-slate-400"
+                  }
+                >
+                  {formData.Description.length} / {MAX_GROUP_DESCRIPTION_LENGTH}
+                </span>
+              </div>
             </div>
           </form>
         </div>

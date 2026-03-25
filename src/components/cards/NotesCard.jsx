@@ -30,9 +30,7 @@ const NotesCard = ({
     note.Author_Username || note.Username || note.Author || "Anonymous";
   const authorId = note.Author_ID || note.AuthorId || note.Author_Id || null;
   const displayAuthorName =
-    authorId && String(authorId) === String(currentUserId)
-      ? "You"
-      : authorName;
+    authorId && String(authorId) === String(currentUserId) ? "You" : authorName;
   const fileName = note.File_Name
     ? note.File_Name
     : note.Note_File
@@ -157,7 +155,7 @@ const NotesCard = ({
             </div>
           )}
 
-          <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 z-10">
+          <div className="absolute top-3 right-3 bg-primary backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 z-10">
             <span className="text-[10px] font-bold text-white tracking-wide uppercase">
               {note.Subject_Name || "General"}
             </span>
@@ -210,7 +208,7 @@ const NotesCard = ({
           <div className="flex items-center gap-2 mt-auto pt-4 border-t border-slate-50">
             <button
               onClick={handleDownload}
-              className={`flex-1 flex items-center justify-center gap-2 bg-slate-900 text-white py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm ${
+              className={`flex-1 flex items-center justify-center gap-2 bg-primary   text-white py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm ${
                 isAuth
                   ? "hover:bg-slate-800 cursor-pointer"
                   : "opacity-50 cursor-not-allowed"

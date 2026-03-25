@@ -20,13 +20,7 @@ export const buildDegreeSubjectMap = (degreeSubject = []) => {
   return map;
 };
 
-export const formatAcademicYear = (year) => {
-  const y = String(year ?? "");
-  if (y.length === 4) {
-    return `20${y.slice(0, 2)}-20${y.slice(2, 4)}`;
-  }
-  return y;
-};
+export { formatAcademicYear } from "../../utils/academicYear";
 
 export const normalizeArrayResponse = (data, fallbackKeys = []) => {
   if (Array.isArray(data)) return data;

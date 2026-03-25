@@ -36,6 +36,7 @@ const QnACard = ({
   const [editingAnswerText, setEditingAnswerText] = useState("");
   const [deletingAnswerId, setDeletingAnswerId] = useState(null);
   const [answerActionLoading, setAnswerActionLoading] = useState(false);
+  const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
 
   if (!post) return null;
 
@@ -90,25 +91,34 @@ const QnACard = ({
 
   /* =================== ANSWER SUBMIT =================== */
   const handleSubmitAnswer = async () => {
-    if (!answerText.trim()) return;
+    const trimmedAnswer = answerText.trim();
+    if (!trimmedAnswer || isSubmittingAnswer) return;
+
+    setIsSubmittingAnswer(true);
     try {
       await dispatch(
         createAnswer({
-          Answer: answerText,
+          Answer: trimmedAnswer,
           Q_ID: post.Q_ID,
           Answered_By: currentUserId,
         }),
       ).unwrap();
 
-      const { data } = await api.get(`/qna/answers/${post.Q_ID}`);
-      if (data?.answers) {
-        setLocalAnswers(data.answers);
+      try {
+        const { data } = await api.get(`/qna/answers/${post.Q_ID}`);
+        if (data?.answers) {
+          setLocalAnswers(data.answers);
+        }
+      } catch (refreshError) {
+        console.error("Failed to refresh answers after submit:", refreshError);
       }
 
       toast.success("Answer posted successfully!");
       setAnswerText("");
     } catch (err) {
       toast.error(err || "Failed to post answer");
+    } finally {
+      setIsSubmittingAnswer(false);
     }
   };
 
@@ -441,10 +451,12 @@ const QnACard = ({
                 placeholder="Add your answer..."
                 className="flex-1 p-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-[#1A3C20]/20 outline-none text-sm resize-none bg-white"
                 rows="2"
+                disabled={isSubmittingAnswer}
               />
               <button
                 onClick={handleSubmitAnswer}
-                disabled={!answerText.trim()}
+                disabled={!answerText.trim() || isSubmittingAnswer}
+                title={isSubmittingAnswer ? "Posting answer..." : "Post answer"}
                 className="bg-[#1A3C20] text-white p-4 rounded-2xl self-end hover:bg-[#153416] transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="w-5 h-5" />
