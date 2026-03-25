@@ -180,10 +180,9 @@ const AdminViewMembers = ({ group, setIsModalOpen }) => {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <img
-                              src={`https://i.pravatar.cc/150?u=${memberId}`}
-                              alt={displayName}
-                            />
+                            <span className="text-lg font-black uppercase">
+                              {displayName.trim().charAt(0) || "U"}
+                            </span>
                           )}
                         </div>
                         <div>

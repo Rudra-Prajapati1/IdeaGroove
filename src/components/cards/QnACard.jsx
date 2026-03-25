@@ -8,6 +8,7 @@ import { createAnswer, deleteQuestion } from "../../redux/slice/qnaSlice";
 import { selectAuth } from "../../redux/slice/authSlice";
 import { ConfirmationBox } from "../common/ConfirmationBox";
 import api from "../../api/axios";
+import GradientAvatar from "../common/GradientAvatar";
 
 const QnACard = ({
   post,
@@ -179,8 +180,6 @@ const QnACard = ({
 
   /* =================== HELPERS =================== */
   const authorName = displayQuestionAuthorName;
-  const authorInitial = authorName.charAt(0);
-
   return (
     <>
       {showDeleteConfirm && (
@@ -205,15 +204,13 @@ const QnACard = ({
           <div className="flex justify-between items-start mb-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold overflow-hidden">
-                {post.Profile_Pic ? (
-                  <img
-                    src={post.Profile_Pic}
-                    className="rounded-full w-full h-full object-cover"
-                    alt={authorName}
-                  />
-                ) : (
-                  authorInitial.toUpperCase()
-                )}
+                <GradientAvatar
+                  name={authorName}
+                  imageSrc={post.Profile_Pic}
+                  alt={authorName}
+                  className="rounded-full"
+                  textClassName="text-xs"
+                />
               </div>
               <span className="text-sm font-semibold text-slate-700">
                 {authorLabel ? (

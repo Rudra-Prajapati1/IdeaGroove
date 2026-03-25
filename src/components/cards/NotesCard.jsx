@@ -24,6 +24,8 @@ const NotesCard = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [thumbError, setThumbError] = useState(false);
+  const [showFullTitle, setShowFullTitle] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   const isOwner = isAuth && Number(note.Author_ID) === Number(currentUserId);
   const authorName =
@@ -36,6 +38,9 @@ const NotesCard = ({
     : note.Note_File
       ? note.Note_File.split("/").pop()?.split("?")[0]
       : "";
+  const description = note.Description || "No description provided.";
+  const shouldShowTitleToggle = fileName.length > 36;
+  const shouldShowDescriptionToggle = description.length > 120;
 
   const formattedDate = note.Added_on
     ? new Date(note.Added_on).toLocaleDateString("en-IN", {
@@ -163,9 +168,22 @@ const NotesCard = ({
         </div>
 
         <div className="p-5 flex flex-col flex-1">
-          <h3 className="text-md font-bold text-slate-800 mb-2 leading-tight truncate">
+          <h3
+            className={`text-md font-bold text-slate-800 mb-2 leading-tight ${
+              showFullTitle ? "break-words" : "truncate"
+            }`}
+          >
             {fileName || note.Subject_Name || "Untitled Note"}
           </h3>
+          {shouldShowTitleToggle && (
+            <button
+              type="button"
+              onClick={() => setShowFullTitle((prev) => !prev)}
+              className="mb-2 w-fit text-xs font-semibold text-green-700 hover:underline"
+            >
+              {showFullTitle ? "View Less" : "View More"}
+            </button>
+          )}
 
           <div className="flex flex-wrap gap-y-1 gap-x-4 mb-3 text-xs text-slate-500 border-b border-slate-100 pb-3">
             <div className="flex items-center gap-1.5">
@@ -201,9 +219,22 @@ const NotesCard = ({
             </div>
           </div>
 
-          <p className="text-slate-500 text-sm line-clamp-3 mb-4 flex-1">
-            {note.Description || "No description provided."}
+          <p
+            className={`text-slate-500 text-sm mb-2 flex-1 ${
+              showFullDescription ? "break-words" : "line-clamp-3"
+            }`}
+          >
+            {description}
           </p>
+          {shouldShowDescriptionToggle && (
+            <button
+              type="button"
+              onClick={() => setShowFullDescription((prev) => !prev)}
+              className="mb-4 w-fit text-xs font-semibold text-green-700 hover:underline"
+            >
+              {showFullDescription ? "View Less" : "View More"}
+            </button>
+          )}
 
           <div className="flex items-center gap-2 mt-auto pt-4 border-t border-slate-50">
             <button

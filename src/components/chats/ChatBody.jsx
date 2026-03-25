@@ -22,6 +22,7 @@ import {
   FileText,
 } from "lucide-react";
 import MessageInfoModal from "./MessageInfoModal";
+import GradientAvatar from "../common/GradientAvatar";
 
 const EMPTY_ARRAY = [];
 const EDIT_WINDOW_MS = 5 * 60 * 1000;
@@ -355,17 +356,15 @@ const ChatBody = ({
                     : "bg-white border border-primary text-primary rounded-bl-none"
                 }`}
               >
-                <img
-                  src={
-                    msg.Sender_Profile_Pic
-                      ? msg.Sender_Profile_Pic
-                      : isMe
-                        ? "/DarkLogo.png"
-                        : "/Logo.png"
-                  }
-                  className={`w-8 h-8 rounded-full object-cover shrink-0 ${isMe ? "bg-white" : "bg-primary"}`}
-                  alt={senderUsername}
-                />
+                <div className="w-8 h-8 shrink-0 overflow-hidden rounded-full">
+                  <GradientAvatar
+                    name={msg.Sender_Name || senderUsername}
+                    imageSrc={msg.Sender_Profile_Pic}
+                    alt={senderUsername}
+                    className="rounded-full"
+                    textClassName="text-xs"
+                  />
+                </div>
 
                 <div className="flex flex-col font-semibold min-w-0">
                   {!isMe && isGroup && (

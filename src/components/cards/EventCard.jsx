@@ -349,23 +349,48 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
               <X className="w-6 h-6" />
             </button>
 
-            <img
-              src={event.Poster_File}
-              alt={eventDescription}
-              onClick={(e) => e.stopPropagation()}
-              className="max-h-[72vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
-            />
-
             <div
               onClick={(e) => e.stopPropagation()}
-              className="absolute bottom-0 left-0 right-0 mx-auto w-full max-w-4xl bg-linear-to-t from-black/90 via-black/70 to-transparent px-6 py-5 text-white"
+              className="grid w-[min(92vw,72rem)] overflow-hidden rounded-[2rem] border border-white/10 bg-[#102611] text-white shadow-[0_30px_80px_-25px_rgba(0,0,0,0.7)] lg:grid-cols-[minmax(18rem,24rem)_1fr]"
             >
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-green-300 mb-2">
-                Event Details
-              </p>
-              <p className="text-sm sm:text-base leading-relaxed max-w-3xl">
-                {eventDescription}
-              </p>
+              <div className="flex flex-col justify-between gap-6 bg-linear-to-br from-[#173919] via-[#153416] to-[#102611] px-6 py-7">
+                <div>
+                  <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-green-300">
+                    Event Details
+                  </p>
+                  <div className="mb-5 inline-flex w-fit items-center rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white/80">
+                    {month} {day}
+                  </div>
+                  <h3 className="text-2xl font-black leading-tight text-white">
+                    {eventDescription}
+                  </h3>
+                </div>
+
+                <div className="space-y-3 text-sm text-white/80">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">
+                      Uploaded On
+                    </p>
+                    <p className="mt-1 font-medium text-white">{uploadedDate}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">
+                      Hosted By
+                    </p>
+                    <p className="mt-1 font-medium text-white">
+                      {displayOrganizerName}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center bg-black/20 p-4 sm:p-6">
+                <img
+                  src={event.Poster_File}
+                  alt={eventDescription}
+                  className="max-h-[72vh] w-full rounded-[1.5rem] object-contain shadow-2xl"
+                />
+              </div>
             </div>
           </div>,
           document.getElementById("modal-root") || document.body,

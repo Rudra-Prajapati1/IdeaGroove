@@ -28,6 +28,7 @@ import {
   getCustomOptionLabel,
   normalizeCustomOptionInput,
 } from "../../utils/customOptionHelpers";
+import { toStoredAcademicYear } from "../../utils/academicYear";
 
 const FloatingError = ({ message, show }) => {
   if (!show || !message) return null;
@@ -509,7 +510,7 @@ const SignupForm = ({ onLogin }) => {
   };
 
   const handleBatchChange = (e) => {
-    let val = e.target.value.replace(/\D/g, "");
+    let val = e.target.value.replace(/\D/g, "").slice(0, 8);
 
     if (val && val[0] !== "2") {
       setErrors((p) => ({ ...p, Year: "Batch must start with 20XX" }));
@@ -527,7 +528,7 @@ const SignupForm = ({ onLogin }) => {
         setErrors((p) => ({ ...p, Year: "Invalid batch range" }));
         handleData("Year", "");
       } else {
-        handleData("Year", formatted.replace("-", "").slice(2));
+        handleData("Year", toStoredAcademicYear(formatted));
         setErrors((p) => {
           const n = { ...p };
           delete n.Year;
