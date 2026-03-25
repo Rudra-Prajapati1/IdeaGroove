@@ -57,14 +57,14 @@ const ViewMembers = ({
         </div>
 
         {/* Modal Content Area (Scrollable) */}
-        <div className="p-8 overflow-y-auto custom-scrollbar flex-1">
+        <div className="p-8 overflow-y-auto overflow-x-hidden custom-scrollbar flex-1">
           {/* Full Description Section */}
           <div className="mb-8">
             <div className="flex items-center gap-2 text-gray-900 font-bold mb-3">
               <Info className="w-4 h-4 text-primary" />
               <h4>About this group</h4>
             </div>
-            <p className="text-gray-600 text-sm leading-relaxed bg-gray-50 p-5 rounded-2xl border border-gray-100">
+            <p className="text-gray-600 text-sm leading-relaxed bg-gray-50 p-5 rounded-2xl border border-gray-100 break-words [overflow-wrap:anywhere] whitespace-pre-wrap">
               {group.Description || "No description provided for this group."}
             </p>
           </div>
@@ -115,7 +115,7 @@ const ViewMembers = ({
                         setIsModalOpen(false);
                         navigate(profileRoute);
                       }}
-                      className="flex w-full items-center justify-between p-2 hover:bg-gray-50 rounded-2xl transition-colors text-left"
+                      className="flex w-full items-center justify-between p-2 hover:bg-gray-100 cursor-pointer rounded-2xl transition-colors text-left"
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border border-gray-100 shadow-sm flex items-center justify-center text-sm font-bold text-gray-700">

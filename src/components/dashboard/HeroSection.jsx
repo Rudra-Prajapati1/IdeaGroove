@@ -12,6 +12,7 @@ import {
   School,
   Sparkles,
 } from "lucide-react";
+import { formatAcademicYear } from "../../utils/academicYear";
 
 const HeroSection = ({ user, isPublic = false }) => {
   const displayName = user?.Name || "Explorer";
@@ -19,6 +20,10 @@ const HeroSection = ({ user, isPublic = false }) => {
   const navigate = useNavigate();
 
   const currentUser = useSelector(selectUser);
+  const collegeName = user?.College || user?.College_Name || "N/A";
+  const degreeName = user?.Degree || user?.Degree_Name || "N/A";
+  const hobbies = user?.Hobbies || user?.hobbies || [];
+  const batchLabel = formatAcademicYear(user?.Year) || "N/A";
 
   const handleDirectMessage = async () => {
     if (!currentUser) {
@@ -39,9 +44,6 @@ const HeroSection = ({ user, isPublic = false }) => {
       navigate("/chats");
     }
   };
-
-  console.log("Hobbies:", user?.Hobbies);
-
   return (
     <section className="relative bg-linear-to-br from-[#1B431C] via-[#235324] to-[#153416] min-h-[500px] flex flex-col justify-center overflow-hidden">
       <div className="absolute top-8 left-8 z-50">
@@ -82,38 +84,37 @@ const HeroSection = ({ user, isPublic = false }) => {
               <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
                 <School className="text-green-400 w-5 h-5" />
                 <span className="text-sm lg:text-lg opacity-90">
-                  {user?.College || "St. Xavier's College, Ahmedabad"}
+                  {collegeName}
                 </span>
               </div>
               <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
                 <GraduationCap className="text-green-400 w-5 h-5" />
                 <span className="text-sm lg:text-lg opacity-90">
-                  {user?.Degree || "BCA"}
+                  {degreeName}
                 </span>
               </div>
               <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
-  <Calendar className="text-green-400 w-5 h-5" />
-  <span className="text-base lg:text-lg opacity-90">
-    Batch of 2026
-  </span>
-</div>
+                <Calendar className="text-green-400 w-5 h-5" />
+                <span className="text-base lg:text-lg opacity-90">
+                  Batch of {batchLabel}
+                </span>
+              </div>
 
-{/* Hobbies - full width */}
-{user?.Hobbies?.length > 0 && (
-  <div className="sm:col-span-1 flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
-    <Sparkles className="text-green-400 w-5 h-5 mt-0.5 shrink-0" />
-    <div className="flex flex-wrap gap-2">
-      {user.Hobbies.map((hobby, i) => (
-        <span
-          key={i}
-          className="px-3 py-1 bg-white/10 text-green-200 text-xs font-semibold rounded-full border border-white/10"
-        >
-          {typeof hobby === "string" ? hobby : hobby.Hobby_Name}
-        </span>
-      ))}
-    </div>
-  </div>
-)}
+              {hobbies.length > 0 && (
+                <div className="sm:col-span-1 flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
+                  <Sparkles className="text-green-400 w-5 h-5 mt-0.5 shrink-0" />
+                  <div className="flex flex-wrap gap-2">
+                    {hobbies.map((hobby, i) => (
+                      <span
+                        key={i}
+                        className="px-3 py-1 bg-white/10 text-green-200 text-xs font-semibold rounded-full border border-white/10"
+                      >
+                        {typeof hobby === "string" ? hobby : hobby.Hobby_Name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               {isPublic &&
                 String(user?.S_ID || user?.id) !== String(currentUser?.id) && (
                   <button

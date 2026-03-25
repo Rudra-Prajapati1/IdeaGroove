@@ -1,14 +1,7 @@
 import React, { useState } from "react";
 import { Shield, Calendar, Ban, CheckCircle, Hash, User } from "lucide-react";
 import StudentProfile from "../admin/StudentProfile";
-
-const formatYear = (year) => {
-  const y = String(year);
-  if (y.length === 4) {
-    return `20${y.slice(0, 2)} – 20${y.slice(2)}`;
-  }
-  return y;
-};
+import { formatAcademicYear } from "../../utils/academicYear";
 
 const UserCard = ({ user, onModerate }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -63,7 +56,7 @@ const UserCard = ({ user, onModerate }) => {
                 <Hash size={10} /> {user.Roll_No}
               </span>
               <span className="flex items-center gap-1 text-[10px] font-semibold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-md">
-                <Calendar size={10} /> {formatYear(user.Year)}
+                <Calendar size={10} /> {formatAcademicYear(user.Year)}
               </span>
               <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
                 <Shield size={10} /> {user.S_ID}
