@@ -62,7 +62,7 @@ export const restoreSession = createAsyncThunk(
 const initialState = {
   user: storedUser,
   isAuthenticated: hasStoredUserSession,
-  sessionChecked: !storedUser || isStoredAdmin,
+  sessionChecked: isStoredAdmin,
   sessionLoading: false,
   loading: false,
   error: null,
@@ -204,9 +204,7 @@ const authSlice = createSlice({
       .addCase(restoreSession.fulfilled, (state, action) => {
         state.sessionLoading = false;
         state.sessionChecked = true;
-        state.user = state.user
-          ? { ...state.user, ...action.payload }
-          : action.payload;
+        state.user = action.payload;
         state.isAuthenticated = true;
         localStorage.setItem("user", JSON.stringify(state.user));
       })

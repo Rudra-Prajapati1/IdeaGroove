@@ -386,6 +386,7 @@ const SignupForm = ({ onLogin }) => {
       New_College_Name: normalizedValue,
     }));
     clearFieldError("College_ID");
+    toast.success(`"${normalizedValue}" will be added as a new college.`);
   };
 
   const handleExistingDegreeSelect = (value) => {
@@ -409,11 +410,20 @@ const SignupForm = ({ onLogin }) => {
       New_Degree_Name: normalizedValue,
     }));
     clearFieldError("Degree_ID");
+    toast.success(`"${normalizedValue}" will be added as a new degree.`);
   };
 
   const handleCustomHobbySelect = (value) => {
     const normalizedValue = normalizeCustomOptionInput(value);
     if (!normalizedValue || !confirmCustomOption("hobby", normalizedValue)) {
+      return;
+    }
+
+    if (
+      signupData.New_Hobbies.some(
+        (hobby) => hobby.toLowerCase() === normalizedValue.toLowerCase(),
+      )
+    ) {
       return;
     }
 
@@ -431,6 +441,7 @@ const SignupForm = ({ onLogin }) => {
         New_Hobbies: [...prev.New_Hobbies, normalizedValue],
       };
     });
+    toast.success(`"${normalizedValue}" will be added as a new hobby.`);
   };
 
   const handleRemoveCustomHobby = (valueToRemove) => {
@@ -510,7 +521,7 @@ const SignupForm = ({ onLogin }) => {
   };
 
   const handleBatchChange = (e) => {
-    let val = e.target.value.replace(/\D/g, "").slice(0, 8);
+    let val = e.target.value.replace(/\D/g, "");
 
     if (val && val[0] !== "2") {
       setErrors((p) => ({ ...p, Year: "Batch must start with 20XX" }));

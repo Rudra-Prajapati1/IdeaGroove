@@ -2,7 +2,10 @@ import React, { useEffect, useState } from "react";
 import HeroSection from "../components/dashboard/HeroSection";
 import ActivitySection from "../components/dashboard/ActivitySection";
 import { useSelector, useDispatch } from "react-redux";
-import { selectUser } from "../redux/slice/authSlice";
+import {
+  selectAuthSessionChecked,
+  selectUser,
+} from "../redux/slice/authSlice";
 import { fetchUserEvents } from "../redux/slice/eventsSlice";
 import { fetchUserGroups } from "../redux/slice/chatRoomsSlice";
 import { fetchUserNotes } from "../redux/slice/notesSlice";
@@ -18,6 +21,7 @@ const Dashboard = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const currentUser = useSelector(selectUser);
+  const sessionChecked = useSelector(selectAuthSessionChecked);
   const navigate = useNavigate();
 
   const [displayUser, setDisplayUser] = useState(null);
@@ -72,14 +76,16 @@ const Dashboard = () => {
       };
       fetchOtherProfile();
     } else {
-      if (!currentUser) {
+      if (!sessionChecked) {
+        setLoading(true);
+      } else if (!currentUser) {
         navigate("/auth", { replace: true });
       } else {
         setDisplayUser(currentUser);
         setLoading(false);
       }
     }
-  }, [id, currentUser, navigate]);
+  }, [id, currentUser, navigate, sessionChecked]);
 
   if (loading || !displayUser) {
     return (

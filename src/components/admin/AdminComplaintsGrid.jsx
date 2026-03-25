@@ -5,6 +5,9 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  Info,
+  MessageSquareText,
+  UserRound,
 } from "lucide-react";
 import StudentProfile from "./StudentProfile";
 
@@ -20,6 +23,11 @@ const AdminComplaintsGrid = ({
   const [selectedProfileStudentId, setSelectedProfileStudentId] =
     useState(null);
   const itemsPerPage = 8;
+  const normalizeType = (value) =>
+    String(value || "")
+      .trim()
+      .replace(/[^a-z]/gi, "")
+      .toLowerCase();
 
   const filteredComplaints = useMemo(() => {
     return complaints.filter((item) => {
@@ -27,9 +35,14 @@ const AdminComplaintsGrid = ({
       const matchesSearch =
         item.Complaint_ID.toString().includes(s) ||
         (item.Student_Name?.toLowerCase() ?? "").includes(s) ||
-        (item.Complaint_Text?.toLowerCase() ?? "").includes(s);
+        (item.Complaint_Text?.toLowerCase() ?? "").includes(s) ||
+        (item.Reported_Activity?.toLowerCase() ?? "").includes(s) ||
+        (item.Content_Title?.toLowerCase() ?? "").includes(s) ||
+        (item.Content_Owner_Name?.toLowerCase() ?? "").includes(s);
 
-      const matchesType = filterType === "all" || item.Type === filterType;
+      const matchesType =
+        filterType === "all" ||
+        normalizeType(item.Type) === normalizeType(filterType);
       const matchesStatus =
         filterStatus === "all" || item.Status === filterStatus;
 
@@ -57,10 +70,7 @@ const AdminComplaintsGrid = ({
   };
 
   const getTypeStyle = (type) => {
-    const normalizedType = String(type || "")
-      .trim()
-      .replace(/[^a-z]/gi, "")
-      .toUpperCase();
+    const normalizedType = normalizeType(type).toUpperCase();
 
     switch (normalizedType) {
       case "NOTES":
@@ -83,6 +93,30 @@ const AdminComplaintsGrid = ({
         return "bg-slate-100 text-slate-700 border-slate-200";
       default:
         return "bg-slate-100 text-slate-700 border-slate-200";
+    }
+  };
+
+  const formatTypeLabel = (type) => {
+    switch (normalizeType(type)) {
+      case "question":
+        return "Question";
+      case "answer":
+        return "Answer";
+      case "notes":
+      case "note":
+        return "Notes";
+      case "groups":
+      case "group":
+        return "Groups";
+      case "event":
+      case "events":
+        return "Event";
+      case "user":
+        return "User";
+      case "other":
+        return "Other";
+      default:
+        return type || "Unknown";
     }
   };
 
@@ -130,6 +164,7 @@ const AdminComplaintsGrid = ({
             <tr className="border-b border-gray-100 text-[10px] uppercase font-black tracking-widest text-gray-400">
               <th className="px-8 py-5">Student Name</th>
               <th className="px-8 py-5">Type</th>
+              <th className="px-8 py-5">Reported Activity</th>
               <th className="px-8 py-5">Date Filed</th>
               <th className="px-8 py-5 text-center">Status</th>
               <th className="px-8 py-5 text-right">Action</th>
@@ -162,8 +197,23 @@ const AdminComplaintsGrid = ({
                     <span
                       className={`px-2 py-1 rounded text-[11px] font-bold uppercase border ${getTypeStyle(item.Type)}`}
                     >
-                      {item.Type}
+                      {formatTypeLabel(item.Type)}
                     </span>
+                  </td>
+                  <td className="px-8 py-5 text-sm text-gray-600">
+                    <div className="max-w-[280px]">
+                      <p className="font-semibold text-gray-700 leading-relaxed line-clamp-2">
+                        {item.Reported_Activity ||
+                          item.Content_Title ||
+                          "IdeaGroove platform"}
+                      </p>
+                      {item.Content_Owner_Name &&
+                        item.Content_Owner_Name !== "N/A" && (
+                          <p className="mt-1 text-[11px] font-medium text-gray-400">
+                            Owner: @{item.Content_Owner_Name}
+                          </p>
+                        )}
+                    </div>
                   </td>
                   <td className="px-8 py-5 text-sm text-gray-400">
                     {new Date(item.Date).toLocaleDateString("en-GB", {
@@ -216,14 +266,80 @@ const AdminComplaintsGrid = ({
 
                 {expandedId === item.Complaint_ID && (
                   <tr className="bg-gray-50/50 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <td colSpan="5" className="px-8 py-4">
-                      <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4">
-                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
-                          Detailed Issue
-                        </h4>
-                        <p className="text-sm text-gray-600 leading-relaxed italic border-l-4 border-emerald-500/20 pl-4 py-1">
-                          "{item.Complaint_Text}"
-                        </p>
+                    <td colSpan="6" className="px-8 py-4">
+                      <div className="grid gap-4 lg:grid-cols-2">
+                        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                          <div className="mb-4 flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                              <MessageSquareText size={18} />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-bold text-gray-800">
+                                Student Complaint
+                              </h4>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                Complaint text submitted by student
+                              </p>
+                            </div>
+                          </div>
+                          <p className="rounded-2xl border border-emerald-100 bg-emerald-50/60 px-4 py-4 text-sm leading-relaxed text-gray-700">
+                            "{item.Complaint_Text}"
+                          </p>
+                        </div>
+
+                        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                          <div className="mb-4 flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+                              <Info size={18} />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-bold text-gray-800">
+                                Reported Activity
+                              </h4>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                Actual content that received the complaint
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3 rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-4">
+                            <div>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                Activity
+                              </p>
+                              <p className="mt-1 text-sm font-semibold leading-relaxed text-gray-700">
+                                {item.Reported_Activity ||
+                                  item.Content_Title ||
+                                  "IdeaGroove platform"}
+                              </p>
+                            </div>
+
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <div className="rounded-xl bg-white/80 px-3 py-3">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                  Type
+                                </p>
+                                <p className="mt-1 text-sm font-semibold text-gray-700">
+                                  {formatTypeLabel(item.Type)}
+                                </p>
+                              </div>
+                              <div className="rounded-xl bg-white/80 px-3 py-3">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                  Owner
+                                </p>
+                                <div className="mt-1 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                  <UserRound size={14} className="text-gray-400" />
+                                  <span>
+                                    {item.Content_Owner_Name &&
+                                    item.Content_Owner_Name !== "N/A"
+                                      ? `@${item.Content_Owner_Name}`
+                                      : "N/A"}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </td>
                   </tr>

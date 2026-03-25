@@ -92,6 +92,7 @@ const AddNotes = ({ onClose, onSuccess, editing }) => {
       New_Degree_Name: normalizedValue,
       New_Subject_Name: "",
     }));
+    toast.success(`"${normalizedValue}" will be added as a new degree.`);
   };
 
   const selectedDegreeName =
@@ -127,6 +128,7 @@ const AddNotes = ({ onClose, onSuccess, editing }) => {
       Subject_ID: "",
       New_Subject_Name: normalizedValue,
     }));
+    toast.success(`"${normalizedValue}" will be added as a new subject.`);
   };
 
   const selectedSubjectName =

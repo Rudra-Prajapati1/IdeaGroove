@@ -450,7 +450,9 @@ const ProfileInformation = () => {
   const navigate = useNavigate();
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { isAuthenticated, user, sessionChecked } = useSelector(
+    (state) => state.auth,
+  );
   const currentStudent = useSelector(selectCurrentStudent);
   const [showChangePassword, setShowChangePassword] = useState(false);
 
@@ -468,7 +470,7 @@ const ProfileInformation = () => {
 
   const loadProfileData = () => {
     const loggedInId = user?.S_ID || user?.id;
-    if (isAuthenticated && loggedInId) {
+    if (sessionChecked && isAuthenticated && loggedInId) {
       dispatch(fetchCurrentStudent(loggedInId));
       dispatch(fetchAllColleges());
       dispatch(fetchAllDegrees());
@@ -559,11 +561,11 @@ const ProfileInformation = () => {
 
   useEffect(() => {
     loadProfileData();
-  }, [dispatch, isAuthenticated, user]);
+  }, [dispatch, isAuthenticated, sessionChecked, user]);
 
   useEffect(() => {
-    if (!isAuthenticated) navigate("/auth");
-  }, [isAuthenticated]);
+    if (sessionChecked && !isAuthenticated) navigate("/auth");
+  }, [isAuthenticated, navigate, sessionChecked]);
 
   useEffect(() => {
     if (currentStudent) {

@@ -107,6 +107,7 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
       New_Degree_Name: normalizedValue,
       New_Subject_Name: "",
     }));
+    toast.success(`"${normalizedValue}" will be added as a new degree.`);
   };
 
   const handleSubjectSelect = (value) => {
@@ -134,6 +135,7 @@ const AskQuestionModal = ({ onClose, onSubmit, editing, onSuccess }) => {
       Subject_ID: "",
       New_Subject_Name: normalizedValue,
     }));
+    toast.success(`"${normalizedValue}" will be added as a new subject.`);
   };
 
   const handleSubmit = async (e) => {

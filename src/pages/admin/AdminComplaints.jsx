@@ -70,7 +70,15 @@ const AdminComplaints = () => {
         subtitle="Track and resolve student grievances"
         searchValue={searchTerm}
         onSearch={setSearchTerm}
-        degreeOptions={["Notes", "QnA", "User", "Groups", "Other"]}
+        degreeOptions={[
+          "Event",
+          "Question",
+          "Answer",
+          "Notes",
+          "Groups",
+          "User",
+          "Other",
+        ]}
         subjectOptions={["Pending", "In-Progress", "Resolved"]}
         onDegreeFilter={setTypeFilter}
         onSubjectFilter={setStatusFilter}

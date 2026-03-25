@@ -42,7 +42,7 @@ const App = () => {
   }, [degreeStatus, dispatch]);
 
   useEffect(() => {
-    if (currentUser && currentUser.role !== "admin" && !authSessionChecked) {
+    if (!authSessionChecked && currentUser?.role !== "admin") {
       dispatch(restoreSession());
     }
   }, [currentUser, authSessionChecked, dispatch]);
