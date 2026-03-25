@@ -113,6 +113,7 @@ const SECTIONS = [
     endpoint: "groups-report",
     columns: [
       { key: "Room_Name", label: "Group Name", default: true },
+      { key: "Description", label: "Description", default: true },
       { key: "Created_On", label: "Created On", default: true },
       { key: "student_name", label: "Created By", default: true },
       { key: "member_count", label: "Members", default: true },
@@ -140,7 +141,7 @@ const SECTIONS = [
     endpoint: "notes-report",
     columns: [
       { key: "File_Name", label: "File Name", default: true },
-      { key: "Description", label: "Description", default: false },
+      { key: "Description", label: "Description", default: true },
       { key: "Added_On", label: "Uploaded On", default: true },
       { key: "student_name", label: "Author", default: true },
       { key: "Subject_Name", label: "Subject", default: true },
@@ -211,10 +212,12 @@ const SECTIONS = [
     columns: [
       { key: "Complaint_Text", label: "Complaint", default: true },
       { key: "Reported_Activity", label: "Reported Activity", default: true },
+      { key: "Content_Title", label: "Content", default: true },
       { key: "Complaint_Type", label: "Type", default: true },
       { key: "Date", label: "Filed On", default: true },
       { key: "student_name", label: "Student", default: true },
       { key: "Status", label: "Status", default: true },
+      { key: "Is_Active", label: "Active State", default: true },
       { key: "Content_Owner_Name", label: "Activity Owner", default: false },
       { key: "age_days", label: "Age (days)", default: false },
     ],
@@ -544,6 +547,7 @@ const SampleTable = ({ section, rows, colState }) => {
                       "hobby_name",
                       "member_names",
                       "all_answers",
+                      "Content_Title",
                       "Question",
                       "Description",
                       "Complaint_Text",

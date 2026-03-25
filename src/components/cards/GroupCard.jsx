@@ -129,7 +129,7 @@ const GroupCard = ({
     <>
       <div className="relative bg-white border border-gray-100 shadow-md rounded-2xl p-6 w-full max-w-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
         <div className="absolute top-4 right-4 flex items-center gap-3">
-          {!isOwner && isAuth && (
+          {!isOwner && (
             <ComplaintButton
               onClick={() =>
                 navigate(
