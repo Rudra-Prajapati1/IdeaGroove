@@ -498,7 +498,6 @@ const ProfileInformation = () => {
       </div>
     );
 
-<<<<<<< HEAD
   const profileImageSrc =
     profilePicPreview || currentStudent?.Profile_Pic || "";
   const profileInitial = (formData.Name || currentStudent?.Name || "?")
@@ -519,8 +518,6 @@ const ProfileInformation = () => {
     return displayStr;
   };
 
-=======
->>>>>>> 82cabef1ceb16b6c33a945453575ae5b539f8018
   const handleSave = async () => {
     try {
       const formDataPayload = new FormData();
