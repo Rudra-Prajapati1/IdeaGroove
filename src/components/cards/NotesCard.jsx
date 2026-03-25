@@ -147,7 +147,7 @@ const NotesCard = ({
             </div>
           )}
 
-          {isAuth && !isOwner && (
+          {!isOwner && (
             <div className="absolute top-3 left-3 z-10">
               <ComplaintButton
                 onClick={() =>

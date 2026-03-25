@@ -46,6 +46,11 @@ import {
   toStoredAcademicYear,
 } from "../utils/academicYear";
 import { debounce } from "lodash";
+import {
+  confirmCustomOption,
+  getCustomOptionLabel,
+  normalizeCustomOptionInput,
+} from "../utils/customOptionHelpers";
 
 const mapStudentProfileToAuthUser = (student) => ({
   id: student.S_ID,
@@ -83,6 +88,10 @@ const SearchableDropdown = ({
   searchKey,
   idKey,
   onSelect,
+  allowCustom = false,
+  customTypeLabel = "option",
+  onCustomSelect,
+  customValue = "",
 }) => {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
@@ -99,6 +108,15 @@ const SearchableDropdown = ({
   const filtered = items.filter((item) =>
     item[searchKey]?.toLowerCase().includes(search.toLowerCase()),
   );
+  const normalizedSearch = normalizeCustomOptionInput(search);
+  const showCustomOption =
+    allowCustom &&
+    !!onCustomSelect &&
+    !!normalizedSearch &&
+    !items.some(
+      (item) =>
+        item[searchKey]?.toLowerCase() === normalizedSearch.toLowerCase(),
+    );
 
   return (
     <div>
@@ -113,11 +131,11 @@ const SearchableDropdown = ({
             onClick={() => setOpen((o) => !o)}
           >
             <span className="text-[#4caf50]">{icon}</span>
-            <span
-              className={`flex-1 text-sm ${value ? "text-[#1A3C20] font-medium" : "text-gray-400"}`}
-            >
-              {value || placeholder}
-            </span>
+              <span
+                className={`flex-1 text-sm ${value ? "text-[#1A3C20] font-medium" : "text-gray-400"}`}
+              >
+              {value || customValue || placeholder}
+              </span>
             <ChevronDown
               size={16}
               className={`text-[#4caf50] transition-transform duration-200 ${open ? "rotate-180" : ""}`}
@@ -143,27 +161,62 @@ const SearchableDropdown = ({
               </div>
               <ul className="max-h-48 overflow-y-auto">
                 {filtered.length === 0 ? (
-                  <li className="px-4 py-3 text-sm text-gray-400 text-center">
-                    No results found
-                  </li>
-                ) : (
-                  filtered.map((item) => (
+                  showCustomOption ? (
                     <li
-                      key={item[idKey]}
                       onClick={() => {
-                        onSelect(item);
+                        onCustomSelect(normalizedSearch);
                         setOpen(false);
                         setSearch("");
                       }}
-                      className={`px-4 py-2.5 text-sm cursor-pointer transition-colors hover:bg-[#f0f9f1] text-[#1A3C20] ${
-                        value === item[searchKey]
-                          ? "bg-[#e8f5e9] font-semibold"
-                          : ""
-                      }`}
+                      className="px-4 py-2.5 text-sm cursor-pointer transition-colors hover:bg-[#f0f9f1] text-[#1A3C20]"
                     >
-                      {item[searchKey]}
+                      {getCustomOptionLabel(normalizedSearch)}
+                      <span className="text-gray-400">
+                        {" "}
+                        as new {customTypeLabel}
+                      </span>
                     </li>
-                  ))
+                  ) : (
+                    <li className="px-4 py-3 text-sm text-gray-400 text-center">
+                      No results found
+                    </li>
+                  )
+                ) : (
+                  <>
+                    {filtered.map((item) => (
+                      <li
+                        key={item[idKey]}
+                        onClick={() => {
+                          onSelect(item);
+                          setOpen(false);
+                          setSearch("");
+                        }}
+                        className={`px-4 py-2.5 text-sm cursor-pointer transition-colors hover:bg-[#f0f9f1] text-[#1A3C20] ${
+                          value === item[searchKey]
+                            ? "bg-[#e8f5e9] font-semibold"
+                            : ""
+                        }`}
+                      >
+                        {item[searchKey]}
+                      </li>
+                    ))}
+                    {showCustomOption && (
+                      <li
+                        onClick={() => {
+                          onCustomSelect(normalizedSearch);
+                          setOpen(false);
+                          setSearch("");
+                        }}
+                        className="px-4 py-2.5 text-sm cursor-pointer transition-colors hover:bg-[#f0f9f1] text-[#1A3C20]"
+                      >
+                        {getCustomOptionLabel(normalizedSearch)}
+                        <span className="text-gray-400">
+                          {" "}
+                          as new {customTypeLabel}
+                        </span>
+                      </li>
+                    )}
+                  </>
                 )}
               </ul>
             </div>
@@ -185,15 +238,29 @@ const SearchableDropdown = ({
 const HobbiesField = ({
   masterHobbies,
   selectedIds,
+  selectedCustomValues = [],
   isEditing,
   onToggle,
   currentHobbies,
+  onCustomSelect,
+  onRemoveCustom,
 }) => {
   const [search, setSearch] = useState("");
 
   const filtered = masterHobbies.filter((h) =>
     h.Hobby_Name?.toLowerCase().includes(search.toLowerCase()),
   );
+  const normalizedSearch = normalizeCustomOptionInput(search);
+  const showCustomOption =
+    !!onCustomSelect &&
+    !!normalizedSearch &&
+    !masterHobbies.some(
+      (hobby) =>
+        hobby.Hobby_Name?.toLowerCase() === normalizedSearch.toLowerCase(),
+    ) &&
+    !selectedCustomValues.some(
+      (hobby) => hobby.toLowerCase() === normalizedSearch.toLowerCase(),
+    );
 
   return (
     <div>
@@ -218,9 +285,9 @@ const HobbiesField = ({
             )}
           </div>
 
-          {selectedIds.length > 0 && (
+          {selectedIds.length + selectedCustomValues.length > 0 && (
             <p className="text-xs text-[#4caf50] font-semibold mb-2">
-              {selectedIds.length} selected
+              {selectedIds.length + selectedCustomValues.length} selected
             </p>
           )}
 
@@ -247,7 +314,36 @@ const HobbiesField = ({
                 No hobbies match your search
               </p>
             )}
+            {showCustomOption && (
+              <button
+                type="button"
+                onClick={() => {
+                  onCustomSelect(normalizedSearch);
+                  setSearch("");
+                }}
+                className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 border-2 bg-white text-[#3a6b42] border-[#c8e6c9] hover:border-[#1A3C20] hover:text-[#1A3C20]"
+              >
+                {getCustomOptionLabel(normalizedSearch)}
+              </button>
+            )}
           </div>
+
+          {selectedCustomValues.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2 border-t border-[#dceedd] pt-3">
+              {selectedCustomValues.map((hobby) => (
+                <button
+                  key={hobby}
+                  type="button"
+                  onClick={() => onRemoveCustom?.(hobby)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border-2 bg-[#1A3C20] text-white border-[#1A3C20] shadow-sm"
+                >
+                  <Check size={11} />
+                  {hobby}
+                  <X size={11} />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex flex-wrap gap-2">
@@ -580,6 +676,8 @@ const ProfileInformation = () => {
         College_ID: currentStudent.College_ID,
         Degree_ID: currentStudent.Degree_ID,
         Hobbies: currentStudent.hobbies?.map((h) => h.Hobby_ID) || [],
+        New_Degree_Name: "",
+        New_Hobbies: [],
       });
       setFieldErrors({});
     }
@@ -659,9 +757,14 @@ const ProfileInformation = () => {
       formDataPayload.append("roll_no", formData.Roll_No.trim());
       formDataPayload.append("college_id", formData.College_ID);
       formDataPayload.append("degree_id", formData.Degree_ID);
+      formDataPayload.append("New_Degree_Name", formData.New_Degree_Name || "");
       formDataPayload.append("year", formData.Year);
       formDataPayload.append("email", formData.Email.trim());
       formDataPayload.append("hobbies", JSON.stringify(formData.Hobbies));
+      formDataPayload.append(
+        "New_Hobbies",
+        JSON.stringify(formData.New_Hobbies || []),
+      );
       if (profilePicFile) {
         formDataPayload.append("profile_pic", profilePicFile);
       }
@@ -859,13 +962,34 @@ const ProfileInformation = () => {
               items={masterDegrees}
               searchKey="Degree_Name"
               idKey="Degree_ID"
+              allowCustom
+              customTypeLabel="degree"
+              customValue={formData.New_Degree_Name}
               onSelect={(item) =>
                 setFormData((p) => ({
                   ...p,
                   Degree: item.Degree_Name,
                   Degree_ID: item.Degree_ID,
+                  New_Degree_Name: "",
                 }))
               }
+              onCustomSelect={(value) => {
+                const normalizedValue = normalizeCustomOptionInput(value);
+                if (
+                  !normalizedValue ||
+                  !confirmCustomOption("degree", normalizedValue)
+                ) {
+                  return;
+                }
+
+                setFormData((p) => ({
+                  ...p,
+                  Degree: normalizedValue,
+                  Degree_ID: "",
+                  New_Degree_Name: normalizedValue,
+                }));
+                toast.success(`"${normalizedValue}" will be added as a new degree.`);
+              }}
             />
 
             <div className="grid grid-cols-2 gap-4">
@@ -898,11 +1022,14 @@ const ProfileInformation = () => {
             <HobbiesField
               masterHobbies={masterHobbies}
               selectedIds={formData.Hobbies}
+              selectedCustomValues={formData.New_Hobbies}
               isEditing={isEditing}
               onToggle={(id) =>
                 setFormData((prev) => {
+                  const totalSelected =
+                    prev.Hobbies.length + (prev.New_Hobbies?.length || 0);
                   const isSelected = prev.Hobbies.includes(id);
-                  if (!isSelected && prev.Hobbies.length >= 7) {
+                  if (!isSelected && totalSelected >= 7) {
                     toast.error("You can select at most 7 hobbies");
                     return prev;
                   }
@@ -913,6 +1040,49 @@ const ProfileInformation = () => {
                       : [...prev.Hobbies, id],
                   };
                 })
+              }
+              onCustomSelect={(value) => {
+                const normalizedValue = normalizeCustomOptionInput(value);
+                if (
+                  !normalizedValue ||
+                  !confirmCustomOption("hobby", normalizedValue)
+                ) {
+                  return;
+                }
+
+                setFormData((prev) => {
+                  const totalSelected =
+                    prev.Hobbies.length + (prev.New_Hobbies?.length || 0);
+
+                  if (totalSelected >= 7) {
+                    toast.error("You can select at most 7 hobbies");
+                    return prev;
+                  }
+
+                  if (
+                    prev.New_Hobbies?.some(
+                      (hobby) =>
+                        hobby.toLowerCase() === normalizedValue.toLowerCase(),
+                    )
+                  ) {
+                    return prev;
+                  }
+
+                  return {
+                    ...prev,
+                    New_Hobbies: [...(prev.New_Hobbies || []), normalizedValue],
+                  };
+                });
+
+                toast.success(`"${normalizedValue}" will be added as a new hobby.`);
+              }}
+              onRemoveCustom={(valueToRemove) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  New_Hobbies: (prev.New_Hobbies || []).filter(
+                    (hobby) => hobby !== valueToRemove,
+                  ),
+                }))
               }
               currentHobbies={currentStudent.hobbies}
             />

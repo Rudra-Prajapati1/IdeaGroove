@@ -26,7 +26,7 @@ const AdminNoteCard = ({ note, onModerate }) => {
     try {
       setIsDownloading(true);
       toast.loading("Preparing download...", { id: `admin-note-${note.id}` });
-      const { data } = await api.get(`/notes/download/${note.id}`);
+      const { data } = await api.get(`/notes/admin-download/${note.id}`);
 
       if (!data?.url) {
         throw new Error("Download URL missing");
