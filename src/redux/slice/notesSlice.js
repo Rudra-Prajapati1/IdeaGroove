@@ -8,7 +8,6 @@ import api from "../../api/axios";
 
 const notesAdapter = createEntityAdapter({
   selectId: (note) => note.N_ID,
-  sortComparer: (a, b) => new Date(b.Added_on) - new Date(a.Added_on),
 });
 
 const initialState = notesAdapter.getInitialState({

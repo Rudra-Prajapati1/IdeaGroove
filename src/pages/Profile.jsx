@@ -38,7 +38,6 @@ import {
 
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import defaultProfilePic from "/DarkLogo.png";
 import { ConfirmationBox } from "../components/common/ConfirmationBox";
 import api from "../api/axios";
 
@@ -478,6 +477,13 @@ const ProfileInformation = () => {
       </div>
     );
 
+  const profileImageSrc =
+    profilePicPreview || currentStudent?.Profile_Pic || "";
+  const profileInitial = (formData.Name || currentStudent?.Name || "?")
+    .trim()
+    .charAt(0)
+    .toUpperCase();
+
   const formatBatchYear = (year) => {
     if (!year) return "N/A";
     const yearStr = String(year);
@@ -580,16 +586,17 @@ const ProfileInformation = () => {
           <div className="flex flex-col items-center min-w-[200px]">
             <div className="relative group">
               <div className="w-44 h-44 rounded-4xl overflow-hidden border-4 border-[#e8f5e9] shadow-inner">
-                <img
-                  src={
-                    profilePicPreview ||
-                    (currentStudent.Profile_Pic
-                      ? currentStudent.Profile_Pic
-                      : defaultProfilePic)
-                  }
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
+                {profileImageSrc ? (
+                  <img
+                    src={profileImageSrc}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1A3C20] to-[#4caf50] text-6xl font-black text-white">
+                    {profileInitial}
+                  </div>
+                )}
               </div>
 
               {isEditing && (
