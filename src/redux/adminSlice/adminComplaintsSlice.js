@@ -1,9 +1,13 @@
 import { createAsyncThunk, createSelector, createSlice } from "@reduxjs/toolkit";
 import api from "../../api/axios";
-import { normalizeArrayResponse } from "./adminHelpers";
 
 const initialState = {
   items: [],
+  summary: {
+    totalCount: 0,
+    activeCount: 0,
+    inactiveCount: 0,
+  },
   status: "idle",
   error: null,
   actionStatus: "idle",
@@ -15,7 +19,14 @@ export const fetchAdminComplaints = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const { data } = await api.get("/complaints");
-      return normalizeArrayResponse(data, ["complaints", "data"]);
+      return {
+        items: Array.isArray(data?.data) ? data.data : [],
+        summary: {
+          totalCount: Number(data?.summary?.totalCount || 0),
+          activeCount: Number(data?.summary?.activeCount || 0),
+          inactiveCount: Number(data?.summary?.inactiveCount || 0),
+        },
+      };
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.error || "Failed to fetch admin complaints",
@@ -50,7 +61,8 @@ const adminComplaintsSlice = createSlice({
       })
       .addCase(fetchAdminComplaints.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.items = action.payload;
+        state.items = action.payload.items;
+        state.summary = action.payload.summary;
       })
       .addCase(fetchAdminComplaints.rejected, (state, action) => {
         state.status = "failed";
@@ -80,37 +92,36 @@ export default adminComplaintsSlice.reducer;
 export const selectAdminComplaints = (state) => state.adminComplaints.items;
 export const selectAdminComplaintsActionStatus = (state) =>
   state.adminComplaints.actionStatus;
+export const selectAdminComplaintsSummary = (state) =>
+  state.adminComplaints.summary;
 
 export const selectAdminComplaintsStats = createSelector(
   selectAdminComplaints,
-  (complaints) => {
-    const resolvedCount = complaints.filter(
-      (complaint) => complaint.Status === "Resolved",
-    ).length;
-    const pendingCount = complaints.filter(
-      (complaint) =>
-        complaint.Status === "Pending" || complaint.Status === "In-Progress",
-    ).length;
+  selectAdminComplaintsSummary,
+  (complaints, summary) => {
+    const totalCount = summary?.totalCount || complaints.length;
+    const activeCount = summary?.activeCount || complaints.length;
+    const inactiveCount = summary?.inactiveCount || 0;
 
     return [
       {
         title: "Total Complaints",
-        value: complaints.length,
-        infoText: `${pendingCount} awaiting action`,
+        value: totalCount,
+        infoText: `${activeCount} currently active`,
         color: "green",
         type: "total",
       },
       {
-        title: "Resolved",
-        value: resolvedCount,
-        infoText: `${complaints.length ? Math.round((resolvedCount / complaints.length) * 100) : 0}% resolution rate`,
+        title: "Active Complaints",
+        value: activeCount,
+        infoText: `${totalCount ? Math.round((activeCount / totalCount) * 100) : 0}% of all complaints`,
         color: "yellow",
         type: "pending",
       },
       {
-        title: "Pending",
-        value: pendingCount,
-        infoText: `${pendingCount} open complaints`,
+        title: "Inactive Complaints",
+        value: inactiveCount,
+        infoText: `${inactiveCount} removed from the active list`,
         color: "red",
         type: "blocked",
       },

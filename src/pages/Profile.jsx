@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   updateStudentProfile,
@@ -45,6 +45,7 @@ import {
   formatAcademicYear,
   toStoredAcademicYear,
 } from "../utils/academicYear";
+import { debounce } from "lodash";
 
 const mapStudentProfileToAuthUser = (student) => ({
   id: student.S_ID,
@@ -61,6 +62,15 @@ const mapStudentProfileToAuthUser = (student) => ({
     ? student.hobbies.map((hobby) => hobby.Hobby_Name)
     : [],
 });
+
+const AVAILABILITY_MAP = {
+  username: { key: "Username", msg: "Username is already taken" },
+  roll_no: { key: "Roll_No", msg: "Roll No is already registered" },
+};
+
+const REQUIRED_FIELD_ERRORS = {
+  Username: "Username is required",
+};
 
 /* ─────────────────────────── SearchableDropdown ─────────────────────────── */
 const SearchableDropdown = ({
@@ -266,8 +276,10 @@ const InfoField = ({
   value,
   isEditing,
   onChange,
+  onBlur,
   type = "text",
   placeholder,
+  error = "",
 }) => (
   <div>
     <label className="block text-xs font-bold mb-2 uppercase tracking-widest text-[#3a6b42]">
@@ -275,17 +287,22 @@ const InfoField = ({
     </label>
     <div
       className={`flex items-center gap-3 bg-[#f4fbf5] border-2 rounded-2xl px-5 py-3 transition-all duration-200 ${
-        isEditing && onChange
+        error
+          ? "border-red-300 focus-within:border-red-400 focus-within:shadow-[0_0_0_3px_rgba(248,113,113,0.12)]"
+          : isEditing && onChange
           ? "border-[#c8e6c9] hover:border-[#1A3C20] focus-within:border-[#1A3C20] focus-within:shadow-[0_0_0_3px_rgba(26,60,32,0.08)]"
           : "border-[#e8f5e9]"
       }`}
     >
-      <span className="text-[#4caf50]">{icon}</span>
+      <span className={error ? "text-red-400" : "text-[#4caf50]"}>
+        {icon}
+      </span>
       {isEditing && onChange ? (
         <input
           type={type}
           value={value}
           placeholder={placeholder}
+          onBlur={onBlur}
           onChange={(e) => onChange(e.target.value)}
           className="w-full bg-transparent outline-none text-sm text-[#1A3C20] placeholder:text-gray-400 font-medium"
         />
@@ -295,6 +312,7 @@ const InfoField = ({
         </span>
       )}
     </div>
+    {error && <p className="mt-2 text-xs font-medium text-red-500">{error}</p>}
   </div>
 );
 
@@ -446,6 +464,7 @@ const ProfileInformation = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const loadProfileData = () => {
     const loggedInId = user?.S_ID || user?.id;
@@ -463,6 +482,80 @@ const ProfileInformation = () => {
     setProfilePicFile(file);
     setProfilePicPreview(URL.createObjectURL(file));
   };
+
+  const clearFieldError = useCallback((fieldKey) => {
+    setFieldErrors((prev) => {
+      if (!prev[fieldKey]) return prev;
+      const next = { ...prev };
+      delete next[fieldKey];
+      return next;
+    });
+  }, []);
+
+  const checkAvailability = useCallback(
+    async (field, value) => {
+      const trimmedValue = value?.trim();
+      const config = AVAILABILITY_MAP[field];
+      const requiredMessage =
+        field === "username" ? REQUIRED_FIELD_ERRORS.Username : "";
+
+      if (!config) {
+        return true;
+      }
+
+      if (!trimmedValue) {
+        if (requiredMessage) {
+          setFieldErrors((prev) => ({
+            ...prev,
+            [config.key]: requiredMessage,
+          }));
+          return false;
+        }
+        clearFieldError(config.key);
+        return true;
+      }
+
+      const currentValue =
+        field === "username" ? currentStudent?.Username : currentStudent?.Roll_No;
+
+      if (trimmedValue === currentValue) {
+        clearFieldError(config.key);
+        return true;
+      }
+
+      try {
+        const { data } = await api.get("/auth/check-availability", {
+          params: { field, value: trimmedValue },
+        });
+
+        if (!data.available) {
+          setFieldErrors((prev) => ({ ...prev, [config.key]: config.msg }));
+          return false;
+        }
+
+        clearFieldError(config.key);
+        return true;
+      } catch (err) {
+        console.error("Availability check failed:", err);
+        return true;
+      }
+    },
+    [clearFieldError, currentStudent],
+  );
+
+  const debouncedCheckUsername = useCallback(
+    debounce((value) => {
+      checkAvailability("username", value);
+    }, 600),
+    [checkAvailability],
+  );
+
+  const debouncedCheckRollNo = useCallback(
+    debounce((value) => {
+      checkAvailability("roll_no", value);
+    }, 600),
+    [checkAvailability],
+  );
 
   useEffect(() => {
     loadProfileData();
@@ -486,8 +579,16 @@ const ProfileInformation = () => {
         Degree_ID: currentStudent.Degree_ID,
         Hobbies: currentStudent.hobbies?.map((h) => h.Hobby_ID) || [],
       });
+      setFieldErrors({});
     }
   }, [currentStudent]);
+
+  useEffect(() => {
+    return () => {
+      debouncedCheckUsername.cancel();
+      debouncedCheckRollNo.cancel();
+    };
+  }, [debouncedCheckRollNo, debouncedCheckUsername]);
 
   if (!currentStudent || !formData)
     return (
@@ -520,15 +621,44 @@ const ProfileInformation = () => {
 
   const handleSave = async () => {
     try {
+      const trimmedUsername = formData.Username.trim();
+      if (!trimmedUsername) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          Username: REQUIRED_FIELD_ERRORS.Username,
+        }));
+        toast.error(REQUIRED_FIELD_ERRORS.Username);
+        return;
+      }
+
+      const isUsernameAvailable = await checkAvailability(
+        "username",
+        trimmedUsername,
+      );
+      const isRollNoAvailable = await checkAvailability(
+        "roll_no",
+        formData.Roll_No,
+      );
+
+      if (!isUsernameAvailable) {
+        toast.error(AVAILABILITY_MAP.username.msg);
+        return;
+      }
+
+      if (!isRollNoAvailable) {
+        toast.error(AVAILABILITY_MAP.roll_no.msg);
+        return;
+      }
+
       const formDataPayload = new FormData();
       formDataPayload.append("student_id", currentStudent.S_ID);
-      formDataPayload.append("username", formData.Username);
-      formDataPayload.append("name", formData.Name);
-      formDataPayload.append("roll_no", formData.Roll_No);
+      formDataPayload.append("username", trimmedUsername);
+      formDataPayload.append("name", formData.Name.trim());
+      formDataPayload.append("roll_no", formData.Roll_No.trim());
       formDataPayload.append("college_id", formData.College_ID);
       formDataPayload.append("degree_id", formData.Degree_ID);
       formDataPayload.append("year", formData.Year);
-      formDataPayload.append("email", formData.Email);
+      formDataPayload.append("email", formData.Email.trim());
       formDataPayload.append("hobbies", JSON.stringify(formData.Hobbies));
       if (profilePicFile) {
         formDataPayload.append("profile_pic", profilePicFile);
@@ -615,8 +745,10 @@ const ProfileInformation = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1A3C20] to-[#4caf50] text-6xl font-black text-white">
-                    {profileInitial}
+                  <div className="flex h-full w-full items-center justify-center bg-white">
+                    <span className="bg-gradient-to-br from-[#1A3C20] to-[#4caf50] bg-clip-text text-6xl font-black text-transparent">
+                      {profileInitial}
+                    </span>
                   </div>
                 )}
               </div>
@@ -655,11 +787,40 @@ const ProfileInformation = () => {
             <h3 className="text-2xl font-black text-[#1A3C20] mt-4 capitalize">
               {formData.Name}
             </h3>
-            <p className="text-gray-400 text-sm">@{formData.Username}</p>
+            {formData.Username?.trim() && (
+              <p className="text-gray-400 text-sm">@{formData.Username.trim()}</p>
+            )}
           </div>
 
           {/* Fields */}
           <div className="flex-1 space-y-5">
+            <div className="grid grid-cols-2 gap-4">
+              <InfoField
+                label="Name"
+                icon={<User size={16} />}
+                value={formData.Name}
+                isEditing={isEditing}
+                onChange={(v) => setFormData((p) => ({ ...p, Name: v }))}
+                placeholder="Enter your name"
+              />
+              <InfoField
+                label="Username"
+                icon={<Pencil size={16} />}
+                value={formData.Username}
+                isEditing={isEditing}
+                error={fieldErrors.Username}
+                onBlur={() => checkAvailability("username", formData.Username)}
+                onChange={(v) => {
+                  setFormData((p) => ({ ...p, Username: v }));
+                  if (v.trim()) {
+                    clearFieldError("Username");
+                  }
+                  debouncedCheckUsername(v);
+                }}
+                placeholder="Choose a username"
+              />
+            </div>
+
             <InfoField
               label="Email"
               icon={<Mail size={16} />}
@@ -711,7 +872,13 @@ const ProfileInformation = () => {
                 icon={<Hash size={16} />}
                 value={formData.Roll_No}
                 isEditing={isEditing}
-                onChange={(v) => setFormData((p) => ({ ...p, Roll_No: v }))}
+                error={fieldErrors.Roll_No}
+                onBlur={() => checkAvailability("roll_no", formData.Roll_No)}
+                onChange={(v) => {
+                  setFormData((p) => ({ ...p, Roll_No: v }));
+                  clearFieldError("Roll_No");
+                  debouncedCheckRollNo(v);
+                }}
                 placeholder="e.g. 21CS001"
               />
               <InfoField

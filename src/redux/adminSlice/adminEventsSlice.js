@@ -122,7 +122,7 @@ export const selectAdminEventsStats = createSelector(
         type: "pending",
       },
       {
-        title: "Blocked Events",
+        title: "Inactive Events",
         value: blockedEvents.length,
         infoText: `${blockedEvents.length} hidden from users`,
         color: "red",

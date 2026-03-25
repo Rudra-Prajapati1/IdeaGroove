@@ -1,6 +1,7 @@
 import { CalendarDays, Info, Users } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import useClickOutside from "../../hooks/useClickOutside";
+import GradientAvatar from "../common/GradientAvatar";
 
 const ChatHeader = ({
   activeRoom = null,
@@ -35,6 +36,7 @@ const ChatHeader = ({
   const displayName = isGroup
     ? activeRoom.Room_Name || "Group"
     : otherMember?.name || otherMember?.username || "Direct Chat";
+  const avatarSrc = !isGroup ? otherMember?.Profile_Pic || "" : "";
 
   const statusText = isGroup
     ? `${activeRoom.Members?.length || 0} members`
@@ -61,8 +63,20 @@ const ChatHeader = ({
     <div className="h-20 w-full flex items-center justify-between px-6 border-b border-primary bg-primary">
       <div className="flex items-center gap-4">
         <div className="relative h-12 w-12">
-          <div className="h-12 w-12 rounded-full border border-white flex items-center justify-center font-semibold text-white text-lg">
-            {displayName?.[0]?.toUpperCase() || "?"}
+          <div className="h-12 w-12 overflow-hidden rounded-full border border-white flex items-center justify-center font-semibold text-white text-lg">
+            {isGroup ? (
+              <div className="flex h-full w-full items-center justify-center bg-white/10 text-white">
+                {displayName?.[0]?.toUpperCase() || "?"}
+              </div>
+            ) : (
+              <GradientAvatar
+                name={displayName}
+                imageSrc={avatarSrc}
+                alt={displayName}
+                className="rounded-full"
+                textClassName="text-lg"
+              />
+            )}
           </div>
           {!isGroup && otherOnline && (
             <span className="absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full bg-green-400 border-2 border-primary" />
@@ -169,8 +183,13 @@ const ChatHeader = ({
                                     className="h-9 w-9 rounded-full object-cover border border-primary/10"
                                   />
                                 ) : (
-                                  <div className="h-9 w-9 rounded-full border border-primary/20 bg-white flex items-center justify-center text-sm font-semibold">
-                                    {memberName[0]?.toUpperCase() || "?"}
+                                  <div className="h-9 w-9 overflow-hidden rounded-full border border-primary/20">
+                                    <GradientAvatar
+                                      name={memberName}
+                                      alt={memberName}
+                                      className="rounded-full"
+                                      textClassName="text-sm"
+                                    />
                                   </div>
                                 )}
                                 {member.isOnline && (

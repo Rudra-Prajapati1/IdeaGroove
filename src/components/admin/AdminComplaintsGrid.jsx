@@ -65,21 +65,22 @@ const AdminComplaintsGrid = ({
     switch (normalizedType) {
       case "NOTES":
       case "NOTE":
-        return "bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200";
+        return "bg-rose-100 text-rose-700 border-rose-200";
+      case "QUESTION":
       case "QNA":
-        return "bg-cyan-100 text-cyan-800 border-cyan-200";
+        return "bg-emerald-100 text-emerald-700 border-emerald-200";
       case "ANSWER":
-        return "bg-pink-100 text-pink-700 border-pink-200";
+        return "bg-green-100 text-green-800 border-green-200";
       case "EVENTS":
       case "EVENT":
-        return "bg-orange-100 text-orange-700 border-orange-200";
+        return "bg-amber-100 text-amber-700 border-amber-200";
       case "USER":
-        return "bg-amber-100 text-amber-800 border-amber-200";
+        return "bg-sky-100 text-sky-700 border-sky-200";
       case "GROUPS":
       case "GROUP":
-        return "bg-violet-100 text-violet-700 border-violet-200";
+        return "bg-purple-100 text-purple-700 border-purple-200";
       case "OTHER":
-        return "bg-lime-100 text-lime-800 border-lime-200";
+        return "bg-slate-100 text-slate-700 border-slate-200";
       default:
         return "bg-slate-100 text-slate-700 border-slate-200";
     }

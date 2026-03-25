@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CheckCheck, Clock3, FileText, ImageIcon, X } from "lucide-react";
 import api from "../../api/axios";
+import GradientAvatar from "../common/GradientAvatar";
 
 const formatDateTime = (value) => {
   if (!value) return null;
@@ -144,7 +145,7 @@ const MessageInfoModal = ({ open, message, anchorRef = null, onClose }) => {
 
   return createPortal(
     <div
-      className="fixed z-50 w-[min(18rem,calc(100vw-1.5rem))]"
+      className="fixed z-50 w-[min(18rem,calc(100vw-1.5rem))] overflow-hidden"
       style={{ top: `${position.top}px`, left: `${position.left}px` }}
     >
       <div
@@ -249,15 +250,20 @@ const MessageInfoModal = ({ open, message, anchorRef = null, onClose }) => {
                                 className="h-8 w-8 rounded-full border border-primary/10 object-cover"
                               />
                             ) : (
-                              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-primary/10 bg-[#FFFBEB] text-xs font-semibold text-primary">
-                                {name[0]?.toUpperCase() || "?"}
+                              <div className="h-8 w-8 overflow-hidden rounded-full border border-primary/10">
+                                <GradientAvatar
+                                  name={name}
+                                  alt={name}
+                                  className="rounded-full"
+                                  textClassName="text-xs"
+                                />
                               </div>
                             )}
                             <div className="min-w-0">
                               <p className="truncate text-xs font-medium text-primary">
                                 {name}
                               </p>
-                              <p className="truncate text-[10px] text-primary/50">
+                              <p className="truncate text-[10px] text-primary/50 max-w-[8.5rem]">
                                 @{receipt.username || "member"}
                               </p>
                             </div>
@@ -306,15 +312,20 @@ const MessageInfoModal = ({ open, message, anchorRef = null, onClose }) => {
                                 className="h-8 w-8 rounded-full border border-primary/10 object-cover"
                               />
                             ) : (
-                              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-primary/10 bg-[#FFFBEB] text-xs font-semibold text-primary">
-                                {name[0]?.toUpperCase() || "?"}
+                              <div className="h-8 w-8 overflow-hidden rounded-full border border-primary/10">
+                                <GradientAvatar
+                                  name={name}
+                                  alt={name}
+                                  className="rounded-full"
+                                  textClassName="text-xs"
+                                />
                               </div>
                             )}
                             <div className="min-w-0">
                               <p className="truncate text-xs font-medium text-primary">
                                 {name}
                               </p>
-                              <p className="truncate text-[10px] text-primary/50">
+                              <p className="truncate text-[10px] text-primary/50 max-w-[8.5rem]">
                                 @{receipt.username || "member"}
                               </p>
                             </div>

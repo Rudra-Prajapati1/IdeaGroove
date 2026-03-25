@@ -105,7 +105,26 @@ const StudentProfile = ({ id, onClose }) => {
           `${import.meta.env.VITE_API_BASE_URL}/students/${id}/activities?type=${filter}`,
         );
         const data = await res.json();
-        setActivities(data);
+        const nextActivities = Array.isArray(data)
+          ? data
+              .filter(
+                (item) =>
+                  item?.Is_Active !== 0 &&
+                  item?.is_Active !== 0 &&
+                  item?.status !== 0 &&
+                  item?.status !== "blocked",
+              )
+              .map((item) => ({
+                ...item,
+                answers: Array.isArray(item.answers)
+                  ? item.answers.filter(
+                      (answer) =>
+                        answer?.Is_Active !== 0 && answer?.is_Active !== 0,
+                    )
+                  : item.answers,
+              }))
+          : [];
+        setActivities(nextActivities);
       } catch (err) {
         console.error(err);
       } finally {

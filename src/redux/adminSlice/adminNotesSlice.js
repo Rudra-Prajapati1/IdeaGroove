@@ -123,7 +123,7 @@ export const selectAdminNotesStats = createSelector(
         type: "pending",
       },
       {
-        title: "InActive Notes",
+        title: "Inactive Notes",
         value: blockedNotes.length,
         infoText: `${blockedNotes.length} blocked or removed`,
         color: "red",

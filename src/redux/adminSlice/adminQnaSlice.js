@@ -153,7 +153,7 @@ export const selectAdminQnaStats = createSelector(
         type: "pending",
       },
       {
-        title: "InActive Questions",
+        title: "Inactive Questions",
         value: blockedQuestions.length,
         infoText: `${blockedQuestions.length} moderated questions`,
         color: "red",

@@ -11,6 +11,7 @@ import {
 } from "../redux/slice/studentsSlice";
 import PaginationControls from "./common/PaginationControls";
 import { selectUser } from "../redux/slice/authSlice";
+import GradientAvatar from "./common/GradientAvatar";
 
 const UserProfile = () => {
   const dispatch = useDispatch();
@@ -73,17 +74,13 @@ const UserProfile = () => {
             >
               <div className="relative mb-4">
                 <div className="w-20 h-20 rounded-full overflow-hidden bg-slate-100 border-2 border-white shadow-sm flex items-center justify-center">
-                  {user.Profile_Pic ? (
-                    <img
-                      src={user.Profile_Pic}
-                      alt={user.Name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-2xl font-bold text-primary capitalize">
-                      {user.Name[0]}
-                    </span>
-                  )}
+                  <GradientAvatar
+                    name={user.Name}
+                    imageSrc={user.Profile_Pic}
+                    alt={user.Name}
+                    className="rounded-full"
+                    textClassName="text-2xl capitalize"
+                  />
                 </div>
                 <span
                   className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white ${getStatusColor(user.status || "offline")}`}

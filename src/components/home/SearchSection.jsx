@@ -4,6 +4,7 @@ import { Search, Clock, X } from "lucide-react";
 import { useSelector } from "react-redux";
 import api from "../../api/axios";
 import { selectUser } from "../../redux/slice/authSlice";
+import GradientAvatar from "../common/GradientAvatar";
 
 const HISTORY_KEY = "student_search_history";
 const MAX_HISTORY = 5;
@@ -197,15 +198,13 @@ const SearchSection = () => {
                         className="flex w-full items-center gap-3 px-5 py-3 text-left hover:bg-slate-50 transition-colors"
                       >
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#E9F3EA] text-sm font-bold text-[#1A3C20]">
-                          {student.Profile_Pic ? (
-                            <img
-                              src={student.Profile_Pic}
-                              alt={student.Name || student.Username || "Student"}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            (student.Name || student.Username || "?")[0]?.toUpperCase()
-                          )}
+                          <GradientAvatar
+                            name={student.Name || student.Username || "Student"}
+                            imageSrc={student.Profile_Pic}
+                            alt={student.Name || student.Username || "Student"}
+                            className="rounded-full"
+                            textClassName="text-sm"
+                          />
                         </div>
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold text-slate-800">
