@@ -206,15 +206,17 @@ const SECTIONS = [
     bg: "from-indigo-50 to-blue-50",
     tag: "MODERATION",
     tagColor: "bg-indigo-100 text-indigo-700",
-    desc: "All complaints with type, status & resolution data",
+    desc: "All complaints with complaint text, reported activity & status data",
     endpoint: "complaints-report",
     columns: [
       { key: "Complaint_Text", label: "Complaint", default: true },
+      { key: "Reported_Activity", label: "Reported Activity", default: true },
       { key: "Complaint_Type", label: "Type", default: true },
       { key: "Date", label: "Filed On", default: true },
       { key: "student_name", label: "Student", default: true },
       { key: "Status", label: "Status", default: true },
-      { key: "age_days", label: "Age (days)", default: true },
+      { key: "Content_Owner_Name", label: "Activity Owner", default: false },
+      { key: "age_days", label: "Age (days)", default: false },
     ],
     filters: [
       // key="type" is sent to backend; rowKey="Complaint_Type" is the column in rows
@@ -545,6 +547,7 @@ const SampleTable = ({ section, rows, colState }) => {
                       "Question",
                       "Description",
                       "Complaint_Text",
+                      "Reported_Activity",
                     ].includes(col.key)
                       ? "max-w-[220px] whitespace-normal break-words"
                       : "whitespace-nowrap max-w-[160px] truncate"

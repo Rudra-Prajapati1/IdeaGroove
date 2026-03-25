@@ -35,20 +35,16 @@ export const toStoredAcademicYear = (value) => {
 
   if (/^20\d{2}-20\d{2}$/.test(rawValue)) {
     const [startYear, endYear] = rawValue.split("-");
-    return `${startYear.slice(2)}${endYear.slice(2)}`;
+    return `${startYear.slice(2)}${endYear}`;
   }
 
   const digits = rawValue.replace(/\D/g, "");
 
   if (digits.length === 8 && digits.startsWith("20")) {
-    return `${digits.slice(2, 4)}${digits.slice(6, 8)}`;
+    return `${digits.slice(2, 4)}${digits.slice(4, 8)}`;
   }
 
-  if (digits.length === 6) {
-    return `${digits.slice(0, 2)}${digits.slice(4, 6)}`;
-  }
-
-  if (digits.length === 4) {
+  if (digits.length === 6 || digits.length === 4) {
     return digits;
   }
 

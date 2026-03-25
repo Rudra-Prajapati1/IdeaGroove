@@ -7,6 +7,7 @@ import { UserCircle, LogOut, LayoutDashboard } from "lucide-react";
 import toast from "react-hot-toast";
 import useClickOutside from "@/hooks/useClickOutside.jsx";
 import { selectIsAuthenticated } from "../../redux/slice/authSlice";
+import api from "../../api/axios";
 
 const Navbar = () => {
   const location = useLocation();
@@ -34,11 +35,18 @@ const Navbar = () => {
     return navLinks.filter((link) => !link.requiresAuth || isAuthenticated);
   }, [isAuthenticated]);
 
-  const handleLogout = () => {
-    dispatch(logout());
-    setProfileOpen(false);
-    toast.success("Logged out successfully!");
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+      toast.success("Logged out successfully!");
+    } catch (error) {
+      console.error("Logout Error:", error);
+      toast.error("Session ended locally, but the server logout failed.");
+    } finally {
+      dispatch(logout());
+      setProfileOpen(false);
+      navigate("/", { replace: true });
+    }
   };
 
   useEffect(() => {

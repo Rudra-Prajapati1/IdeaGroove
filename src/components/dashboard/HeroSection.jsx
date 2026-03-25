@@ -29,7 +29,7 @@ const HeroSection = ({ user, isPublic = false }) => {
   const showMessageButton =
     isPublic && String(viewedUserId) !== String(currentUserId);
   const infoCardClass =
-    "group flex items-center gap-3 rounded-2xl border border-white/12 bg-white/[0.08] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_40px_-30px_rgba(0,0,0,0.8)] backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/[0.12]";
+    "group flex h-full items-center gap-3 rounded-2xl border border-white/12 bg-white/[0.08] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_40px_-30px_rgba(0,0,0,0.8)] backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/[0.12]";
   const hobbyChipClass =
     "rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold text-green-100 break-words [overflow-wrap:anywhere]";
 
@@ -101,7 +101,7 @@ const HeroSection = ({ user, isPublic = false }) => {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 gap-3 mt-2 sm:grid-cols-2 animate-in fade-in slide-in-from-left-4 duration-700">
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5 animate-in fade-in slide-in-from-left-4 duration-700">
                 <div className={infoCardClass}>
                   <Mail className="text-green-300 w-5 h-5" />
                   <span className="text-sm lg:text-lg opacity-90 break-words">
@@ -127,7 +127,9 @@ const HeroSection = ({ user, isPublic = false }) => {
                   </span>
                 </div>
                 {hobbies.length > 0 && (
-                  <div className={`${infoCardClass} sm:col-span-2 items-start`}>
+                  <div
+                    className={`${infoCardClass} items-start sm:col-span-2 lg:col-span-3`}
+                  >
                     <Sparkles className="text-green-300 w-5 h-5 mt-0.5 shrink-0" />
                     <div className="flex flex-wrap gap-2 min-w-0">
                       {hobbies.map((hobby, i) => (

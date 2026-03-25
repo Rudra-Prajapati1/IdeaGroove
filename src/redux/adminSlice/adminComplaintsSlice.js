@@ -18,7 +18,9 @@ export const fetchAdminComplaints = createAsyncThunk(
   "adminComplaints/fetchAdminComplaints",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await api.get("/complaints");
+      const { data } = await api.get("/complaints", {
+        params: { page: 1, limit: 500 },
+      });
       return {
         items: Array.isArray(data?.data) ? data.data : [],
         summary: {
