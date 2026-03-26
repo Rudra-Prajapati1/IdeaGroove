@@ -18,7 +18,7 @@ export const fetchAdminEvents = createAsyncThunk(
   "adminEvents/fetchAdminEvents",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await api.get("/events");
+      const { data } = await api.get("/admin/events");
       const events = (data?.data || []).map((event) => ({
         id: event.E_ID,
         Description: event.Description,
@@ -32,7 +32,7 @@ export const fetchAdminEvents = createAsyncThunk(
         status: event.Is_Active,
       }));
 
-      return { total: data?.total || events.length, items: events };
+      return { total: events.length, items: events };
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.error || "Failed to fetch admin events",
