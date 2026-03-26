@@ -31,7 +31,7 @@ import {
 // FILTER KEY RULES — must match backend controller exactly:
 //   users:      degree, college
 //   events:     event_status ("Upcoming" | "Past")
-//   groups:     hobby  ← backend must use IN (...) not = '...'
+//   groups:     hobby
 //   notes:      degree, subject
 //   qna:        degree, subject
 //   complaints: type
@@ -1129,8 +1129,20 @@ const FilterControls = ({
     }
     if (f.source === "degreeApi") {
       if (f.subjectFilter) {
-        const deg = cur["degree"];
-        if (deg && degreeSubjectMap[deg]) return degreeSubjectMap[deg];
+        const selectedDegrees = Array.isArray(cur["degree"])
+          ? cur["degree"]
+          : cur["degree"]
+            ? [cur["degree"]]
+            : [];
+        if (selectedDegrees.length > 0) {
+          return [
+            ...new Set(
+              selectedDegrees.flatMap(
+                (degree) => degreeSubjectMap[degree] || [],
+              ),
+            ),
+          ].sort();
+        }
         return [...new Set(Object.values(degreeSubjectMap).flat())].sort();
       }
       if (f.collegeFilter) {
@@ -1163,32 +1175,15 @@ const FilterControls = ({
         const Icon = FILTER_ICONS[f.key] ?? Filter;
         const val = cur[f.key] ?? null;
         const opts = getOptions(f);
-        if (
-          f.source === "rowMulti" ||
-          f.source === "fromRows" ||
-          f.source === "hobbyApi"
-        ) {
-          return (
-            <ReportMultiSelect
-              key={f.key}
-              label={f.label}
-              icon={Icon}
-              options={opts}
-              value={val}
-              color={section.color}
-              className={f.fullWidth ? "basis-full sm:max-w-full" : ""}
-              onChange={(v) => update(f.key, v)}
-            />
-          );
-        }
         return (
-          <ReportSearchableSelect
+          <ReportMultiSelect
             key={f.key}
             label={f.label}
             icon={Icon}
             options={opts}
             value={val}
             color={section.color}
+            className={f.fullWidth ? "basis-full sm:max-w-full" : ""}
             onChange={(v) => update(f.key, v)}
           />
         );
@@ -1256,7 +1251,11 @@ const AdminReportBuilder = () => {
       try {
         const body = Object.fromEntries(
           Object.entries(activeFilters || {}).filter(
-            ([, v]) => v !== null && v !== undefined && v !== "",
+            ([, v]) =>
+              v !== null &&
+              v !== undefined &&
+              v !== "" &&
+              (!Array.isArray(v) || v.length > 0),
           ),
         );
         const res = await fetch(`${baseUrl}/admin/${section.endpoint}`, {
