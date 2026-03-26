@@ -62,7 +62,7 @@ export const restoreSession = createAsyncThunk(
 const initialState = {
   user: storedUser,
   isAuthenticated: hasStoredUserSession,
-  sessionChecked: isStoredAdmin,
+  sessionChecked: isStoredAdmin || !hasStoredUserSession,
   sessionLoading: false,
   loading: false,
   error: null,

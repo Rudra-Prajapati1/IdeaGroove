@@ -113,7 +113,6 @@ const AdminEventCard = ({ event, onModerate }) => {
         <div className="px-4 py-3 border-t border-gray-50 flex gap-2 bg-gray-50/40">
           <button
             onClick={() => onModerate(isActive ? "block" : "unblock", event.id)}
-            disabled={!isActive}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all
               ${
                 isActive
