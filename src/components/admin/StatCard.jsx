@@ -2,7 +2,6 @@ import { FileText, Eye, Ban } from "lucide-react";
 
 const iconMap = {
   total: FileText,
-  active: Eye,
   pending: Eye,
   blocked: Ban,
 };
