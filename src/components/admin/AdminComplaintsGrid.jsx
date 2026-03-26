@@ -201,8 +201,8 @@ const AdminComplaintsGrid = ({
                     </span>
                   </td>
                   <td className="px-8 py-5 text-sm text-gray-600">
-                    <div className="max-w-[280px]">
-                      <p className="font-semibold text-gray-700 leading-relaxed line-clamp-2">
+                    <div className="min-w-max">
+                      <p className="font-semibold text-gray-700 whitespace-nowrap">
                         {item.Reported_Activity ||
                           item.Content_Title ||
                           "IdeaGroove platform"}
