@@ -107,8 +107,8 @@ export const selectAdminEventsStats = createSelector(
   selectAdminEvents,
   (total, events) => {
     const activeEvents = events.filter((event) => event.status === 1);
-    const blockedEvents = events.filter((event) => event.status != 1);
     const totalEvents = total || events.length;
+    const blockedEvents = totalEvents - activeEvents.length;
 
     return [
       {
@@ -127,8 +127,8 @@ export const selectAdminEventsStats = createSelector(
       },
       {
         title: "Inactive Events",
-        value: blockedEvents.length,
-        infoText: `${blockedEvents.length} hidden from users`,
+        value: blockedEvents,
+        infoText: `${blockedEvents} hidden from users`,
         color: "red",
         type: "blocked",
       },
