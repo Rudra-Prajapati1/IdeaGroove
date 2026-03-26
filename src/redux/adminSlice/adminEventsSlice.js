@@ -1,4 +1,8 @@
-import { createAsyncThunk, createSelector, createSlice } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSelector,
+  createSlice,
+} from "@reduxjs/toolkit";
 import api from "../../api/axios";
 
 const initialState = {
@@ -103,7 +107,7 @@ export const selectAdminEventsStats = createSelector(
   selectAdminEvents,
   (total, events) => {
     const activeEvents = events.filter((event) => event.status === 1);
-    const blockedEvents = events.filter((event) => event.status !== 1);
+    const blockedEvents = events.filter((event) => event.status != 1);
     const totalEvents = total || events.length;
 
     return [
