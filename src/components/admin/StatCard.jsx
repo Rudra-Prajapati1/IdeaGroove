@@ -2,7 +2,7 @@ import { FileText, Eye, Ban } from "lucide-react";
 
 const iconMap = {
   total: FileText,
-  pending: Eye,
+  active: Eye,
   blocked: Ban,
 };
 
@@ -30,12 +30,7 @@ const themeMap = {
   },
 };
 
-const StatCard = ({
-  title,
-  value,
-  color = "green",
-  type = "total",
-}) => {
+const StatCard = ({ title, value, color = "green", type = "total" }) => {
   const Icon = iconMap[type];
   const theme = themeMap[color];
 
