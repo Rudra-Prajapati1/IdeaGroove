@@ -123,7 +123,7 @@ export const selectAdminEventsStats = createSelector(
         value: activeEvents.length,
         infoText: `${totalEvents ? Math.round((activeEvents.length / totalEvents) * 100) : 0}% visible events`,
         color: "yellow",
-        type: "active",
+        type: "pending",
       },
       {
         title: "Inactive Events",
