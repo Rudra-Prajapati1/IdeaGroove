@@ -2007,7 +2007,7 @@ const AdminReportBuilder = () => {
         <button
           onClick={generatePDF}
           disabled={selectedCount === 0 || generating}
-          className="group flex items-center justify-center gap-2.5 bg-white border border-gray-200 hover:border-green-700 hover:bg-green-800 px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed min-w-[210px]"
+          className="group flex items-center justify-center gap-2.5 bg-white border border-gray-200 hover:border-green-700 hover:bg-green-800 px-4 py-2.5 rounded-xl text-[15px] font-semibold text-gray-600 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed min-w-[210px]"
         >
           <div className="p-1 rounded-lg bg-green-50 group-hover:bg-white/20 transition-colors">
             {generating ? (
@@ -2041,12 +2041,12 @@ const AdminReportBuilder = () => {
             style={{ width: `${(selectedCount / SECTIONS.length) * 100}%` }}
           />
         </div>
-        <span className="text-xs font-bold text-gray-400 w-20 text-right">
+        <span className="text-sm font-bold text-gray-400 w-24 text-right">
           {selectedCount}/{SECTIONS.length} sections
         </span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="flex flex-col gap-5">
         {SECTIONS.map((section) => {
           const isOn = !!selected[section.id];
           const isLoad = !!loading[section.id];
@@ -2064,21 +2064,21 @@ const AdminReportBuilder = () => {
               className={`rounded-[28px] border-2 transition-all duration-300 overflow-hidden bg-white
                 ${isOn ? `${section.border} shadow-lg` : "border-gray-100 shadow-sm hover:border-gray-200 hover:shadow-md"}`}
             >
-              <div className={`bg-gradient-to-r ${section.bg} px-5 py-4`}>
+              <div className={`bg-gradient-to-r ${section.bg} px-5 py-5`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{
                         backgroundColor: section.color + "18",
                         border: `1.5px solid ${section.color}30`,
                       }}
                     >
-                      <Icon size={19} style={{ color: section.color }} />
+                      <Icon size={20} style={{ color: section.color }} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-black text-gray-800 text-lg tracking-tight">
+                        <h3 className="font-black text-gray-800 text-xl tracking-tight">
                           {section.label}
                         </h3>
                         <span
@@ -2087,12 +2087,12 @@ const AdminReportBuilder = () => {
                           {section.tag}
                         </span>
                         {isOn && (
-                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-white/70 text-gray-500 border border-gray-200">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-white/70 text-gray-500 border border-gray-200">
                             {colCount}/{section.columns.length} cols
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500 mt-0.5 leading-snug">
+                      <p className="text-[15px] text-gray-500 mt-1 leading-snug">
                         {section.desc}
                       </p>
                     </div>
@@ -2112,7 +2112,7 @@ const AdminReportBuilder = () => {
               {!isOn && (
                 <div className="px-4 py-3 flex items-center gap-2 text-gray-300 border-t border-gray-50">
                   <EyeOff size={13} />
-                  <span className="text-sm">
+                  <span className="text-[15px]">
                     Toggle to preview live data and include in PDF
                   </span>
                 </div>
@@ -2134,13 +2134,13 @@ const AdminReportBuilder = () => {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1.5">
                         <Columns size={11} className="text-gray-400" />
-                        <span className="text-[11px] font-black uppercase tracking-widest text-gray-400">
+                        <span className="text-xs font-black uppercase tracking-widest text-gray-400">
                           PDF Columns
                         </span>
                       </div>
                       <button
                         onClick={() => toggleAllCols(section.id, section)}
-                        className="text-[11px] font-bold text-gray-400 hover:text-gray-600 transition-colors"
+                        className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors"
                       >
                         {section.columns.every(
                           (c) => colState[section.id][c.key],
@@ -2165,22 +2165,22 @@ const AdminReportBuilder = () => {
                   <div>
                     <div className="flex items-center justify-between px-5 py-3 bg-gray-50/60">
                       <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-black uppercase tracking-widest text-gray-400">
+                        <span className="text-xs font-black uppercase tracking-widest text-gray-400">
                           Live Preview
                         </span>
                         {isLoad && (
-                          <span className="flex items-center gap-1 text-[10px] text-gray-400">
+                          <span className="flex items-center gap-1 text-xs text-gray-400">
                             <Loader2 size={9} className="animate-spin" />{" "}
                             Loading...
                           </span>
                         )}
                         {!isLoad && sData && !sData._error && (
-                          <span className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold">
+                          <span className="flex items-center gap-1 text-xs text-emerald-600 font-bold">
                             <Zap size={9} /> Live data
                           </span>
                         )}
                         {!isLoad && sData?._error && (
-                          <span className="text-[10px] text-red-500 font-bold">
+                          <span className="text-xs text-red-500 font-bold">
                             HTTP error: {sData._errMsg} — check console
                           </span>
                         )}
@@ -2190,7 +2190,7 @@ const AdminReportBuilder = () => {
                           onClick={() =>
                             setExpanded((p) => ({ ...p, [section.id]: !isExp }))
                           }
-                          className="flex items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-gray-600 transition-colors"
+                          className="flex items-center gap-1 text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors"
                         >
                           {isExp ? (
                             <>
@@ -2234,14 +2234,14 @@ const AdminReportBuilder = () => {
         })}
 
         {selectedCount === 0 && (
-          <div className="lg:col-span-2 flex flex-col items-center justify-center py-16 text-center">
+          <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
               <Sparkles size={24} className="text-gray-300" />
             </div>
-            <p className="text-gray-400 font-bold text-sm">
+            <p className="text-gray-400 font-bold text-[15px]">
               Toggle sections above to build your report
             </p>
-            <p className="text-gray-300 text-xs mt-1">
+            <p className="text-gray-300 text-sm mt-1">
               Each section loads live data, choose which columns appear in the
               PDF
             </p>
