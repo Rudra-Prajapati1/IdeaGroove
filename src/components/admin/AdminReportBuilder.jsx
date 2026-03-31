@@ -383,12 +383,30 @@ const getPdfColumnWeight = (key) => {
 const MiniDonut = ({ slices, size = 110 }) => {
   const r = 40,
     c = size / 2;
-  let cum = 0;
   const total = slices.reduce((s, x) => s + x.value, 0);
   if (total === 0)
     return (
       <div className="w-[110px] h-[110px] rounded-full bg-gray-100 animate-pulse" />
     );
+  const nonZero = slices.filter((s) => s.value > 0);
+  if (nonZero.length === 1) {
+    return (
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={c} cy={c} r={r} fill={nonZero[0].color} />
+        <circle cx={c} cy={c} r={r * 0.54} fill="white" />
+        <text
+          x={c}
+          y={c + 1}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          style={{ fontSize: 14, fontWeight: 900, fill: "#1e293b" }}
+        >
+          {total}
+        </text>
+      </svg>
+    );
+  }
+  let cum = 0; // ← moved here from top
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <circle
@@ -1866,6 +1884,11 @@ const AdminReportBuilder = () => {
           !selected[section.id] ||
           !data[section.id] ||
           data[section.id]._error
+        )
+          continue;
+        if (
+          !Array.isArray(data[section.id].rows) ||
+          data[section.id].rows.length === 0
         )
           continue;
         try {
