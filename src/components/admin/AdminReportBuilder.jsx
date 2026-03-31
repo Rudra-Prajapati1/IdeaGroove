@@ -1164,9 +1164,13 @@ const FilterControls = ({
         return [...new Set(Object.values(degreeSubjectMap).flat())].sort();
       }
       if (f.collegeFilter) {
+        const cached = rowFilterOptions?.[section.id]?.[f.key];
+        if (Array.isArray(cached) && cached.length > 0) return cached;
         return [
           ...new Set(sectionRows.map((r) => r["College_Name"]).filter(Boolean)),
-        ].sort();
+        ]
+          .sort()
+          .map(String);
       }
       return Object.keys(degreeSubjectMap).sort();
     }
@@ -1295,10 +1299,13 @@ const AdminReportBuilder = () => {
           (section.filters || []).forEach((filterConfig) => {
             if (
               filterConfig.source !== "rowMulti" &&
-              filterConfig.source !== "fromRows"
+              filterConfig.source !== "fromRows" &&
+              !filterConfig.collegeFilter
             )
               return;
-            const rowKey = filterConfig.rowKey ?? filterConfig.key;
+            const rowKey = filterConfig.collegeFilter
+              ? "College_Name"
+              : (filterConfig.rowKey ?? filterConfig.key);
             const options = [
               ...new Set(
                 (json.rows || [])
@@ -1364,10 +1371,24 @@ const AdminReportBuilder = () => {
     }));
   };
 
-  const selectedCount = Object.values(selected).filter(Boolean).length;
+  const selectedSections = SECTIONS.filter((section) => selected[section.id]);
+  const selectedCount = selectedSections.length;
+  const selectedSectionsWithRows = selectedSections.filter((section) => {
+    const rows = data[section.id]?.rows;
+    return Array.isArray(rows) && rows.length > 0 && !data[section.id]?._error;
+  });
+  const selectedSectionsLoading = selectedSections.filter(
+    (section) => loading[section.id],
+  );
+  const canGenerateReport =
+    selectedCount > 0 &&
+    selectedSectionsLoading.length === 0 &&
+    selectedSectionsWithRows.length > 0;
 
   // ── PDF generation ────────────────────────────────────────────────────
   const generatePDF = async () => {
+    if (!canGenerateReport) return;
+
     setGenerating(true);
     try {
       const doc = new jsPDF("p", "mm", "a4");
@@ -2006,7 +2027,7 @@ const AdminReportBuilder = () => {
         />
         <button
           onClick={generatePDF}
-          disabled={selectedCount === 0 || generating}
+          disabled={!canGenerateReport || generating}
           className="group flex items-center justify-center gap-2.5 bg-white border border-gray-200 hover:border-green-700 hover:bg-green-800 px-4 py-2.5 rounded-xl text-[15px] font-semibold text-gray-600 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed min-w-[210px]"
         >
           <div className="p-1 rounded-lg bg-green-50 group-hover:bg-white/20 transition-colors">
