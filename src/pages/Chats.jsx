@@ -113,6 +113,23 @@ const Chats = () => {
     targetRoomId,
   ]);
 
+  useEffect(() => {
+    if (!activeRoom?.Room_ID) return;
+
+    const latestRoom = rooms.find(
+      (room) => Number(room.Room_ID) === Number(activeRoom.Room_ID),
+    );
+
+    if (!latestRoom) {
+      setActiveRoom(null);
+      return;
+    }
+
+    if (latestRoom !== activeRoom) {
+      setActiveRoom(latestRoom);
+    }
+  }, [activeRoom, rooms]);
+
   return (
     <div className="min-h-screen bg-[#FFFBEB] font-poppins">
       <PageHeader title="Chats" />

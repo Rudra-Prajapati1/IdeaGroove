@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { io } from "socket.io-client";
 import api from "../api/axios";
+import toast from "react-hot-toast";
 import {
   selectAuthSessionChecked,
   selectIsAuthenticated,
@@ -186,7 +187,8 @@ export function useChat(studentId) {
     });
 
     socket.on("error", (error) => {
-      // console.error("[Socket] Error:", error);
+      toast.error(error?.message || "Chat action failed");
+      dispatch(fetchUserChatRooms());
     });
 
     return () => {

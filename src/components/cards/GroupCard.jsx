@@ -133,7 +133,7 @@ const GroupCard = ({
             <ComplaintButton
               onClick={() =>
                 navigate(
-                  `/submit-complaint/groups/${group.Room_ID}/${group.Room_Name}`,
+                  `/submit-complaint/groups/${group.Room_ID}/${encodeURIComponent(group.Room_Name || "Group")}`,
                 )
               }
               element="group"

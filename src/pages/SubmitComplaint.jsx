@@ -136,7 +136,7 @@ const SubmitComplaint = () => {
   );
   const { type, id, text } = useParams();
 
-  const isLockedComplaint = Boolean(type && id && text);
+  const isLockedComplaint = Boolean(type && id);
 
   const complaintCategories = ["Events", "Notes", "Groups", "QnA", "User", "Other"];
 
@@ -149,6 +149,37 @@ const SubmitComplaint = () => {
     user: "User",
     other: "Other",
   };
+
+  const lockedComplaintMeta = useMemo(() => {
+    switch (type) {
+      case "event":
+        return { category: "Events", topic: id, answerId: "", label: "Event" };
+      case "notes":
+        return { category: "Notes", topic: id, answerId: "", label: "Notes" };
+      case "groups":
+        return { category: "Groups", topic: id, answerId: "", label: "Groups" };
+      case "question":
+        return { category: "QnA", topic: id, answerId: "", label: "Question" };
+      case "answer":
+        return { category: "QnA", topic: "", answerId: id, label: "Answer" };
+      case "user":
+        return { category: "User", topic: id, answerId: "", label: "User" };
+      case "other":
+        return { category: "Other", topic: "", answerId: "", label: "Other" };
+      default:
+        return null;
+    }
+  }, [id, type]);
+
+  const lockedComplaintText = useMemo(() => {
+    if (!text) return "";
+
+    try {
+      return decodeURIComponent(text);
+    } catch {
+      return text;
+    }
+  }, [text]);
 
   const [formData, setFormData] = useState({
     category: "",
@@ -176,6 +207,17 @@ const SubmitComplaint = () => {
       dispatch(fetchAnswersByQuestion(formData.topic));
     }
   }, [formData.topic, formData.category, dispatch]);
+
+  useEffect(() => {
+    if (!isLockedComplaint || !lockedComplaintMeta) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      category: lockedComplaintMeta.category,
+      topic: lockedComplaintMeta.topic || "",
+      answerId: lockedComplaintMeta.answerId || "",
+    }));
+  }, [isLockedComplaint, lockedComplaintMeta]);
 
   const processedComplaints = useMemo(() => {
     if (!complaints) return [];
@@ -302,7 +344,8 @@ const SubmitComplaint = () => {
               <Lock className="text-orange-600 mt-1" size={20} />
               <div>
                 <h3 className="font-bold text-gray-800 text-sm italic tracking-tight">
-                  Reporting {typeMapping[type] || "Content"} : "{decodeURIComponent(text)}"
+                  Reporting {typeMapping[type] || lockedComplaintMeta?.label || "Content"} : "
+                  {lockedComplaintText || `Selected ${lockedComplaintMeta?.label || "content"}`}"
                 </h3>
                 <p className="text-xs text-gray-500 mt-1">
                   This content is locked for current complaint.
