@@ -1,7 +1,9 @@
+import { useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../redux/slice/authSlice";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
+import toast from "react-hot-toast";
 import {
   ArrowLeft,
   Calendar,
@@ -28,6 +30,8 @@ const HeroSection = ({ user, isPublic = false }) => {
   const batchLabel = formatAcademicYear(user?.Year) || "N/A";
   const showMessageButton =
     isPublic && String(viewedUserId) !== String(currentUserId);
+  const [isStartingChat, setIsStartingChat] = useState(false);
+  const isStartingChatRef = useRef(false);
 
   const infoCardClass =
     "group flex items-center gap-3 rounded-2xl border border-white/12 bg-white/[0.08] px-4 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_40px_-30px_rgba(0,0,0,0.8)] backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/[0.12]";
@@ -40,6 +44,14 @@ const HeroSection = ({ user, isPublic = false }) => {
       navigate("/auth");
       return;
     }
+
+    if (isStartingChatRef.current) {
+      return;
+    }
+
+    isStartingChatRef.current = true;
+    setIsStartingChat(true);
+
     try {
       const res = await api.post("/chats/create-room", {
         receiver_id: user?.S_ID || user?.id,
@@ -51,7 +63,12 @@ const HeroSection = ({ user, isPublic = false }) => {
       });
     } catch (err) {
       console.error("DM error:", err);
-      navigate("/chats");
+      toast.error(
+        err?.response?.data?.message || "Unable to start this chat right now.",
+      );
+    } finally {
+      isStartingChatRef.current = false;
+      setIsStartingChat(false);
     }
   };
 
@@ -98,8 +115,10 @@ const HeroSection = ({ user, isPublic = false }) => {
                   )}
                   {showMessageButton && (
                     <button
+                      type="button"
                       onClick={handleDirectMessage}
-                      className="inline-flex items-center gap-2 rounded-xl border border-white/12 bg-white/[0.1] px-4 py-2 text-white text-sm font-semibold shadow-[0_20px_45px_-28px_rgba(0,0,0,0.85)] backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/[0.18] active:scale-95"
+                      disabled={isStartingChat}
+                      className="inline-flex items-center gap-2 rounded-xl border border-white/12 bg-white/[0.1] px-4 py-2 text-white text-sm font-semibold shadow-[0_20px_45px_-28px_rgba(0,0,0,0.85)] backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/[0.18] active:scale-95 disabled:cursor-not-allowed disabled:opacity-80 disabled:hover:translate-y-0 disabled:hover:bg-white/[0.1]"
                     >
                       <MessageCircle size={16} />
                       Message

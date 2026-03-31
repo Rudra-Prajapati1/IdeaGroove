@@ -51,6 +51,20 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
     .toLocaleString("en-IN", { month: "short" })
     .toUpperCase();
   const day = dateObj.getDate();
+  const getDateOnly = (value) => {
+    const datePart = String(value || "").split("T")[0];
+    const [year, monthValue, dayValue] = datePart.split("-").map(Number);
+
+    if (!year || !monthValue || !dayValue) {
+      return null;
+    }
+
+    return new Date(year, monthValue - 1, dayValue);
+  };
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const eventDateOnly = getDateOnly(event.Event_Date);
+  const isPastEvent = eventDateOnly ? eventDateOnly < today : false;
 
   const isOwner =
     user &&
@@ -107,6 +121,11 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
   };
 
   const handleReaction = (type) => {
+    if (isPastEvent) {
+      toast.error("Past events can no longer receive reactions");
+      return;
+    }
+
     if (!isAuth) {
       toast.error("Please login to react to events");
       return;
@@ -155,9 +174,33 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
     }
   };
 
+  const getReactionButtonClass = (type) => {
+    if (isPastEvent) {
+      if (userReaction === type) {
+        return type === "interested"
+          ? "bg-green-100 text-green-700 cursor-not-allowed"
+          : "bg-red-100 text-red-600 cursor-not-allowed";
+      }
+
+      return "bg-gray-50 text-gray-300 cursor-not-allowed";
+    }
+
+    if (userReaction === type) {
+      return type === "interested"
+        ? "bg-green-100 text-green-700"
+        : "bg-red-100 text-red-600";
+    }
+
+    return "text-gray-400 hover:bg-gray-100 hover:text-gray-600";
+  };
+
   return (
     <>
-      <div className="group bg-white rounded-3xl overflow-hidden flex flex-col w-full max-w-[20rem] mx-auto transition-all duration-300 shadow-md hover:shadow-xl border border-gray-300">
+      <div
+        className={`group bg-white rounded-3xl overflow-hidden flex flex-col w-full max-w-[20rem] mx-auto transition-all duration-300 shadow-md hover:shadow-xl border border-gray-300 ${
+          isPastEvent ? "opacity-80" : ""
+        }`}
+      >
         <div className="relative h-64 w-full overflow-hidden">
           <img
             src={event.Poster_File}
@@ -186,8 +229,8 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
           {!isOwner && (
             <ComplaintButton
               onClick={() =>
-                    navigate(
-                  `/submit-complaint/event/${event.E_ID}/${eventDescription}`,
+                navigate(
+                  `/submit-complaint/event/${event.E_ID}/${encodeURIComponent(eventDescription || "Event")}`,
                 )
               }
               className="absolute top-4 right-4"
@@ -270,28 +313,32 @@ const EventCard = ({ event, onEdit, authorLabel }) => {
 
             <div className="flex items-center gap-1">
               <button
+                type="button"
                 onClick={() => handleReaction("interested")}
+                aria-disabled={isPastEvent}
                 className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg transition-colors
-                  ${
-                    userReaction === "interested"
-                      ? "bg-green-100 text-green-700"
-                      : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                  }`}
-                title="Interested"
+                  ${getReactionButtonClass("interested")}`}
+                title={
+                  isPastEvent
+                    ? "Past events can no longer receive reactions"
+                    : "Interested"
+                }
               >
                 <ThumbsUp className="w-3.5 h-3.5" />
                 <span>{counts.interested}</span>
               </button>
 
               <button
+                type="button"
                 onClick={() => handleReaction("not_interested")}
+                aria-disabled={isPastEvent}
                 className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg transition-colors
-                  ${
-                    userReaction === "not_interested"
-                      ? "bg-red-100 text-red-600"
-                      : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                  }`}
-                title="Not Interested"
+                  ${getReactionButtonClass("not_interested")}`}
+                title={
+                  isPastEvent
+                    ? "Past events can no longer receive reactions"
+                    : "Not Interested"
+                }
               >
                 <ThumbsDown className="w-3.5 h-3.5" />
                 <span>{counts.not_interested}</span>

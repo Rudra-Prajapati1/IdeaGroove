@@ -41,6 +41,8 @@ const NotesCard = ({
   const description = note.Description || "No description provided.";
   const shouldShowTitleToggle = fileName.length > 36;
   const shouldShowDescriptionToggle = description.length > 120;
+  const complaintTargetText =
+    note.Description || fileName || note.Subject_Name || "Note";
 
   const formattedDate = note.Added_on
     ? new Date(note.Added_on).toLocaleDateString("en-IN", {
@@ -152,7 +154,7 @@ const NotesCard = ({
               <ComplaintButton
                 onClick={() =>
                   navigate(
-                    `/submit-complaint/notes/${note.N_ID}/${note.Description}`,
+                    `/submit-complaint/notes/${note.N_ID}/${encodeURIComponent(complaintTargetText)}`,
                   )
                 }
                 element="notes"

@@ -14,10 +14,14 @@ const ChatInput = ({
   const [uploading, setUploading] = useState(false);
   const [previewFile, setPreviewFile] = useState(null);
   const fileInputRef = useRef(null);
+  const canSendInRoom = Number(activeRoom?.Can_Send ?? 1) === 1;
+  const inputDisabled = uploading || !canSendInRoom;
 
   if (!activeRoom) return null;
 
   const handleSend = () => {
+    if (!canSendInRoom) return;
+
     if (previewFile) {
       // ✅ FIX: Pass previewFile.name as 4th argument
       sendFileMessage(
@@ -130,7 +134,7 @@ const ChatInput = ({
 
         <button
           onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
+          disabled={inputDisabled}
           className="p-2 text-primary hover:bg-primary/10 rounded-xl transition disabled:opacity-40"
           title="Attach image or PDF"
         >
@@ -143,18 +147,22 @@ const ChatInput = ({
 
         <textarea
           placeholder={
-            previewFile ? "Add a caption (optional)..." : "Type a message..."
+            !canSendInRoom
+              ? "This chat is unavailable because the account is inactive."
+              : previewFile
+                ? "Add a caption (optional)..."
+                : "Type a message..."
           }
           className="flex-1 border rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-primary resize-none min-h-[42px] max-h-32 overflow-y-auto"
           rows={1}
           value={message}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          disabled={uploading}
+          disabled={inputDisabled}
         />
         <button
           onClick={handleSend}
-          disabled={uploading || (!message.trim() && !previewFile)}
+          disabled={inputDisabled || (!message.trim() && !previewFile)}
           className="px-6 py-2 bg-primary text-white rounded-xl font-semibold hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition"
         >
           <Send className="w-5 h-5" />

@@ -268,7 +268,7 @@ const QnACard = ({
                 <ComplaintButton
                   onClick={() =>
                     navigate(
-                      `/submit-complaint/question/${post.Q_ID}/${post.Question}`,
+                      `/submit-complaint/question/${post.Q_ID}/${encodeURIComponent(post.Question || "Question")}`,
                     )
                   }
                   element="question"
@@ -370,7 +370,7 @@ const QnACard = ({
                             <ComplaintButton
                               onClick={() =>
                                 navigate(
-                                  `/submit-complaint/answer/${ans.A_ID}/${ans.Answer}`,
+                                  `/submit-complaint/answer/${ans.A_ID}/${encodeURIComponent(ans.Answer || "Answer")}`,
                                 )
                               }
                               element="answer"
