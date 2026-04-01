@@ -1106,6 +1106,151 @@ const FILTER_ICONS = {
   searchText: Search,
 };
 
+const DATE_FILTER_SECTION_IDS = new Set([
+  "events",
+  "groups",
+  "notes",
+  "qna",
+  "complaints",
+]);
+
+const getLastMonthDateRange = () => {
+  const to = new Date();
+  const from = new Date();
+  from.setMonth(from.getMonth() - 1);
+
+  return {
+    dateFrom: formatDate(from),
+    dateTo: formatDate(to),
+  };
+};
+
+const formatDate = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const ReportDateFilter = ({
+  value = {},
+  onChange,
+  color,
+  allowFutureDates = false,
+}) => {
+  const preset = value.datePreset || null;
+  const isCustom = preset === "custom";
+  const today = formatDate(new Date());
+
+  const setPreset = (nextPreset) => {
+    if (nextPreset === preset) {
+      onChange({
+        datePreset: null,
+        dateFrom: null,
+        dateTo: null,
+      });
+      return;
+    }
+
+    if (nextPreset === "1month") {
+      const range = getLastMonthDateRange();
+      onChange({
+        datePreset: "1month",
+        dateFrom: range.dateFrom,
+        dateTo: range.dateTo,
+      });
+      return;
+    }
+
+    if (nextPreset === "custom") {
+      onChange({
+        datePreset: "custom",
+        dateFrom: value.datePreset === "custom" ? value.dateFrom || null : null,
+        dateTo: value.datePreset === "custom" ? value.dateTo || null : null,
+      });
+    }
+  };
+
+  const updateCustomDate = (key, nextValue) => {
+    onChange({
+      datePreset: "custom",
+      dateFrom: key === "dateFrom" ? nextValue || null : value.dateFrom || null,
+      dateTo: key === "dateTo" ? nextValue || null : value.dateTo || null,
+    });
+  };
+
+  const buttonClass = (isActive) =>
+    `rounded-xl border px-3 py-2 text-left transition-all ${
+      isActive
+        ? "text-white shadow-sm"
+        : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+    }`;
+
+  return (
+    <div className="flex min-w-[280px] flex-1 flex-col gap-1 self-start sm:max-w-[420px]">
+      <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 pl-0.5">
+        Date
+      </span>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => setPreset("1month")}
+          className={buttonClass(preset === "1month")}
+          style={
+            preset === "1month"
+              ? { backgroundColor: color, borderColor: color }
+              : undefined
+          }
+        >
+          <span className="block text-xs font-bold">Last 1 Month</span>
+          <span className="mt-0.5 block text-[10px] opacity-80">Past 30 days</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setPreset("custom")}
+          className={buttonClass(isCustom)}
+          style={
+            isCustom ? { backgroundColor: color, borderColor: color } : undefined
+          }
+        >
+          <span className="block text-xs font-bold">Custom Range</span>
+          <span className="mt-0.5 block text-[10px] opacity-80">Choose dates</span>
+        </button>
+      </div>
+
+      {isCustom && (
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <label className="flex flex-col gap-1">
+            <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 pl-0.5">
+              From
+            </span>
+            <input
+              type="date"
+              value={value.dateFrom || ""}
+              max={allowFutureDates ? value.dateTo || "" : value.dateTo || today}
+              onChange={(e) => updateCustomDate("dateFrom", e.target.value)}
+              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 outline-none transition-all focus:border-gray-400 focus:ring-1 focus:ring-gray-200"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 pl-0.5">
+              To
+            </span>
+            <input
+              type="date"
+              value={value.dateTo || ""}
+              min={value.dateFrom || ""}
+              max={allowFutureDates ? undefined : today}
+              onChange={(e) => updateCustomDate("dateTo", e.target.value)}
+              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 outline-none transition-all focus:border-gray-400 focus:ring-1 focus:ring-gray-200"
+            />
+          </label>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const FilterControls = ({
   section,
   filters,
@@ -1115,7 +1260,8 @@ const FilterControls = ({
   hobbyOptions,
   rowFilterOptions,
 }) => {
-  if (!section.filters?.length) return null;
+  const hasDateFilter = DATE_FILTER_SECTION_IDS.has(section.id);
+  if (!section.filters?.length && !hasDateFilter) return null;
   const cur = filters[section.id] || {};
 
   const getOptions = (f) => {
@@ -1185,6 +1331,13 @@ const FilterControls = ({
     });
   };
 
+  const updateDateFilter = (nextDateState) => {
+    setFilters((prev) => ({
+      ...prev,
+      [section.id]: { ...prev[section.id], ...nextDateState },
+    }));
+  };
+
   return (
     <div className="flex flex-wrap items-end gap-2.5 px-4 pb-2.5 pt-2 border-b border-gray-50">
       <div className="flex items-center gap-1.5 self-center">
@@ -1193,7 +1346,15 @@ const FilterControls = ({
           Filters
         </span>
       </div>
-      {section.filters.map((f) => {
+      {hasDateFilter && (
+        <ReportDateFilter
+          value={cur}
+          onChange={updateDateFilter}
+          color={section.color}
+          allowFutureDates={section.id === "events"}
+        />
+      )}
+      {(section.filters || []).map((f) => {
         const Icon = FILTER_ICONS[f.key] ?? Filter;
         const val = cur[f.key] ?? null;
         const opts = getOptions(f);
@@ -1271,9 +1432,19 @@ const AdminReportBuilder = () => {
     async (section, activeFilters) => {
       setLoading((p) => ({ ...p, [section.id]: true }));
       try {
+        const normalizedFilters = { ...(activeFilters || {}) };
+        if (
+          normalizedFilters.datePreset === "custom" &&
+          (!normalizedFilters.dateFrom || !normalizedFilters.dateTo)
+        ) {
+          normalizedFilters.dateFrom = null;
+          normalizedFilters.dateTo = null;
+        }
+
         const body = Object.fromEntries(
-          Object.entries(activeFilters || {}).filter(
-            ([, v]) =>
+          Object.entries(normalizedFilters).filter(
+            ([key, v]) =>
+              key !== "datePreset" &&
               v !== null &&
               v !== undefined &&
               v !== "" &&
