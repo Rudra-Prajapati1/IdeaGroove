@@ -218,6 +218,19 @@ const AdminDash = () => {
     }
   };
 
+  const getContributorUsername = (student) =>
+    student?.Username || student?.username || student?.student_username || "";
+
+  const getContributorLabel = (student) => {
+    const username = getContributorUsername(student);
+    return username ? `@${username}` : student?.Name || "Unknown";
+  };
+
+  const getContributorInitial = (student) =>
+    (getContributorUsername(student) || student?.Name || "?")
+      .charAt(0)
+      .toUpperCase();
+
   return (
     <section className="flex flex-col gap-6 relative min-h-screen">
       <div className="flex justify-between items-center">
@@ -396,7 +409,7 @@ const AdminDash = () => {
                         <div
                           className={`w-12 h-12 rounded-2xl object-cover ring-2 ring-white shadow-md group-hover:scale-110 transition-transform flex items-center justify-center`}
                         >
-                          {student.Name?.charAt(0).toUpperCase()}
+                          {getContributorInitial(student)}
                         </div>
                       )}
                       <div
@@ -407,8 +420,7 @@ const AdminDash = () => {
                     </div>
                     <div>
                       <p className="font-black text-sm text-slate-800 tracking-tight">
-                        {student.Name?.charAt(0).toUpperCase() +
-                          student.Name?.slice(1)}
+                        {getContributorLabel(student)}
                       </p>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
                         {student.Degree_Name}
