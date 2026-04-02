@@ -184,8 +184,7 @@ const SECTIONS = [
       { key: "Added_On", label: "Posted On", default: true },
       { key: "student_name", label: "Asked By", default: true },
       { key: "answer_count", label: "Answers", default: true },
-      // all_answers now contains "Author: text || Author: text" formatted string from backend
-      { key: "all_answers", label: "Answers (Author + Text)", default: true },
+      { key: "all_answers", label: "Answers", default: true },
       { key: "Subject_Name", label: "Subject", default: true },
       { key: "Is_Active", label: "Status", default: true },
     ],
@@ -220,8 +219,7 @@ const SECTIONS = [
     endpoint: "complaints-report",
     columns: [
       { key: "Complaint_Text", label: "Complaint Text", default: true },
-      { key: "Reported_Activity", label: "Reported Activity", default: true },
-      { key: "Content_Title", label: "Content", default: true },
+      { key: "Content_Title", label: "Context", default: true },
       { key: "Complaint_Type", label: "Type", default: true },
       { key: "Date", label: "Filed On", default: true },
       { key: "student_name", label: "Student", default: true },
@@ -356,11 +354,13 @@ const getPdfColumnWeight = (key) => {
   switch (key) {
     case "Email":
       return 2.1;
+    case "Name":
+    case "File_Name":
+      return 1.8;
     case "hobby_name":
       return 1.8;
-    case "Reported_Activity":
-      return 2.2;
     case "Complaint_Text":
+    case "student_name":
     case "member_names":
     case "all_answers":
       return 1.7;
@@ -378,6 +378,29 @@ const getPdfColumnWeight = (key) => {
       return 1;
   }
 };
+
+const shouldWrapPreviewCell = (key, sectionId) =>
+  key === "all_answers" ||
+  key === "member_names" ||
+  key === "hobby_name" ||
+  key === "Question" ||
+  key === "Room_Name" ||
+  key === "Description" ||
+  key === "Complaint_Text" ||
+  key === "Content_Title" ||
+  key === "Name" ||
+  key === "File_Name" ||
+  (key === "student_name" && sectionId === "complaints");
+
+const shouldWrapPdfCell = (key, sectionId) =>
+  key === "Question" ||
+  key === "Room_Name" ||
+  key === "Description" ||
+  key === "Complaint_Text" ||
+  key === "Content_Title" ||
+  key === "Name" ||
+  key === "File_Name" ||
+  (key === "student_name" && sectionId === "complaints");
 
 // ─── Mini SVG Donut ───────────────────────────────────────────────────────
 const MiniDonut = ({ slices, size = 110 }) => {
@@ -624,22 +647,31 @@ const AnswerList = ({ raw, answerCount }) => {
       <span className="text-gray-400 text-[10px]">{String(raw || "-")}</span>
     );
   return (
-    <div className="flex flex-col divide-y divide-emerald-100 border border-emerald-100 rounded-xl overflow-hidden">
-      {answers.map((a, i) => (
-        <div
-          key={i}
-          className="px-2 py-2 bg-white hover:bg-emerald-50/40 transition-colors"
-        >
-          {a.author && (
-            <span className="text-[9px] font-black uppercase tracking-wide text-emerald-600">
-              {a.author}
-            </span>
-          )}
-          <div className="text-[10px] text-gray-600 leading-relaxed break-words mt-0.5">
-            {a.text || "-"}
-          </div>
-        </div>
-      ))}
+    <div className="overflow-hidden rounded-xl border border-emerald-100 bg-white">
+      <table className="w-full table-fixed border-collapse text-[10px]">
+        <thead>
+          <tr className="bg-emerald-50">
+            <th className="w-24 border-b border-emerald-100 px-2 py-1.5 text-left font-black uppercase tracking-wide text-emerald-700">
+              Username
+            </th>
+            <th className="border-b border-l border-emerald-100 px-2 py-1.5 text-left font-black uppercase tracking-wide text-emerald-700">
+              Answer
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {answers.map((a, i) => (
+            <tr key={i} className="align-top">
+              <td className="border-b border-emerald-100 px-2 py-2 font-bold text-emerald-600 break-words">
+                {a.author || "-"}
+              </td>
+              <td className="border-b border-l border-emerald-100 px-2 py-2 text-gray-600 break-words leading-relaxed">
+                {a.text || "-"}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
@@ -736,17 +768,7 @@ const SampleTable = ({ section, rows, colState }) => {
   };
 
   const getCellClass = (col) => {
-    if (
-      col.key === "all_answers" ||
-      col.key === "member_names" ||
-      col.key === "hobby_name" ||
-      col.key === "Question" ||
-      col.key === "Room_Name" ||
-      col.key === "Description" ||
-      col.key === "Complaint_Text" ||
-      col.key === "Reported_Activity" ||
-      col.key === "Content_Title"
-    ) {
+    if (shouldWrapPreviewCell(col.key, section.id)) {
       return "whitespace-normal break-words align-top";
     }
     return "whitespace-nowrap max-w-[160px] truncate align-top";
@@ -1836,12 +1858,8 @@ const AdminReportBuilder = () => {
             const raw = row[col.key];
             const colW = columnWidths[ci] - 4;
 
-            // Question → wrap full text across lines
-            if (
-              col.key === "Question" ||
-              col.key === "Room_Name" ||
-              col.key === "Description"
-            ) {
+            // Long text cells → wrap full text across lines
+            if (shouldWrapPdfCell(col.key, section.id)) {
               const s = formatPdfDisplayCell(col.key, raw, row);
               if (s === "-") return { type: "text", lines: ["-"], height: rH };
               doc.setFontSize(6.1);
@@ -1865,7 +1883,7 @@ const AdminReportBuilder = () => {
               };
             }
 
-            // answers → multi-line blocks
+            // answers → mini subtable with username + answer
             if (col.key === "all_answers") {
               if (!row.answer_count || Number(row.answer_count) === 0)
                 return { type: "text", lines: ["-"], height: rH };
@@ -1876,17 +1894,36 @@ const AdminReportBuilder = () => {
                   lines: [String(raw || "-")],
                   height: rH,
                 };
-              // Each answer: author header + wrapped answer text lines + gap
-              let totalH = 2;
+              const usernameWidth = Math.min(Math.max(colW * 0.3, 18), 28);
+              const answerWidth = Math.max(colW - usernameWidth - 2, 14);
+              let totalH = 6;
               const blocks = answers.map((a) => {
+                const username = a.author || "-";
+                const usernameLines = [];
+                doc.setFontSize(5.1);
+                {
+                  const words = username.split(" ");
+                  let line = "";
+                  for (const w of words) {
+                    const test = line ? line + " " + w : w;
+                    if (doc.getTextWidth(test) > usernameWidth - 2 && line) {
+                      usernameLines.push(line);
+                      line = w;
+                    } else {
+                      line = test;
+                    }
+                  }
+                  if (line) usernameLines.push(line);
+                }
+
                 const textLines = [];
                 if (a.text) {
-                  doc.setFontSize(5.8);
+                  doc.setFontSize(5.4);
                   const words = a.text.split(" ");
                   let line = "";
                   for (const w of words) {
                     const test = line ? line + " " + w : w;
-                    if (doc.getTextWidth(test) > colW && line) {
+                    if (doc.getTextWidth(test) > answerWidth - 2 && line) {
                       textLines.push(line);
                       line = w;
                     } else {
@@ -1895,15 +1932,19 @@ const AdminReportBuilder = () => {
                   }
                   if (line) textLines.push(line);
                 }
-                // author (4.5) + text lines (4 each) + bottom gap (3)
-                const blockH = (a.author ? 4.5 : 0) + textLines.length * 4 + 3;
+
+                const rowLines = Math.max(
+                  usernameLines.length || 1,
+                  textLines.length || 1,
+                );
+                const blockH = Math.max(rowLines * 3.8 + 2, 6);
                 totalH += blockH;
-                return { author: a.author, textLines, blockH };
+                return { usernameLines, textLines, blockH, usernameWidth };
               });
               return {
                 type: "answers",
                 blocks,
-                height: Math.max(totalH + 2, rH),
+                height: Math.max(totalH + 1, rH),
               };
             }
 
@@ -1987,35 +2028,50 @@ const AdminReportBuilder = () => {
             const colW = columnWidths[j] - 4;
 
             if (cd.type === "answers") {
-              let cy = y + 4;
+              const usernameWidth = cd.blocks[0]?.usernameWidth || 22;
+              const answerX = cx + usernameWidth + 2;
+              const tableTop = y + 2;
+              const headerHeight = 4;
+              let cy = tableTop + headerHeight;
+
+              doc.setFillColor(236, 253, 245);
+              doc.rect(cx, tableTop, colW, headerHeight, "F");
+              doc.setDrawColor(167, 243, 208);
+              doc.setLineWidth(0.12);
+              doc.rect(cx, tableTop, colW, headerHeight + cd.blocks.reduce((sum, block) => sum + block.blockH, 0), "S");
+              doc.line(cx + usernameWidth, tableTop, cx + usernameWidth, tableTop + headerHeight + cd.blocks.reduce((sum, block) => sum + block.blockH, 0));
+              doc.setFontSize(4.9);
+              doc.setFont("helvetica", "bold");
+              doc.setTextColor(4, 120, 87);
+              doc.text("USERNAME", cx + 1, tableTop + 2.8);
+              doc.text("ANSWER", answerX + 1, tableTop + 2.8);
+
               cd.blocks.forEach((block, bIdx) => {
-                // separator line between answers
+                const rowTop = cy;
                 if (bIdx > 0) {
-                  doc.setDrawColor(200, 230, 210);
-                  doc.setLineWidth(0.15);
-                  doc.line(cx, cy - 1, cx + colW, cy - 1);
+                  doc.line(cx, rowTop, cx + colW, rowTop);
                 }
-                // Author name in green bold
-                if (block.author) {
-                  doc.setFontSize(5.4);
-                  doc.setFont("helvetica", "bold");
-                  doc.setTextColor(16, 185, 129);
-                  const authorTxt =
-                    block.author.length > 28
-                      ? block.author.slice(0, 27) + "."
-                      : block.author;
-                  doc.text(authorTxt, cx, cy);
-                  cy += 4.5;
-                }
-                // Answer text in normal dark
-                doc.setFontSize(5.8);
+                doc.setFontSize(5.1);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(16, 185, 129);
+                let usernameY = rowTop + 3.2;
+                (block.usernameLines.length ? block.usernameLines : ["-"]).forEach(
+                  (line) => {
+                    doc.text(line, cx + 1, usernameY);
+                    usernameY += 3.8;
+                  },
+                );
+
+                doc.setFontSize(5.4);
                 doc.setFont("helvetica", "normal");
                 doc.setTextColor(50, 50, 50);
-                block.textLines.forEach((line) => {
-                  doc.text(line, cx, cy);
-                  cy += 4;
+                let answerY = rowTop + 3.2;
+                (block.textLines.length ? block.textLines : ["-"]).forEach((line) => {
+                  doc.text(line, answerX + 1, answerY);
+                  answerY += 3.8;
                 });
-                cy += 2;
+
+                cy += block.blockH;
               });
             } else if (cd.type === "members") {
               doc.setFontSize(5.5);

@@ -460,6 +460,32 @@ const ReportGeneration = ({
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
 
+  const getContributorUsername = (student) =>
+    student?.Username || student?.username || student?.student_username || "";
+
+  const getContributorLabel = (student) => {
+    const username = getContributorUsername(student);
+    return username ? `@${username}` : student?.Name || "Unknown";
+  };
+
+  const getContributorInitialSource = (student) =>
+    getContributorUsername(student) || student?.Name || "?";
+
+  const getActivityCategoryName = (activityType) => {
+    switch (activityType?.toUpperCase()) {
+      case "QUESTION":
+        return "Questions";
+      case "EVENT":
+        return "Events";
+      case "GROUP":
+        return "Groups";
+      case "NOTE":
+        return "Notes";
+      default:
+        return activityType;
+    }
+  };
+
   // Filter any array of objects by created_at / Event_Date / Added_On
   const filterByDate = (arr, dateRange, dateKey = "created_at") => {
     if (!dateRange.from) return arr;
@@ -475,6 +501,7 @@ const ReportGeneration = ({
     const doc = new jsPDF("p", "mm", "a4");
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
+    const generatedAt = new Date();
 
     try {
       doc.addImage(logo, "PNG", 15, 5, 35, 35);
@@ -499,6 +526,7 @@ const ReportGeneration = ({
               acc[id] = {
                 S_ID: id,
                 Name: row.student_name || "Unknown",
+                Username: row.student_username || "",
                 Profile_Pic: row.profile_pic || null,
                 grand_total: 0,
               };
@@ -515,7 +543,9 @@ const ReportGeneration = ({
       ? categories
           .map((cat) => {
             const count = filteredActivities.filter(
-              (a) => a.activity_type?.toUpperCase() === cat.name.toUpperCase(),
+              (a) =>
+                getActivityCategoryName(a.activity_type)?.toUpperCase() ===
+                cat.name.toUpperCase(),
             ).length;
             return { ...cat, count };
           })
@@ -551,7 +581,9 @@ const ReportGeneration = ({
     // ── HEADER ─────────────────────────────────────────────────
     try {
       doc.addImage(logo, "PNG", 15, 5, 35, 35);
-    } catch (e) {}
+    } catch {
+      // Ignore duplicate logo draw failures and continue generating the PDF.
+    }
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(27, 67, 28);
@@ -566,7 +598,7 @@ const ReportGeneration = ({
     doc.setTextColor(150, 150, 150);
     doc.text(
       "Generated: " +
-        new Date().toLocaleDateString("en-IN", {
+        generatedAt.toLocaleDateString("en-IN", {
           day: "2-digit",
           month: "short",
           year: "numeric",
@@ -849,15 +881,33 @@ const ReportGeneration = ({
                 avatarSize,
                 avatarSize,
               );
-            else drawInitialCircle(doc, xCenter, avy, student.Name, r, g, b);
-          } else drawInitialCircle(doc, xCenter, avy, student.Name, r, g, b);
+            else
+              drawInitialCircle(
+                doc,
+                xCenter,
+                avy,
+                getContributorInitialSource(student),
+                r,
+                g,
+                b,
+              );
+          } else
+            drawInitialCircle(
+              doc,
+              xCenter,
+              avy,
+              getContributorInitialSource(student),
+              r,
+              g,
+              b,
+            );
           if (rank === 1)
             drawCrown(doc, xCenter, avy - avatarSize / 2 - 6, r, g, b);
           doc.setFontSize(7.5);
           doc.setFont("helvetica", "bold");
           doc.setTextColor(40, 40, 40);
           doc.text(
-            (student.Name || "").split(" ")[0],
+            getContributorLabel(student),
             xCenter,
             podiumBaseY + 5,
             { align: "center" },
@@ -975,7 +1025,9 @@ const ReportGeneration = ({
       });
     }
 
-    doc.save("IdeaGroove_Report_" + Date.now() + ".pdf");
+    doc.save(
+      `IdeaGroove_Report_${generatedAt.toISOString().slice(0, 10)}.pdf`,
+    );
   };
 
   const drawInitialCircle = (doc, cx, cy, name, r, g, b) => {
