@@ -404,6 +404,11 @@ const shouldWrapPdfCell = (key, sectionId) =>
   key === "File_Name" ||
   (key === "student_name" && sectionId === "complaints");
 
+const getMainTableColumns = (section, cols) =>
+  section.id === "qna"
+    ? cols.filter((col) => col.key !== "all_answers")
+    : cols;
+
 // ─── Mini SVG Donut ───────────────────────────────────────────────────────
 const MiniDonut = ({ slices, size = 110 }) => {
   const r = 40,
@@ -730,7 +735,9 @@ const HobbyList = ({ raw }) => {
 
 // ─── Sample Table ─────────────────────────────────────────────────────────
 const SampleTable = ({ section, rows, colState }) => {
-  const visibleCols = section.columns.filter((c) => colState[c.key]);
+  const selectedCols = section.columns.filter((c) => colState[c.key]);
+  const visibleCols = getMainTableColumns(section, selectedCols);
+  const showQnaAnswers = section.id === "qna" && colState.all_answers;
   if (!visibleCols.length || !rows?.length) return null;
 
   const renderCell = (col, row) => {
@@ -805,7 +812,7 @@ const SampleTable = ({ section, rows, colState }) => {
           {rows.slice(0, 5).map((row, i) => {
             const answers = parseAnswers(row.all_answers);
             const showAnswerRow =
-              section.id === "qna" &&
+              showQnaAnswers &&
               Number(row.answer_count) > 0 &&
               answers.length > 0;
 
@@ -1852,7 +1859,7 @@ const AdminReportBuilder = () => {
       };
 
       // ── PDF data table with dynamic row heights for rich cells ────────
-      const drawDataTable = (section, rows, cols, startY) => {
+      const drawDataTable = (section, rows, cols, startY, options = {}) => {
         if (!rows?.length || !cols.length) return startY + 4;
         const mL = 10,
           tW = pw - 20,
@@ -1888,6 +1895,9 @@ const AdminReportBuilder = () => {
         let y = drawTH(startY);
 
         rows.forEach((row, rowIdx) => {
+          const answerDetailsEnabled =
+            section.id === "qna" && options.showAnswerDetails;
+
           // Pre-calculate the cell content and required height per row
           const cellData = cols.map((col, ci) => {
             const raw = row[col.key];
@@ -2045,8 +2055,76 @@ const AdminReportBuilder = () => {
           });
 
           const rowHeight = Math.max(...cellData.map((c) => c.height), rH);
+          let answerRowData = null;
 
-          if (y + rowHeight > ph - 18) {
+          if (answerDetailsEnabled && Number(row.answer_count) > 0) {
+            const answers = parseAnswers(row.all_answers);
+            if (answers.length) {
+              const answerTableWidth = tW - 6;
+              const usernameWidth = Math.min(
+                Math.max(answerTableWidth * 0.22, 26),
+                40,
+              );
+              const answerWidth = answerTableWidth - usernameWidth - 2;
+              const blocks = answers.map((a) => {
+                const username = a.author || "-";
+                const usernameLines = [];
+                doc.setFontSize(5.3);
+                const usernameWords = username.split(" ");
+                let usernameLine = "";
+                for (const word of usernameWords) {
+                  const test = usernameLine ? `${usernameLine} ${word}` : word;
+                  if (
+                    doc.getTextWidth(test) > usernameWidth - 2 &&
+                    usernameLine
+                  ) {
+                    usernameLines.push(usernameLine);
+                    usernameLine = word;
+                  } else {
+                    usernameLine = test;
+                  }
+                }
+                if (usernameLine) usernameLines.push(usernameLine);
+
+                const textLines = [];
+                doc.setFontSize(5.5);
+                const answerWords = String(a.text || "-").split(" ");
+                let answerLine = "";
+                for (const word of answerWords) {
+                  const test = answerLine ? `${answerLine} ${word}` : word;
+                  if (doc.getTextWidth(test) > answerWidth - 2 && answerLine) {
+                    textLines.push(answerLine);
+                    answerLine = word;
+                  } else {
+                    answerLine = test;
+                  }
+                }
+                if (answerLine) textLines.push(answerLine);
+
+                const lineCount = Math.max(
+                  usernameLines.length || 1,
+                  textLines.length || 1,
+                );
+                return {
+                  usernameLines,
+                  textLines,
+                  blockH: Math.max(lineCount * 3.9 + 2, 7),
+                };
+              });
+
+              answerRowData = {
+                usernameWidth,
+                blocks,
+                height:
+                  9 +
+                  blocks.reduce((sum, block) => sum + block.blockH, 0),
+              };
+            }
+          }
+          const totalRowHeight =
+            rowHeight + (answerRowData ? answerRowData.height : 0);
+
+          if (y + totalRowHeight > ph - 18) {
             doc.addPage();
             y = 15;
             y = drawTH(y);
@@ -2158,6 +2236,79 @@ const AdminReportBuilder = () => {
           doc.setLineWidth(0.1);
           doc.line(mL, y + rowHeight, mL + tW, y + rowHeight);
           y += rowHeight;
+
+          if (answerRowData) {
+            const tableX = mL + 3;
+            const tableY = y + 1.5;
+            const tableWidth = tW - 6;
+            const answerX = tableX + answerRowData.usernameWidth + 2;
+            const bodyHeight = answerRowData.blocks.reduce(
+              (sum, block) => sum + block.blockH,
+              0,
+            );
+            const headerHeight = 4;
+
+            doc.setFontSize(5.4);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(16, 185, 129);
+            doc.text("Answers For This Question", tableX, tableY - 0.3);
+
+            doc.setFillColor(236, 253, 245);
+            doc.rect(tableX, tableY, tableWidth, headerHeight, "F");
+            doc.setDrawColor(167, 243, 208);
+            doc.setLineWidth(0.12);
+            doc.rect(
+              tableX,
+              tableY,
+              tableWidth,
+              headerHeight + bodyHeight,
+              "S",
+            );
+            doc.line(
+              tableX + answerRowData.usernameWidth,
+              tableY,
+              tableX + answerRowData.usernameWidth,
+              tableY + headerHeight + bodyHeight,
+            );
+            doc.setFontSize(4.9);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(4, 120, 87);
+            doc.text("USERNAME", tableX + 1, tableY + 2.8);
+            doc.text("ANSWER", answerX + 1, tableY + 2.8);
+
+            let detailsY = tableY + headerHeight;
+            answerRowData.blocks.forEach((block, idx) => {
+              if (idx > 0) {
+                doc.line(tableX, detailsY, tableX + tableWidth, detailsY);
+              }
+
+              doc.setFontSize(5.1);
+              doc.setFont("helvetica", "bold");
+              doc.setTextColor(16, 185, 129);
+              let usernameY = detailsY + 3.2;
+              (block.usernameLines.length ? block.usernameLines : ["-"]).forEach(
+                (line) => {
+                  doc.text(line, tableX + 1, usernameY);
+                  usernameY += 3.9;
+                },
+              );
+
+              doc.setFontSize(5.4);
+              doc.setFont("helvetica", "normal");
+              doc.setTextColor(50, 50, 50);
+              let textY = detailsY + 3.2;
+              (block.textLines.length ? block.textLines : ["-"]).forEach(
+                (line) => {
+                  doc.text(line, answerX + 1, textY);
+                  textY += 3.9;
+                },
+              );
+
+              detailsY += block.blockH;
+            });
+
+            y += answerRowData.height;
+          }
         });
         return y + 6;
       };
@@ -2187,6 +2338,10 @@ const AdminReportBuilder = () => {
           const activeCols = section.columns.filter(
             (c) => colState[section.id][c.key],
           );
+          const tableCols = getMainTableColumns(section, activeCols);
+          const showAnswerDetails =
+            section.id === "qna" &&
+            activeCols.some((col) => col.key === "all_answers");
 
           if (!firstPage) doc.addPage();
           drawPageHeader(section.label);
@@ -2262,7 +2417,9 @@ const AdminReportBuilder = () => {
             y,
           );
           y += 5;
-          y = drawDataTable(section, rows, activeCols, y);
+          y = drawDataTable(section, rows, tableCols, y, {
+            showAnswerDetails,
+          });
         } catch (e) {
           console.error(`PDF ${section.id}:`, e);
         }
