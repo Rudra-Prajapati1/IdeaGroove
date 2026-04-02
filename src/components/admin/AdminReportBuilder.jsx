@@ -386,6 +386,7 @@ const shouldWrapPreviewCell = (key, sectionId) =>
   key === "Question" ||
   key === "Room_Name" ||
   key === "Description" ||
+  key === "Subject_Name" ||
   key === "Complaint_Text" ||
   key === "Content_Title" ||
   key === "Name" ||
@@ -396,6 +397,7 @@ const shouldWrapPdfCell = (key, sectionId) =>
   key === "Question" ||
   key === "Room_Name" ||
   key === "Description" ||
+  key === "Subject_Name" ||
   key === "Complaint_Text" ||
   key === "Content_Title" ||
   key === "Name" ||
@@ -754,6 +756,13 @@ const SampleTable = ({ section, rows, colState }) => {
     }
     // QnA answers — show author + text pairs
     if (col.key === "all_answers") {
+      if (section.id === "qna") {
+        return (
+          <span className="text-[10px] font-bold text-emerald-600">
+            {Number(row.answer_count) > 0 ? "Shown below" : "No answers"}
+          </span>
+        );
+      }
       return <AnswerList raw={val} answerCount={row.answer_count} />;
     }
     // Groups member names — show as badges stacked under group
@@ -793,18 +802,44 @@ const SampleTable = ({ section, rows, colState }) => {
           </tr>
         </thead>
         <tbody>
-          {rows.slice(0, 5).map((row, i) => (
-            <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/60">
-              {visibleCols.map((col) => (
-                <td
-                  key={col.key}
-                  className={`py-2 px-3 text-gray-600 ${getCellClass(col)}`}
-                >
-                  {renderCell(col, row)}
-                </td>
-              ))}
-            </tr>
-          ))}
+          {rows.slice(0, 5).map((row, i) => {
+            const answers = parseAnswers(row.all_answers);
+            const showAnswerRow =
+              section.id === "qna" &&
+              Number(row.answer_count) > 0 &&
+              answers.length > 0;
+
+            return (
+              <React.Fragment key={i}>
+                <tr className="border-b border-gray-50 hover:bg-gray-50/60">
+                  {visibleCols.map((col) => (
+                    <td
+                      key={col.key}
+                      className={`py-2 px-3 text-gray-600 ${getCellClass(col)}`}
+                    >
+                      {renderCell(col, row)}
+                    </td>
+                  ))}
+                </tr>
+                {showAnswerRow && (
+                  <tr className="border-b border-gray-50 bg-emerald-50/20">
+                    <td
+                      colSpan={visibleCols.length}
+                      className="px-3 py-3"
+                    >
+                      <div className="mb-2 text-[9px] font-black uppercase tracking-widest text-emerald-600">
+                        Answers For This Question
+                      </div>
+                      <AnswerList
+                        raw={row.all_answers}
+                        answerCount={row.answer_count}
+                      />
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            );
+          })}
         </tbody>
       </table>
     </div>
