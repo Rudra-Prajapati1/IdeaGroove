@@ -14,7 +14,7 @@ export const fetchAdminQna = createAsyncThunk(
   "adminQna/fetchAdminQna",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await api.get("/qna?page=1&limit=1000");
+      const { data } = await api.get("/admin/qna");
       const qnas = (data?.QnA || []).map((qna) => ({
         id: qna.Q_ID,
         question: qna.Question,
@@ -24,13 +24,14 @@ export const fetchAdminQna = createAsyncThunk(
         answersCount: qna.Total_Answers,
         degreeName: qna.Degree_Name,
         subjectName: qna.Subject_Name,
-        status: qna.Is_Active === 1 ? "active" : "blocked",
+        status: Number(qna.Is_Active) === 1 ? "active" : "blocked",
         answers: (qna.Answers || []).map((answer) => ({
           id: answer.A_ID,
           text: answer.Answer,
           author: answer.Answer_Author,
+          authorId: answer.Answer_Author_Id,
           time: answer.Answered_On,
-          status: answer.Is_Active === 1 ? "active" : "blocked",
+          status: Number(answer.Is_Active) === 1 ? "active" : "blocked",
         })),
       }));
 

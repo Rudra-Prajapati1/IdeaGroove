@@ -136,7 +136,7 @@ const AdminQnACard = ({ qna, onModerate, onModerateAnswer }) => {
                       <div className="flex items-center gap-6 mb-1">
                         <p className="text-xs font-bold text-gray-800">
                           <button
-                            onClick={() => setSelectedProfileId(qna.authorId)}
+                            onClick={() => setSelectedProfileId(ans.authorId)}
                             title="View student profile"
                             className="group/author flex items-center gap-1.5 hover:text-[#1B431C] transition-colors"
                           >
