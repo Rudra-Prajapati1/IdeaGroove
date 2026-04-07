@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import AdminViewMembers from "./AdminViewMember";
+import api from "../../api/axios";
 
 const formatDisplayDate = (value, fallback = "Recently") => {
   if (!value) return fallback;
@@ -67,22 +68,19 @@ const StudentProfile = ({ id, onClose }) => {
       setProfileError("");
 
       try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/students/profile/${id}`,
-          { signal: controller.signal },
-        );
-
-        if (!res.ok) {
-          throw new Error("Failed to load student profile");
-        }
-
-        const data = await res.json();
+        const { data } = await api.get(`/admin/students/${id}/profile`, {
+          signal: controller.signal,
+        });
         setProfile(data);
       } catch (err) {
         if (err.name === "AbortError") return;
         console.error("Profile refresh error:", err);
         setProfile(null);
-        setProfileError(err.message || "Failed to load student profile");
+        setProfileError(
+          err.response?.data?.error ||
+            err.message ||
+            "Failed to load student profile",
+        );
       } finally {
         if (!controller.signal.aborted) {
           setLoadingProfile(false);
@@ -101,10 +99,12 @@ const StudentProfile = ({ id, onClose }) => {
     const fetchActivities = async () => {
       try {
         setLoadingActivities(true);
-        const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/students/${id}/activities?type=${filter}`,
+        const { data } = await api.get(
+          `/admin/students/${id}/activities`,
+          {
+            params: { type: filter },
+          },
         );
-        const data = await res.json();
         const nextActivities = Array.isArray(data)
           ? data
               .filter(

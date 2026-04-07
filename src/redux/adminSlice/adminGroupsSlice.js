@@ -14,7 +14,7 @@ export const fetchAdminGroups = createAsyncThunk(
   "adminGroups/fetchAdminGroups",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await api.get("/groups?page=1&limit=1000");
+      const { data } = await api.get("/admin/groups");
       const groups = (data?.data || []).map((group) => ({
         id: group.Room_ID,
         Name: group.Room_Name,
@@ -25,7 +25,7 @@ export const fetchAdminGroups = createAsyncThunk(
         Created_On: group.Created_On,
         Member_Count: group.Member_Count,
         Description: group.Description,
-        status: group.Is_Active === 1 ? "active" : "blocked",
+        status: Number(group.Is_Active) === 1 ? "active" : "blocked",
       }));
 
       return { total: data?.pagination?.total || groups.length, items: groups };

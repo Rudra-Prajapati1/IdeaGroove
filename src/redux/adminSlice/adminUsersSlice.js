@@ -14,7 +14,7 @@ export const fetchAdminUsers = createAsyncThunk(
   "adminUsers/fetchAdminUsers",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await api.get("/students/all");
+      const { data } = await api.get("/admin/users");
       return Array.isArray(data) ? data : [];
     } catch (err) {
       return rejectWithValue(
@@ -95,8 +95,8 @@ export const selectAdminUserYearOptions = createSelector(
 );
 
 export const selectAdminUserStats = createSelector(selectAdminUsers, (users) => {
-  const activeCount = users.filter((user) => user.is_Active === 1).length;
-  const inactiveCount = users.filter((user) => user.is_Active !== 1).length;
+  const activeCount = users.filter((user) => Number(user?.is_Active) === 1).length;
+  const inactiveCount = users.filter((user) => Number(user?.is_Active) !== 1).length;
   const degreeCount = new Set(
     users
       .map((user) => user?.Degree?.Degree_Name || user?.Degree_Name)
